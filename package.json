@@ -31,5 +31,8 @@
     "hooks": {
       "pre-commit": "npx lint-staged"
     }
+  },
+  "dependencies": {
+    "google-auth-library": "10.3.0"
   }
 }
