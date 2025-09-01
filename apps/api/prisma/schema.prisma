@@ -28,7 +28,8 @@ model User {
   name      String
   email     String     @unique
   username  String     @unique
-  password  String
+  password  String?
+  googleId  String?    @unique
   role      Role       @default(buyer)
   Products  Product[]  @relation("SellerProducts")
   Wishlist  Wishlist[]

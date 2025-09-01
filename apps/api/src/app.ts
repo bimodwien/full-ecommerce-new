@@ -5,11 +5,13 @@ import express, {
   Request,
   Response,
   NextFunction,
-  Router,
 } from 'express';
 import cors from 'cors';
 import { PORT } from './config';
+import { corsOptions } from './config';
 import { SampleRouter } from './routers/sample.router';
+import { UserRouter } from './routers/user.router';
+import { CategoryRouter } from './routers/category.router';
 
 export default class App {
   private app: Express;
@@ -22,7 +24,7 @@ export default class App {
   }
 
   private configure(): void {
-    this.app.use(cors());
+    this.app.use(cors(corsOptions));
     this.app.use(json());
     this.app.use(urlencoded({ extended: true }));
   }
@@ -52,12 +54,16 @@ export default class App {
 
   private routes(): void {
     const sampleRouter = new SampleRouter();
+    const userRouter = new UserRouter();
+    const categoryRouter = new CategoryRouter();
 
     this.app.get('/api', (req: Request, res: Response) => {
       res.send(`Hello, Welcome to TokoPakBimo API!`);
     });
 
     this.app.use('/api/samples', sampleRouter.getRouter());
+    this.app.use('/api/users', userRouter.getRouter());
+    this.app.use('/api/categories', categoryRouter.getRouter());
   }
 
   public start(): void {
