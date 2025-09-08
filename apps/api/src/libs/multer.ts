@@ -9,12 +9,8 @@ const multerConfig: multer.Options = {
     file: Express.Multer.File,
     cb: FileFilterCallback,
   ) => {
-    if (file.mimetype.split('/')[1] !== 'images') {
+    if (!file.mimetype || !file.mimetype.startsWith('image/')) {
       return cb(new Error('Only image files are allowed'));
-    }
-    const fileSize = parseInt(req.headers['content-length'] || '');
-    if (fileSize > maxSize) {
-      return cb(new Error('File size exceeds 1MB'));
     }
     return cb(null, true);
   },

@@ -19,7 +19,7 @@
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "cypress": "^15.0.0",
+    "cypress": "^15.1.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
     "typescript": "^5"
