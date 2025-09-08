@@ -1,5 +1,7 @@
 import { CategoryController } from '@/controllers/category.controller';
 import { Router } from 'express';
+import { validateToken } from '@/middlewares/auth.middleware';
+import { verifyAdmin } from '@/middlewares/role.middleware';
 
 export class CategoryRouter {
   private router = Router();
@@ -16,14 +18,20 @@ export class CategoryRouter {
     );
     this.router.post(
       '/',
+      validateToken,
+      verifyAdmin,
       this.categoryController.create.bind(this.categoryController),
     );
     this.router.put(
       '/:id',
+      validateToken,
+      verifyAdmin,
       this.categoryController.update.bind(this.categoryController),
     );
     this.router.delete(
       '/:id',
+      validateToken,
+      verifyAdmin,
       this.categoryController.delete.bind(this.categoryController),
     );
   }
