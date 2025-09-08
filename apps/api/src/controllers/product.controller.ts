@@ -41,6 +41,15 @@ export class ProductController {
     }
   }
 
+  async getById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const product = await ProductService.getProductById(req);
+      res.status(200).json({ message: 'Get product success', product });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const product = await ProductBusinessService.deleteProduct(req);
