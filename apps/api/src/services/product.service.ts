@@ -3,7 +3,7 @@ import prisma from '@/prisma';
 import { Prisma } from '@prisma/client';
 import sanitizeProduct, {
   PrismaProductWithRelations,
-  SanitizedProduct,
+  sanitizeProductForList,
 } from './product.helpers';
 
 export type GetProductsOptions = {
@@ -64,9 +64,9 @@ class ProductService {
       }),
     ]);
 
-    // remove large binary fields before returning to clients
+    // remove large binary fields before returning to clients (list: only primary image)
     const sanitizedProducts = products.map((p) =>
-      sanitizeProduct(p as PrismaProductWithRelations),
+      sanitizeProductForList(p as PrismaProductWithRelations),
     );
 
     return {
@@ -112,6 +112,29 @@ class ProductService {
   }
 
   // create/update/delete moved to product.business.service.ts
+
+  // Get single product by id (returns all images)
+  static async getProductById(req: Request) {
+    const id = String(req.params.id || req.query.id || '');
+    if (!id) throw new Error('Product id is required');
+
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        Images: {
+          orderBy: [
+            { isPrimary: 'desc' as Prisma.SortOrder },
+            { createdAt: 'asc' as Prisma.SortOrder },
+          ],
+        },
+        Variants: true,
+        Category: true,
+        seller: { select: { id: true, name: true } },
+      },
+    });
+
+    return sanitizeProduct(product as PrismaProductWithRelations);
+  }
 
   // core render helper (testable) - returns buffer + metadata
   static async renderImage(productId: string) {

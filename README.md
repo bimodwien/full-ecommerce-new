@@ -32,19 +32,22 @@ This README documents the recent product features and developer notes we impleme
 - GET /api/products/category/:categoryId
   - Convenience route for category-filtered listing (supports same query params for pagination/sort).
 
-- GET /api/products/image/:id
   - Streams the image for a `ProductImage.id` (preferred) or falls back to a product's primary image when given a `Product.id`.
   - Sets ETag, Last-Modified and Cache-Control headers. Content-Type is `image/png`.
+    GET /api/products/:id
+  - Returns a single product by `id` with full details and all images (ordered with `isPrimary` first).
+  - Use this endpoint when the frontend needs all product images (gallery view).
+  - Response is sanitized (no raw image `data`); use the included `imageUrl` to fetch each image.
 
-- POST /api/products (requires authentication + admin role)
   - Content-Type: `multipart/form-data`
   - Fields:
-    - `name` (string, required)
-    - `description` (string, optional)
-    - `price` (number, required)
-    - `categoryId` (string, optional)
-    - `variant` (optional) — JSON string or array of variants: [{ "variant": "S", "stock": 10 }, ...]
-    - `image` files (one or more) — form field name `image` (max 5 by default)
+  - Note: list endpoints (`GET /api/products` and `GET /api/products/category/:categoryId`) return only the product's primary image (small payload). Use `GET /api/products/:id` to retrieve all images for a product.
+  - `name` (string, required)
+  - `description` (string, optional)
+  - `price` (number, required)
+  - `categoryId` (string, optional)
+  - `variant` (optional) — JSON string or array of variants: [{ "variant": "S", "stock": 10 }, ...]
+  - `image` files (one or more) — form field name `image` (max 5 by default)
   - Uploaded images are processed (PNG) and stored in DB. First uploaded image is marked `isPrimary` by default.
 
 - PATCH /api/products/:id (requires authentication + admin role)
@@ -56,6 +59,46 @@ This README documents the recent product features and developer notes we impleme
 
 - DELETE /api/products/:id (requires authentication + admin role)
   - Deletes the product and returns the sanitized deleted product payload.
+
+## Category endpoints
+
+- GET /api/categories
+  - Query params: `page`, `limit`, `name`
+  - Returns paginated categories. Public endpoint.
+
+- POST /api/categories (requires authentication + admin role)
+  - Body: JSON `{ "name": "Category Name" }`
+  - Creates a new category.
+
+- PUT /api/categories/:id (requires authentication + admin role)
+  - Body: JSON `{ "name": "New Name" }`
+  - Updates existing category by id.
+
+- DELETE /api/categories/:id (requires authentication + admin role)
+  - Deletes the category by id.
+
+Example curl for categories:
+
+```bash
+# Get categories (paginated)
+curl "http://localhost:8000/api/categories?page=1&limit=10"
+
+# Create category (admin)
+curl -X POST "http://localhost:8000/api/categories" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"New Category"}'
+
+# Update category (admin)
+curl -X PUT "http://localhost:8000/api/categories/<CATEGORY_ID>" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Renamed"}'
+
+# Delete category (admin)
+curl -X DELETE "http://localhost:8000/api/categories/<CATEGORY_ID>" \
+  -H "Authorization: Bearer <TOKEN>"
+```
 
 ## Data shape (sanitized responses)
 

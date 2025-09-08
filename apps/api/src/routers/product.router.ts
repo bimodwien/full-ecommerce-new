@@ -51,6 +51,12 @@ export class ProductRouter {
       this.productController.render.bind(this.productController),
     );
 
+    // Get product by id (full product with all images)
+    this.router.get(
+      '/:id',
+      this.productController.getById.bind(this.productController),
+    );
+
     // Delete product
     this.router.delete(
       '/:id',

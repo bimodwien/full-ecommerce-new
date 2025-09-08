@@ -38,3 +38,34 @@ export function sanitizeProduct(
 }
 
 export default sanitizeProduct;
+
+// Sanitizer optimized for list endpoints: only include the primary image (or first) to keep payload small
+export function sanitizeProductForList(
+  product: PrismaProductWithRelations | null,
+): SanitizedProduct | null {
+  if (!product) return null;
+
+  const base = process.env.API_BASE_URL?.replace(/\/$/, '') || '';
+  const img =
+    (product.Images || []).find((i) => i.isPrimary) || product.Images?.[0];
+  const images = img
+    ? [
+        {
+          id: img.id,
+          isPrimary: img.isPrimary,
+          productId: img.productId,
+          createdAt: img.createdAt,
+          updatedAt: img.updatedAt,
+          imageUrl: `${base}/api/products/image/${img.id}`,
+        },
+      ]
+    : undefined;
+
+  const sanitized = {
+    ...product,
+    description: product.description ?? undefined,
+    Images: images,
+  };
+
+  return sanitized as unknown as SanitizedProduct;
+}
