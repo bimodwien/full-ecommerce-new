@@ -1,76 +1,152 @@
-# Ecommerce New Project
+# Ecommerce (full-ecommerce-new)
 
-This project uses React.js with NextJS for the frontend, Express.js for the backend, and TurboRepo for monorepo management, facilitating rapid development of a scalable web application with streamlined collaboration and efficient server-client interactions.
+This monorepo contains a Next.js frontend (`apps/web`) and an Express + Prisma API (`apps/api`).
 
-## Available Scripts
+This README documents the recent product features and developer notes we implemented in the API: product read/listing, image rendering, and business operations (create, update, delete) with image/variant handling.
 
-### `npm run dev`
+## Quick plan & checklist
 
-Runs the app in the development mode.
+- [x] Document implemented product API endpoints (read, image render)
+- [x] Document multipart create/update/delete behavior and payloads
+- [x] Describe service split: read vs business (create/update/delete)
+- [x] Provide build/run notes and small examples for testing
 
-Open [http://localhost:5173](http://localhost:5173) to view it in the browser. For API, you can access it in [http://localhost:8000/api](http://localhost:8000/api). The app will reload if you make edits.
+## What we implemented
 
-### `npm run build`
+- Product read (listing) with pagination, filtering and sorting (price_asc, price_desc, newest).
+- Product create/update/delete supporting multiple images and product variants.
+- Image processing: uploaded images are processed with sharp (converted to PNG) and stored as Bytes in the database.
+- Image rendering endpoint streams images with caching headers (ETag, Last-Modified, Cache-Control).
+- Responses are sanitized: binary image bytes are removed and each image item includes an `imageUrl` that points to the renderer endpoint.
+- Service split:
+  - `apps/api/src/services/product.service.ts` — read-focused functions (getAll, getByCategory, renderImage/render).
+  - `apps/api/src/services/product.business.service.ts` — business operations (createProduct, updateProduct, deleteProduct).
+  - `apps/api/src/services/product.helpers.ts` — shared helpers/types (sanitizeProduct, types).
 
-Builds the app for production to the `dist` folder for each project.
+## API endpoints (important)
 
-### `npm run serve`
+- GET /api/products
+  - Query params: `page`, `limit`, `name`, `categoryId`, `minPrice`, `maxPrice`, `sort` (`newest|price_asc|price_desc`)
+  - Returns paginated sanitized products (no raw image bytes). Each image has `imageUrl`.
 
-Runs the app in the production mode.
+- GET /api/products/category/:categoryId
+  - Convenience route for category-filtered listing (supports same query params for pagination/sort).
 
-### `npm run <task> --workspace=<app-name>`
+- GET /api/products/image/:id
+  - Streams the image for a `ProductImage.id` (preferred) or falls back to a product's primary image when given a `Product.id`.
+  - Sets ETag, Last-Modified and Cache-Control headers. Content-Type is `image/png`.
 
-Run command on specific app (install package, run test, etc).
+- POST /api/products (requires authentication + admin role)
+  - Content-Type: `multipart/form-data`
+  - Fields:
+    - `name` (string, required)
+    - `description` (string, optional)
+    - `price` (number, required)
+    - `categoryId` (string, optional)
+    - `variant` (optional) — JSON string or array of variants: [{ "variant": "S", "stock": 10 }, ...]
+    - `image` files (one or more) — form field name `image` (max 5 by default)
+  - Uploaded images are processed (PNG) and stored in DB. First uploaded image is marked `isPrimary` by default.
 
-### `npm run <task> --workspace=<app-name> -- --<option>`
+- PATCH /api/products/:id (requires authentication + admin role)
+  - Content-Type: `multipart/form-data`
+  - Fields: same as create. Additional optional fields for updates:
+    - `removeImageIds` — JSON array of image ids to delete
+    - `variantUpdates` — JSON array of variant upserts/updates: [{ id?, variant?, stock? }]
+    - `removeVariantIds` — JSON array of variant ids to delete
 
-Run command on specific app with options.
+- DELETE /api/products/:id (requires authentication + admin role)
+  - Deletes the product and returns the sanitized deleted product payload.
 
-Example : `npm run seqeulize --workspace=api -- --db:migrate`
+## Data shape (sanitized responses)
 
-# Rules
+- Product (partial)
+  - id, name, description?, price, createdAt, updatedAt, seller { id, name }, Category?, Variants[], Images[]
 
-## Commit & Pull Request
+- Image in response
+  - id, isPrimary, productId, createdAt, updatedAt, imageUrl (no `data` field)
 
-- Always use [conventional commit message](https://www.conventionalcommits.org/en/v1.0.0/) when committing changes or creating pull request
-- **"Squash and Merge"** your pull request to main branch
+- Variant
+  - id, variant (string), stock (number), productId
 
-## Naming Convention
+## Image handling details
 
-### REST API
+- Multer is used with a file-filter that accepts only image mimetypes and a file size limit (see `apps/api/src/libs/multer.ts`).
+- Uploaded images are normalized using `sharp(...).png()` before saving to the `ProductImage.data` (Bytes) column in Prisma.
+- The public API does not return raw bytes. Use the `imageUrl` (or GET `/api/products/image/:id`) to fetch the image.
+- The renderer sets ETag and Last-Modified so clients and CDN can cache images. If-None-Match is supported (responds 304).
 
-- Always use [REST API naming convention](https://restfulapi.net/resource-naming/)
+## Service split rationale
 
-### File Naming Conventions:
+- Read operations and rendering are kept in `product.service.ts` so they are small and testable (pure DB reads + transform).
+- Create/Update/Delete and any heavy business logic (file processing, transactional flows) live in `product.business.service.ts`.
+- Shared sanitize logic and type aliases live in `product.helpers.ts`.
 
-1. **Use CamelCase for filenames:**
-   - Begin filenames with a lowercase letter.
-   - For multiple words, capitalize the first letter of each subsequent word.
-   - Example: `index.js`, `userModel.js`, `dataAccess.js`
+## How to run API (local dev)
 
-2. **Use Descriptive Names:**
-   - Choose names that accurately describe the file's purpose or content.
-   - Avoid overly generic names like `utils.js` unless the file genuinely contains utility functions.
+1. Install dependencies (from repo root):
 
-3. **Follow Naming Conventions for Specific File Types:**
-   - For configuration files, use names like `.env`, `config.js`, or `settings.json`.
-   - Use consistent naming for test files, such as appending `.test.js` or `.spec.js` to the filename being tested.
-   - Use `package.json` for the project's metadata and dependencies.
+```bash
+# from repo root
+npm install
+# install in the api workspace if needed
+cd apps/api && npm install
+```
 
-4. **Separate Concerns with File Naming:**
-   - Follow a modular structure for different concerns (e.g., `userController.js`, `userService.js`, `userModel.js` for a user-related module).
+2. Run API in dev (hot reload):
 
-### Folder Naming Conventions:
+```bash
+cd apps/api
+npm run dev
+```
 
-1. **Use Singular or Plural Naming:**
-   - Choose a consistent convention for naming folders (e.g., `models` or `model`, `routes` or `route`).
+3. Build and serve production bundle:
 
-2. **Avoid Special Characters and Spaces:**
-   - Use hyphens (`-`) or underscores (`_`) for separating words in folder names, but avoid spaces or special characters.
+```bash
+cd apps/api
+npm run build
+npm run serve
+```
 
-3. **Use Descriptive Names for Folders:**
-   - Name folders according to their content or purpose (e.g., `controllers`, `services`, `utils`, `tests`, `public`, `views`, etc.).
+## Example requests (curl / bash)
 
-4. **Nested Folder Structure:**
-   - Create a logical and organized folder structure based on the project's architecture.
-   - For larger projects, consider organizing files by features/modules (Feature-Based Structure) or layer-based (Layered Structure).
+- Create product (multipart):
+
+```bash
+curl -X POST "http://localhost:8000/api/products" \
+   -H "Authorization: Bearer <TOKEN>" \
+   -F "name=My Product" \
+   -F "price=12000" \
+   -F "variant=[{\"variant\":\"S\",\"stock\":10}]" \
+   -F "image=@./images/1.jpg" \
+   -F "image=@./images/2.jpg"
+```
+
+- Update product (add images + remove image ids):
+
+```bash
+curl -X PATCH "http://localhost:8000/api/products/<PRODUCT_ID>" \
+   -H "Authorization: Bearer <TOKEN>" \
+   -F "name=Updated name" \
+   -F "removeImageIds=[\"img-id-1\"]" \
+   -F "image=@./images/new.jpg"
+```
+
+- Delete product:
+
+```bash
+curl -X DELETE "http://localhost:8000/api/products/<PRODUCT_ID>" \
+   -H "Authorization: Bearer <TOKEN>"
+```
+
+## Environment variables
+
+- `API_BASE_URL` (optional) — used to build absolute `imageUrl` values; if not set the service returns relative `imageUrl` paths.
+- Standard `.env` for database connection and JWT secrets (see `apps/api/.env.example` if present).
+
+## Developer notes & next steps
+
+- We added ETag/Last-Modified caching on the image renderer; frontends should honor 304 responses to avoid re-downloading.
+- Consider adding small integration tests for create/update/delete flows (supertest + jest) to avoid regressions.
+- If you want to offload images to object storage (S3) later, move processing to the business service and store only URLs in `ProductImage`.
+
+Questions or want me to add a short test harness or Postman collection before we pause? I can add one next.
