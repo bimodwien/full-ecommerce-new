@@ -65,6 +65,15 @@ class ProductBusinessService {
         }
       }
 
+      // validate duplicates in variantsCreate payload (if any)
+      if (variantsCreate && Array.isArray(variantsCreate.create)) {
+        const names = (variantsCreate.create as any[]).map((x) =>
+          String(x.variant).trim(),
+        );
+        const dup = names.find((n, i) => names.indexOf(n) !== i);
+        if (dup) throw new Error(`Duplicate variant name in payload: ${dup}`);
+      }
+
       const createData: Prisma.ProductCreateInput = {
         name,
         description: description ?? undefined,
@@ -154,6 +163,15 @@ class ProductBusinessService {
         }
       }
 
+      // validate duplicates in variantsCreate payload (if provided during update)
+      if (variantsCreate && Array.isArray(variantsCreate.create)) {
+        const names = (variantsCreate.create as any[]).map((x) =>
+          String(x.variant).trim(),
+        );
+        const dup = names.find((n, i) => names.indexOf(n) !== i);
+        if (dup) throw new Error(`Duplicate variant name in payload: ${dup}`);
+      }
+
       const variantUpdatesRaw = req.body.variantUpdates;
       let variantUpdates:
         | Array<{ id?: string; variant?: string; stock?: number }>
@@ -212,7 +230,32 @@ class ProductBusinessService {
         Array.isArray(variantUpdates) &&
         variantUpdates.length > 0
       ) {
+        // validate against existing variants and duplicates within payload
+        const existingVariants = await prisma.productVariant.findMany({
+          where: { productId },
+          select: { id: true, variant: true },
+        });
+        const existingMap = new Map(
+          existingVariants.map((e) => [e.variant, e.id]),
+        );
+        const seen = new Set<string>();
+
         for (const v of variantUpdates) {
+          const name = v.variant ? String(v.variant).trim() : undefined;
+          if (name) {
+            if (seen.has(name)) {
+              throw new Error(`Duplicate variant name in payload: ${name}`);
+            }
+            seen.add(name);
+
+            const existingId = existingMap.get(name);
+            if (existingId && existingId !== v.id) {
+              throw new Error(
+                `Variant name already exists for this product: ${name}`,
+              );
+            }
+          }
+
           if (v.id) {
             await prisma.productVariant.update({
               where: { id: v.id },
@@ -222,6 +265,7 @@ class ProductBusinessService {
               },
             });
           } else {
+            // creating a new variant; ensure it doesn't exist (checked above against existingMap)
             await prisma.productVariant.create({
               data: {
                 variant: String(v.variant ?? ''),

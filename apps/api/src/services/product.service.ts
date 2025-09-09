@@ -56,8 +56,13 @@ class ProductService {
         take: limit,
         orderBy,
         include: {
-          Images: true,
-          Variants: true,
+          Images: {
+            orderBy: [
+              { isPrimary: 'desc' as Prisma.SortOrder },
+              { createdAt: 'asc' as Prisma.SortOrder },
+            ],
+            take: 1,
+          },
           Category: true,
           seller: { select: { id: true, name: true } },
         },

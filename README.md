@@ -105,8 +105,110 @@ curl -X DELETE "http://localhost:8000/api/categories/<CATEGORY_ID>" \
 - Product (partial)
   - id, name, description?, price, createdAt, updatedAt, seller { id, name }, Category?, Variants[], Images[]
 
+## Wishlists
+
+- GET /api/wishlists (requires authentication + user role)
+  - Query params: `page`, `limit`
+  - Returns paginated wishlist items for the authenticated user. Each item includes a sanitized `Product` (only the product's primary image is included to keep payload small) and `Variant` if the wishlist was created for a specific variant.
+
+- POST /api/wishlists (requires authentication + user role)
+  - Body JSON: `{ "productId": "<PRODUCT_ID>", "variantId": "<VARIANT_ID?" }`
+  - Creates a wishlist entry and returns the created item with `id` (useful for later deletes).
+
+- POST /api/wishlists/toggle (requires authentication + user role)
+  - Body JSON: `{ "productId": "<PRODUCT_ID>", "variantId": "<VARIANT_ID?" }`
+  - Atomically toggles the wishlist entry: if an entry exists (same user/product/variant) it will be deleted, otherwise it will be created. Response shape:
+    - `{ "action": "created" | "deleted", "wishlist": { ... } }`
+  - Recommended for use on listing pages where frontend wants a single request per click and to avoid race conditions.
+
+- DELETE /api/wishlists/:id (requires authentication + user role)
+  - Deletes the wishlist item by id. Useful on the wishlist page where you have the `wishlist.id`.
+
+Example cURL for wishlists:
+
+```bash
+# Toggle (create-if-not-exists / delete-if-exists)
+curl -X POST "http://localhost:8000/api/wishlists/toggle" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"productId":"prod_123"}'
+
+# Create wishlist (detail page)
+curl -X POST "http://localhost:8000/api/wishlists" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"productId":"prod_123"}'
+
+# Delete wishlist (from wishlist page)
+curl -X DELETE "http://localhost:8000/api/wishlists/<WISHLIST_ID>" \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
 - Image in response
   - id, isPrimary, productId, createdAt, updatedAt, imageUrl (no `data` field)
+
+## Carts
+
+- GET /api/carts (requires authentication + user role)
+  - Query params: `page`, `limit`
+  - Returns paginated cart items for the authenticated user. Each item includes a sanitized `Product` (only the product's primary image is included to keep payload small) and the chosen `Variant` (if any).
+
+- POST /api/carts (requires authentication + user role)
+  - Body JSON: `{ "productId": "<PRODUCT_ID>", "variantId": "<VARIANT_ID?>", "quantity": <number?> }`
+  - Intended to be called from the product detail page where the user chooses a variant.
+  - Behavior:
+    - If a cart item for the same user/product/variant already exists, the server will increment its quantity by the provided `quantity` (default 1).
+    - Otherwise it will create a new cart item with the provided `quantity` (default 1).
+
+- PATCH /api/carts/:id (requires authentication + user role)
+  - Body JSON: `{ "quantity": <number> }` or `{ "delta": <number> }`
+  - Use `quantity` to set an absolute quantity, or `delta` to increase/decrease (positive/negative). The server clamps quantity at zero.
+
+- DELETE /api/carts/:id (requires authentication + user role)
+  - Deletes the cart item by id.
+
+Example cURL for carts:
+
+```bash
+# List carts
+curl "http://localhost:8000/api/carts?page=1&limit=10" \
+  -H "Authorization: Bearer <TOKEN>"
+
+# Add to cart (from product detail; include variantId when applicable)
+curl -X POST "http://localhost:8000/api/carts" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"productId":"prod_123","variantId":"var_1","quantity":2}'
+
+# Increment/decrement quantity (delta)
+curl -X PATCH "http://localhost:8000/api/carts/<CART_ID>" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"delta":-1}'
+
+# Set quantity explicitly
+curl -X PATCH "http://localhost:8000/api/carts/<CART_ID>" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"quantity":3}'
+
+# Delete cart item
+curl -X DELETE "http://localhost:8000/api/carts/<CART_ID>" \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
+### Server-side validation (carts)
+
+- Quantity normalization: on create the server treats missing `quantity` as `1`. The server expects a positive integer and will reject non-integer or negative values.
+- Stock checks: when a cart item targets a specific `variantId` the server validates the requested quantity does not exceed that variant's available `stock`. Create and update operations will fail with a clear error message if the requested amount is larger than stock.
+- Increment behavior: `POST /api/carts` will increment an existing cart item's quantity when the same user/product/variant exists; the resulting quantity is also checked against variant stock.
+- Update semantics: `PATCH /api/carts/:id` accepts either `{ "quantity": <number> }` (absolute) or `{ "delta": <number> }` (relative). The server clamps quantities at zero and validates integers.
+- Errors: the API returns clear error messages for validation failures (e.g. "Quantity must be at least 1", "Requested quantity exceeds available stock"). Consider mapping these to HTTP 4xx responses (400/409) in the global error handler for best frontend UX.
+
+UX tips:
+
+- Prefetch variant stock on product detail so the UI can prevent invalid quantities client-side and avoid round trips.
+- Use optimistic updates but revert on error; show friendly messages when a requested quantity exceeds stock.
 
 - Variant
   - id, variant (string), stock (number), productId
@@ -191,5 +293,22 @@ curl -X DELETE "http://localhost:8000/api/products/<PRODUCT_ID>" \
 - We added ETag/Last-Modified caching on the image renderer; frontends should honor 304 responses to avoid re-downloading.
 - Consider adding small integration tests for create/update/delete flows (supertest + jest) to avoid regressions.
 - If you want to offload images to object storage (S3) later, move processing to the business service and store only URLs in `ProductImage`.
+
+### Variant update rules
+
+- You can rename variants via the `variantUpdates` payload when calling `PATCH /api/products/:id` by providing the variant's `id` and a new `variant` value:
+
+  ```json
+  { "variantUpdates": [{ "id": "var_abc", "variant": "XS", "stock": 5 }] }
+  ```
+
+- Validation and constraints:
+  - The database enforces `@@unique([productId, variant])`, so renaming to a name that already exists for the same product will be rejected.
+  - The API performs server-side validation to catch duplicate names in the incoming payload and against existing variants. If a duplicate is detected the API will return an error with a clear message (considered a 409 Conflict at the HTTP layer).
+  - If an update payload omits `id` for a variant entry, the server will create a new variant for that product.
+
+- Recommended client behavior:
+  - Resolve variant `id`s on the frontend when possible (prefetch variants for the product) and send `id` for updates.
+  - Use friendly UI validation to prevent the user from entering a name that already exists for the product.
 
 Questions or want me to add a short test harness or Postman collection before we pause? I can add one next.
