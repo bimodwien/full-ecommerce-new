@@ -23,6 +23,41 @@ This README documents the recent product features and developer notes we impleme
   - `apps/api/src/services/product.business.service.ts` — business operations (createProduct, updateProduct, deleteProduct).
   - `apps/api/src/services/product.helpers.ts` — shared helpers/types (sanitizeProduct, types).
 
+### Product description (Markdown -> sanitized HTML)
+
+- `description` is the source field: it stores product descriptions as Markdown text. When creating or updating a product, send the Markdown in the `description` field (example payload below).
+- `descriptionHtml` is an automatically-generated, sanitized HTML version of `description` produced by the server using the same renderer used by the codebase. The API stores `descriptionHtml` in the database so frontends can display ready-to-render HTML without having to re-render on the client.
+- For new products and product updates the server will automatically generate and persist `descriptionHtml` from `description`. You should NOT need to send `descriptionHtml` from Postman or the frontend — send `description` (Markdown) and the server does the rest.
+
+Backfill (existing products)
+
+- Products created before this feature was added will have `descriptionHtml = null`. To populate HTML for existing products you can either update each product via the normal update API (server will generate the HTML) or run a short backfill script that renders `description` -> `descriptionHtml` for all products that have a Markdown description but no HTML value.
+
+Example (create/update payload — multipart form for file uploads):
+
+```json
+{
+  "name": "My Product",
+  "description": "# Title\n\nSome **Markdown** description.",
+  "price": 12000
+}
+```
+
+Backfill (CLI example):
+
+```bash
+cd apps/api
+# ensure prisma client up-to-date
+npx prisma generate
+# run the backfill script (if provided in this repo)
+node -r ts-node/register scripts/backfill-description-html.ts
+```
+
+Security notes
+
+- The server sanitizes the rendered HTML before storing it to mitigate XSS risks, but defense-in-depth is recommended: still sanitize or use a safe renderer on the client (e.g. DOMPurify) before inserting HTML into the DOM.
+- If you prefer to manage rendering entirely client-side, you can keep only `description` and render on the frontend; storing `descriptionHtml` is an optimization for faster rendering and simpler frontend code.
+
 ## API endpoints (important)
 
 - GET /api/products
@@ -250,6 +285,16 @@ npm run dev
 cd apps/api
 npm run build
 npm run serve
+```
+
+Database migration (after schema changes)
+
+If you update `schema.prisma` (for example to add `descriptionHtml`), run:
+
+```bash
+cd apps/api
+npx prisma migrate dev --name add-description-html
+npx prisma generate
 ```
 
 ## Example requests (curl / bash)

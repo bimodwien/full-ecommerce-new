@@ -60,12 +60,13 @@ model Category {
 // PRODUCT
 // =====================
 model Product {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  price       Decimal  @db.Decimal(12, 2)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  descriptionHtml String?
+  price           Decimal  @db.Decimal(12, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now())
 
   // Relasi ke seller
   seller   User   @relation("SellerProducts", fields: [sellerId], references: [id], onDelete: Cascade)

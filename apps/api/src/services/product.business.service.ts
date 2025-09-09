@@ -3,6 +3,7 @@ import prisma from '@/prisma';
 import sharp from 'sharp';
 import { Prisma } from '@prisma/client';
 import sanitizeProduct, { PrismaProductWithRelations } from './product.helpers';
+import { renderMarkdownToHtml } from '@/libs/markdown';
 
 class ProductBusinessService {
   static async createProduct(req: Request) {
@@ -90,6 +91,10 @@ class ProductBusinessService {
         },
         Variants: variantsCreate,
       };
+
+      // attach rendered & sanitized HTML version of description
+      if (description)
+        createData.descriptionHtml = renderMarkdownToHtml(String(description));
 
       const product = await prisma.product.create({
         data: createData,
@@ -289,8 +294,12 @@ class ProductBusinessService {
 
       const updateData: Prisma.ProductUpdateInput = {} as any;
       if (name) updateData.name = name;
-      if (description !== undefined)
+      if (description !== undefined) {
         updateData.description = description ?? undefined;
+        updateData.descriptionHtml = description
+          ? renderMarkdownToHtml(String(description))
+          : undefined;
+      }
       if (price !== undefined) {
         const priceNum = Number(price);
         if (Number.isNaN(priceNum)) throw new Error('Invalid price');
