@@ -31,6 +31,7 @@ export function sanitizeProduct(
   const sanitized = {
     ...product,
     description: product.description ?? undefined,
+    descriptionHtml: (product as any).descriptionHtml ?? undefined,
     Images: images,
   };
 
@@ -64,6 +65,7 @@ export function sanitizeProductForList(
   const sanitized = {
     ...product,
     description: product.description ?? undefined,
+    descriptionHtml: (product as any).descriptionHtml ?? undefined,
     Images: images,
   };
 
