@@ -161,7 +161,7 @@ curl -X DELETE "http://localhost:8000/api/categories/<CATEGORY_ID>" \
 
 Example cURL for wishlists:
 
-```bash
+````bash
 # Toggle (create-if-not-exists / delete-if-exists)
 curl -X POST "http://localhost:8000/api/wishlists/toggle" \
   -H "Authorization: Bearer <TOKEN>" \
@@ -173,187 +173,160 @@ curl -X POST "http://localhost:8000/api/wishlists" \
   -H "Authorization: Bearer <TOKEN>" \
   -H "Content-Type: application/json" \
   -d '{"productId":"prod_123"}'
+# full-ecommerce-new
 
-# Delete wishlist (from wishlist page)
-curl -X DELETE "http://localhost:8000/api/wishlists/<WISHLIST_ID>" \
-  -H "Authorization: Bearer <TOKEN>"
-```
+Monorepo with a Next.js frontend and an Express + Prisma API. This README is aligned to the features implemented in the API (product read/create/update/delete, image rendering, Markdown -> sanitized HTML description, wishlist, cart).
 
-- Image in response
-  - id, isPrimary, productId, createdAt, updatedAt, imageUrl (no `data` field)
+## TL;DR
+- For product create/update send `description` (Markdown). The server automatically renders and persists `descriptionHtml` (sanitized HTML) and the frontend can render `descriptionHtml` safely (still sanitize on client as defense-in-depth).
+- Product list endpoints intentionally do NOT include `description` or `descriptionHtml`. Use product detail to fetch them.
+- Wishlist and Cart endpoints are available and covered below. Order service is not created.
 
-## Carts
+## What this API implements
+- Product read (paginated list, filtering, sorting) and product detail.
+- Product create/update/delete with images and variants.
+- Image processing using `sharp` (stored as PNG bytes) and an image renderer endpoint that streams images with caching headers (ETag, Last-Modified, Cache-Control).
+- Markdown -> sanitized HTML: backend uses `markdown-it` + `sanitize-html` to produce `descriptionHtml` from `description` on create/update.
+- Responses are sanitized: raw image bytes (`ProductImage.data`) are removed and each image object includes an `imageUrl` to fetch the image.
+- Wishlist CRUD + toggle endpoint (atomic toggle semantics).
+- Cart CRUD with server-side quantity normalization and variant stock validation.
 
-- GET /api/carts (requires authentication + user role)
-  - Query params: `page`, `limit`
-  - Returns paginated cart items for the authenticated user. Each item includes a sanitized `Product` (only the product's primary image is included to keep payload small) and the chosen `Variant` (if any).
+## Important decision notes
+- List endpoints (GET /api/products, GET /api/products/category/:categoryId) return only minimal product data (no description, only primary image) to keep payloads small.
+- Product detail (GET /api/products/:id) returns full information, including `description` (Markdown source) and `descriptionHtml` (sanitized HTML).
 
-- POST /api/carts (requires authentication + user role)
-  - Body JSON: `{ "productId": "<PRODUCT_ID>", "variantId": "<VARIANT_ID?>", "quantity": <number?> }`
-  - Intended to be called from the product detail page where the user chooses a variant.
-  - Behavior:
-    - If a cart item for the same user/product/variant already exists, the server will increment its quantity by the provided `quantity` (default 1).
-    - Otherwise it will create a new cart item with the provided `quantity` (default 1).
+## Endpoints (summary)
 
-- PATCH /api/carts/:id (requires authentication + user role)
-  - Body JSON: `{ "quantity": <number> }` or `{ "delta": <number> }`
-  - Use `quantity` to set an absolute quantity, or `delta` to increase/decrease (positive/negative). The server clamps quantity at zero.
+Products
+- GET /api/products?page=&limit=&name=&categoryId=&minPrice=&maxPrice=&sort=
+  - Returns paginated products (no descriptions). Primary image only.
+- GET /api/products/:id
+  - Returns full product (all images, variants, description, descriptionHtml).
+- POST /api/products (multipart/form-data) — create product (auth required)
+  - Fields: name (required), description (Markdown), price (required), categoryId, variant (JSON array/string), image files (`image` form field)
+- PATCH /api/products/:id (multipart/form-data) — update (auth required)
+  - Same fields as create. Optional: `removeImageIds`, `variantUpdates` (array), `removeVariantIds`.
+- DELETE /api/products/:id (auth required)
 
-- DELETE /api/carts/:id (requires authentication + user role)
-  - Deletes the cart item by id.
+Images
+- GET /api/products/image/:id
+  - Streams image by ProductImage.id or falls back to a product's primary image if you pass a product id. Sets ETag and Last-Modified.
 
-Example cURL for carts:
+Wishlists
+- GET /api/wishlists?page=&limit= (auth)
+- POST /api/wishlists — create (auth)
+  - Body: { productId, variantId? }
+- POST /api/wishlists/toggle — toggle (auth)
+  - Body: { productId, variantId? } — returns { action: 'created'|'deleted', wishlist }
+- DELETE /api/wishlists/:id (auth)
 
+Carts
+- GET /api/carts?page=&limit= (auth)
+- POST /api/carts — add/increment (auth)
+  - Body: { productId, variantId?, quantity? } (quantity defaults to 1)
+- PATCH /api/carts/:id — update (auth)
+  - Body: { quantity } (absolute) or { delta } (relative)
+- DELETE /api/carts/:id (auth)
+
+Notes: Cart create/update enforces variant stock and validates integers.
+
+## How to test (Postman / curl)
+
+1) Authentication
+- Most endpoints require an authenticated user. In Postman set an environment variable `{{API_BASE}}` (e.g. `http://localhost:8000`) and `{{AUTH_TOKEN}}` for a user's JWT.
+- Add header: `Authorization: Bearer {{AUTH_TOKEN}}` to requests that require auth.
+
+2) Wishlist examples (Postman)
+- Toggle wishlist (recommended):
+  - Method: POST
+  - URL: {{API_BASE}}/api/wishlists/toggle
+  - Body: raw JSON `{ "productId": "<PRODUCT_ID>", "variantId": "<VARIANT_ID?>" }`
+
+- Create wishlist (explicit):
+  - POST {{API_BASE}}/api/wishlists
+  - Body: `{ "productId": "<PRODUCT_ID>" }`
+
+- List wishlists:
+  - GET {{API_BASE}}/api/wishlists?page=1&limit=10
+
+3) Cart examples (Postman)
+- Add to cart / increment:
+  - POST {{API_BASE}}/api/carts
+  - Body: `{ "productId": "<PRODUCT_ID>", "variantId": "<VARIANT_ID?>", "quantity": 2 }`
+
+- Update cart quantity:
+  - PATCH {{API_BASE}}/api/carts/<CART_ID>
+  - Body: `{ "quantity": 3 }` or `{ "delta": -1 }`
+
+- List carts:
+  - GET {{API_BASE}}/api/carts?page=1&limit=10
+
+Quick curl examples
 ```bash
-# List carts
-curl "http://localhost:8000/api/carts?page=1&limit=10" \
-  -H "Authorization: Bearer <TOKEN>"
+# Toggle wishlist
+curl -X POST "${API_BASE:-http://localhost:8000}/api/wishlists/toggle" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"productId":"prod_123"}'
 
-# Add to cart (from product detail; include variantId when applicable)
-curl -X POST "http://localhost:8000/api/carts" \
-  -H "Authorization: Bearer <TOKEN>" \
+# Add to cart
+curl -X POST "${API_BASE:-http://localhost:8000}/api/carts" \
+  -H "Authorization: Bearer ${TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"productId":"prod_123","variantId":"var_1","quantity":2}'
+````
 
-# Increment/decrement quantity (delta)
-curl -X PATCH "http://localhost:8000/api/carts/<CART_ID>" \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"delta":-1}'
+## Create / Update product (notes)
 
-# Set quantity explicitly
-curl -X PATCH "http://localhost:8000/api/carts/<CART_ID>" \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"quantity":3}'
+- Send `description` as Markdown. The server will render and sanitize HTML and persist it to `descriptionHtml`.
+- Product list endpoints intentionally do not include `description` or `descriptionHtml` — use product detail for full content.
 
-# Delete cart item
-curl -X DELETE "http://localhost:8000/api/carts/<CART_ID>" \
-  -H "Authorization: Bearer <TOKEN>"
-```
-
-### Server-side validation (carts)
-
-- Quantity normalization: on create the server treats missing `quantity` as `1`. The server expects a positive integer and will reject non-integer or negative values.
-- Stock checks: when a cart item targets a specific `variantId` the server validates the requested quantity does not exceed that variant's available `stock`. Create and update operations will fail with a clear error message if the requested amount is larger than stock.
-- Increment behavior: `POST /api/carts` will increment an existing cart item's quantity when the same user/product/variant exists; the resulting quantity is also checked against variant stock.
-- Update semantics: `PATCH /api/carts/:id` accepts either `{ "quantity": <number> }` (absolute) or `{ "delta": <number> }` (relative). The server clamps quantities at zero and validates integers.
-- Errors: the API returns clear error messages for validation failures (e.g. "Quantity must be at least 1", "Requested quantity exceeds available stock"). Consider mapping these to HTTP 4xx responses (400/409) in the global error handler for best frontend UX.
-
-UX tips:
-
-- Prefetch variant stock on product detail so the UI can prevent invalid quantities client-side and avoid round trips.
-- Use optimistic updates but revert on error; show friendly messages when a requested quantity exceeds stock.
-
-- Variant
-  - id, variant (string), stock (number), productId
-
-## Image handling details
-
-- Multer is used with a file-filter that accepts only image mimetypes and a file size limit (see `apps/api/src/libs/multer.ts`).
-- Uploaded images are normalized using `sharp(...).png()` before saving to the `ProductImage.data` (Bytes) column in Prisma.
-- The public API does not return raw bytes. Use the `imageUrl` (or GET `/api/products/image/:id`) to fetch the image.
-- The renderer sets ETag and Last-Modified so clients and CDN can cache images. If-None-Match is supported (responds 304).
-
-## Service split rationale
-
-- Read operations and rendering are kept in `product.service.ts` so they are small and testable (pure DB reads + transform).
-- Create/Update/Delete and any heavy business logic (file processing, transactional flows) live in `product.business.service.ts`.
-- Shared sanitize logic and type aliases live in `product.helpers.ts`.
-
-## How to run API (local dev)
-
-1. Install dependencies (from repo root):
-
-```bash
-# from repo root
-npm install
-# install in the api workspace if needed
-cd apps/api && npm install
-```
-
-2. Run API in dev (hot reload):
-
-```bash
-cd apps/api
-npm run dev
-```
-
-3. Build and serve production bundle:
-
-```bash
-cd apps/api
-npm run build
-npm run serve
-```
-
-Database migration (after schema changes)
-
-If you update `schema.prisma` (for example to add `descriptionHtml`), run:
-
-```bash
-cd apps/api
-npx prisma migrate dev --name add-description-html
-npx prisma generate
-```
-
-## Example requests (curl / bash)
-
-- Create product (multipart):
+Example multipart create (curl)
 
 ```bash
 curl -X POST "http://localhost:8000/api/products" \
-   -H "Authorization: Bearer <TOKEN>" \
-   -F "name=My Product" \
-   -F "price=12000" \
-   -F "variant=[{\"variant\":\"S\",\"stock\":10}]" \
-   -F "image=@./images/1.jpg" \
-   -F "image=@./images/2.jpg"
+  -H "Authorization: Bearer <TOKEN>" \
+  -F "name=My Product" \
+  -F "price=12000" \
+  -F "description=# Title\n\nSome markdown text" \
+  -F "variant=[{\"variant\":\"S\",\"stock\":10}]" \
+  -F "image=@./images/1.jpg"
 ```
 
-- Update product (add images + remove image ids):
+## Backfill existing products
+
+If you added `descriptionHtml` later, existing products may have `descriptionHtml = null`. To populate it for all existing products you can either update products via the API or run a backfill script.
+
+Backfill (example):
 
 ```bash
-curl -X PATCH "http://localhost:8000/api/products/<PRODUCT_ID>" \
-   -H "Authorization: Bearer <TOKEN>" \
-   -F "name=Updated name" \
-   -F "removeImageIds=[\"img-id-1\"]" \
-   -F "image=@./images/new.jpg"
+cd apps/api
+npx prisma generate
+# run the backfill script (if present)
+node -r ts-node/register scripts/backfill-description-html.ts
 ```
 
-- Delete product:
+## Developer notes
 
-```bash
-curl -X DELETE "http://localhost:8000/api/products/<PRODUCT_ID>" \
-   -H "Authorization: Bearer <TOKEN>"
-```
+- Files of interest:
+  - `apps/api/src/services/product.service.ts` — read operations and image render helper
+  - `apps/api/src/services/product.business.service.ts` — create/update/delete business logic (image processing, variant handling)
+  - `apps/api/src/services/product.helpers.ts` — sanitizers used by list and detail responses
+  - `apps/api/src/libs/markdown.ts` — server-side markdown render + sanitize helper
+  - `apps/api/prisma/schema.prisma` — DB schema (includes `descriptionHtml`)
 
-## Environment variables
+- TypeScript & Prisma:
+  - After changing `schema.prisma` run `npx prisma migrate dev` and `npx prisma generate` to update client types.
+  - We temporarily used casts while types were regenerating; these have been cleaned up.
 
-- `API_BASE_URL` (optional) — used to build absolute `imageUrl` values; if not set the service returns relative `imageUrl` paths.
-- Standard `.env` for database connection and JWT secrets (see `apps/api/.env.example` if present).
+## Security
 
-## Developer notes & next steps
+- The server sanitizes rendered HTML before persisting it. Still sanitize again on the client before injecting HTML (use DOMPurify) as defense-in-depth.
 
-- We added ETag/Last-Modified caching on the image renderer; frontends should honor 304 responses to avoid re-downloading.
-- Consider adding small integration tests for create/update/delete flows (supertest + jest) to avoid regressions.
-- If you want to offload images to object storage (S3) later, move processing to the business service and store only URLs in `ProductImage`.
+## Next steps (suggested)
 
-### Variant update rules
+- Add a small Postman collection to the repo for quick QA (I can add it if you want).
+- Add integration tests for product create/update/delete and wishlist/cart flows (supertest + jest).
+- Consider moving images to object storage (S3) for scale.
 
-- You can rename variants via the `variantUpdates` payload when calling `PATCH /api/products/:id` by providing the variant's `id` and a new `variant` value:
-
-  ```json
-  { "variantUpdates": [{ "id": "var_abc", "variant": "XS", "stock": 5 }] }
-  ```
-
-- Validation and constraints:
-  - The database enforces `@@unique([productId, variant])`, so renaming to a name that already exists for the same product will be rejected.
-  - The API performs server-side validation to catch duplicate names in the incoming payload and against existing variants. If a duplicate is detected the API will return an error with a clear message (considered a 409 Conflict at the HTTP layer).
-  - If an update payload omits `id` for a variant entry, the server will create a new variant for that product.
-
-- Recommended client behavior:
-  - Resolve variant `id`s on the frontend when possible (prefetch variants for the product) and send `id` for updates.
-  - Use friendly UI validation to prevent the user from entering a name that already exists for the product.
-
-Questions or want me to add a short test harness or Postman collection before we pause? I can add one next.
+If you'd like, I can add a Postman collection and an npm script for backfill (`backfill:descriptionHtml`). Tell me which you prefer and I'll add them.
