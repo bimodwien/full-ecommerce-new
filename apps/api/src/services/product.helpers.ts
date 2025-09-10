@@ -29,9 +29,16 @@ export function sanitizeProduct(
   });
 
   const sanitized = {
-    ...product,
-    description: product.description ?? undefined,
-    descriptionHtml: (product as any).descriptionHtml ?? undefined,
+    // exclude description fields from list payloads (detail endpoint includes them)
+    ...(() => {
+      const {
+        description,
+        descriptionHtml,
+        Images: _img,
+        ...rest
+      } = product as any;
+      return rest;
+    })(),
     Images: images,
   };
 
@@ -63,9 +70,16 @@ export function sanitizeProductForList(
     : undefined;
 
   const sanitized = {
-    ...product,
-    description: product.description ?? undefined,
-    descriptionHtml: (product as any).descriptionHtml ?? undefined,
+    // exclude description fields from list payloads (detail endpoint includes them)
+    ...(() => {
+      const {
+        description,
+        descriptionHtml,
+        Images: _img,
+        ...rest
+      } = product as any;
+      return rest;
+    })(),
     Images: images,
   };
 
