@@ -1,4 +1,5 @@
 import { TUser } from './user.model';
+import { TotalStock } from '@prisma/client';
 import { TCategory } from './category.model';
 import { TProductImage } from './productImage.model';
 import { TProductVariant } from './productVariant.model';
@@ -20,6 +21,9 @@ export type TProduct = {
   Category?: TCategory;
   Images?: TProductImage[];
   Variants?: TProductVariant[];
+  // aggregated stock information (computed server-side)
+  stockTotal?: number;
+  stockStatus?: TotalStock;
   Wishlist?: TWishlist[];
   Cart?: TCart[];
   OrderItems?: TOrderItem[];

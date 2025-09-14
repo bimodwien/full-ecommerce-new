@@ -63,6 +63,8 @@ class ProductService {
             ],
             take: 1,
           },
+          // include variant stock to compute aggregated stock for list
+          Variants: { select: { stock: true } },
           Category: true,
           seller: { select: { id: true, name: true } },
         },
