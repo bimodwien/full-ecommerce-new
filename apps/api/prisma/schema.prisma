@@ -221,3 +221,9 @@ enum OrderStatus {
   COMPLETED
   CANCELLED
 }
+
+enum TotalStock {
+  IN_STOCK
+  OUT_OF_STOCK
+  LOW_STOCK
+}

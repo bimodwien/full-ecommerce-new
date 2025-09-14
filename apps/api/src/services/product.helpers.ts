@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, TotalStock } from '@prisma/client';
 import { TProduct } from '@/models/product.model';
 import { TProductImage } from '@/models/productImage.model';
 
@@ -29,17 +29,22 @@ export function sanitizeProduct(
   });
 
   const sanitized = {
-    // exclude description fields from list payloads (detail endpoint includes them)
-    ...(() => {
-      const {
-        description,
-        descriptionHtml,
-        Images: _img,
-        ...rest
-      } = product as any;
-      return rest;
-    })(),
+    // include description fields for detail responses
+    ...product,
+    description: product.description ?? undefined,
+    descriptionHtml: (product as any).descriptionHtml ?? undefined,
     Images: images,
+    stockTotal: Array.isArray(product.Variants)
+      ? product.Variants.reduce((s, v) => s + (v.stock ?? 0), 0)
+      : undefined,
+    stockStatus: (() => {
+      const total = Array.isArray(product.Variants)
+        ? product.Variants.reduce((s, v) => s + (v.stock ?? 0), 0)
+        : 0;
+      if (total <= 0) return TotalStock.OUT_OF_STOCK;
+      if (total < 5) return TotalStock.LOW_STOCK;
+      return TotalStock.IN_STOCK;
+    })(),
   };
 
   return sanitized as unknown as SanitizedProduct;
@@ -76,11 +81,23 @@ export function sanitizeProductForList(
         description,
         descriptionHtml,
         Images: _img,
+        Variants: _v,
         ...rest
       } = product as any;
       return rest;
     })(),
     Images: images,
+    stockTotal: Array.isArray(product.Variants)
+      ? product.Variants.reduce((s, v) => s + (v.stock ?? 0), 0)
+      : undefined,
+    stockStatus: (() => {
+      const total = Array.isArray(product.Variants)
+        ? product.Variants.reduce((s, v) => s + (v.stock ?? 0), 0)
+        : 0;
+      if (total <= 0) return TotalStock.OUT_OF_STOCK;
+      if (total < 5) return TotalStock.LOW_STOCK;
+      return TotalStock.IN_STOCK;
+    })(),
   };
 
   return sanitized as unknown as SanitizedProduct;
