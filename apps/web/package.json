@@ -10,20 +10,33 @@
     "test": "npx cypress verify & cypress run --component"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "2.9.0",
+    "axios": "1.12.2",
+    "cookies-next": "6.1.0",
     "cross-env": "^10.0.0",
     "dompurify": "3.2.6",
+    "formik": "2.4.6",
+    "jwt-decode": "4.0.0",
     "markdown-it": "14.1.0",
     "next": "15.5.3",
     "react": "^19",
-    "react-dom": "^19"
+    "react-dom": "^19",
+    "react-redux": "9.2.0",
+    "redux": "5.0.1",
+    "use-debounce": "10.0.6",
+    "yup": "1.7.0",
+    "yup-password": "0.4.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "4.1.13",
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "cypress": "^15.2.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
+    "postcss": "8.4.31",
+    "tailwindcss": "4.1.13",
     "typescript": "^5"
   }
 }
