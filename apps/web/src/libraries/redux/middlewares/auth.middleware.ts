@@ -5,7 +5,10 @@ import { TUser } from '@/models/user.model';
 import { getCookie, deleteCookie } from 'cookies-next';
 import { jwtDecode } from 'jwt-decode';
 
-export const userLogin = ({ username, password }: TUser) => {
+export const userLogin = ({
+  username,
+  password,
+}: Pick<TUser, 'username' | 'password'>) => {
   return async (dispatch: Dispatch) => {
     try {
       const response = await axiosInstance().post(
@@ -54,4 +57,24 @@ export const keepLogin = () => async (dispatch: Dispatch) => {
     deleteCookie('access_token');
     deleteCookie('refresh_token');
   }
+};
+
+// --- Registration thunk ---
+type TRegisterPayload = Pick<
+  TUser,
+  'name' | 'username' | 'email' | 'password' | 'role'
+>;
+
+export const userRegister = (payload: TRegisterPayload) => {
+  return async (_dispatch: Dispatch) => {
+    try {
+      const response = await axiosInstance().post('/users/register', payload, {
+        withCredentials: true,
+      });
+      return { success: true, user: response.data?.user };
+    } catch (error) {
+      console.error('Register failed: ', error);
+      throw error;
+    }
+  };
 };

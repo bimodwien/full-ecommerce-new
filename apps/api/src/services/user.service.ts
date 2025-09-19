@@ -4,13 +4,14 @@ import { TUser } from '@/models/user.model';
 import { hashPassword, comparePasswords } from '@/libs/bcrypt';
 import { createToken } from '@/libs/jwt';
 import { Prisma } from '@prisma/client';
+import AppError from '@/libs/appError';
 
 class UserService {
   static async createUser(req: Request) {
     const { name, username, email, password, role } = req.body as TUser;
 
     if (!['buyer', 'seller'].includes(role)) {
-      throw new Error('Invalid role');
+      throw new AppError('Invalid role', 400);
     }
 
     const existingUser = await prisma.user.findFirst({
@@ -20,7 +21,7 @@ class UserService {
     });
 
     if (existingUser) {
-      throw new Error('User already exists');
+      throw new AppError('User already exists', 409);
     }
 
     const hashed = await hashPassword(String(password));
@@ -55,7 +56,7 @@ class UserService {
     })) as TUser;
 
     if (!user) {
-      throw new Error('User not found');
+      throw new AppError('User not found', 404);
     }
 
     // check password
@@ -64,7 +65,7 @@ class UserService {
       String(user.password),
     );
     if (!isPasswordValid) {
-      throw new Error('Invalid password');
+      throw new AppError('Invalid password', 401);
     }
 
     // delete password for security

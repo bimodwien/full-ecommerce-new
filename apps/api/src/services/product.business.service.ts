@@ -4,6 +4,7 @@ import sharp from 'sharp';
 import { Prisma } from '@prisma/client';
 import sanitizeProduct, { PrismaProductWithRelations } from './product.helpers';
 import { renderMarkdownToHtml } from '@/libs/markdown';
+import AppError from '@/libs/appError';
 
 class ProductBusinessService {
   static async createProduct(req: Request) {
@@ -14,25 +15,26 @@ class ProductBusinessService {
         (req.file ? [req.file as Express.Multer.File] : undefined);
       const sellerId = req.user?.id;
 
-      if (!sellerId) throw new Error('Unauthorized: Seller ID not found');
-      if (!name) throw new Error('Product name is required');
+      if (!sellerId)
+        throw new AppError('Unauthorized: Seller ID not found', 401);
+      if (!name) throw new AppError('Product name is required', 400);
       const priceNum = Number(price);
-      if (Number.isNaN(priceNum)) throw new Error('Invalid price');
+      if (Number.isNaN(priceNum)) throw new AppError('Invalid price', 400);
 
       const existingProduct = await prisma.product.findFirst({
         where: { name },
       });
-      if (existingProduct) throw new Error('Product already exists');
+      if (existingProduct) throw new AppError('Product already exists', 409);
 
       if (categoryId) {
         const category = await prisma.category.findUnique({
           where: { id: String(categoryId) },
         });
-        if (!category) throw new Error('Category not found');
+        if (!category) throw new AppError('Category not found', 404);
       }
 
       if (!files || files.length === 0)
-        throw new Error('Product image is required');
+        throw new AppError('Product image is required', 400);
 
       const imagesCreate: Array<{ data: Buffer; isPrimary?: boolean }> = [];
       for (let i = 0; i < files.length; i++) {
@@ -42,7 +44,8 @@ class ProductBusinessService {
           const fs = await import('fs');
           inputBuffer = fs.readFileSync(f.path as string);
         }
-        if (!inputBuffer) throw new Error('Uploaded file buffer not available');
+        if (!inputBuffer)
+          throw new AppError('Uploaded file buffer not available', 400);
         const processed = await sharp(inputBuffer).png().toBuffer();
         imagesCreate.push({ data: processed, isPrimary: i === 0 });
       }
@@ -62,7 +65,10 @@ class ProductBusinessService {
             };
           }
         } catch (err) {
-          throw new Error('Invalid variant format; expected JSON array');
+          throw new AppError(
+            'Invalid variant format; expected JSON array',
+            400,
+          );
         }
       }
 
@@ -72,7 +78,8 @@ class ProductBusinessService {
           String(x.variant).trim(),
         );
         const dup = names.find((n, i) => names.indexOf(n) !== i);
-        if (dup) throw new Error(`Duplicate variant name in payload: ${dup}`);
+        if (dup)
+          throw new AppError(`Duplicate variant name in payload: ${dup}`, 400);
       }
 
       const createData: Prisma.ProductCreateInput = {
@@ -113,12 +120,12 @@ class ProductBusinessService {
   static async updateProduct(req: Request) {
     return prisma.$transaction(async (prisma) => {
       const productId = String(req.params.id || req.body.id);
-      if (!productId) throw new Error('Product id is required');
+      if (!productId) throw new AppError('Product id is required', 400);
 
       const existing = await prisma.product.findUnique({
         where: { id: productId },
       });
-      if (!existing) throw new Error('Product not found');
+      if (!existing) throw new AppError('Product not found', 404);
 
       const { name, description, price, categoryId, variant, removeImageIds } =
         req.body;
@@ -130,7 +137,7 @@ class ProductBusinessService {
         const category = await prisma.category.findUnique({
           where: { id: String(categoryId) },
         });
-        if (!category) throw new Error('Category not found');
+        if (!category) throw new AppError('Category not found', 404);
       }
 
       const imagesCreate: Array<{ data: Buffer; isPrimary?: boolean }> = [];
@@ -143,7 +150,7 @@ class ProductBusinessService {
             inputBuffer = fs.readFileSync(f.path as string);
           }
           if (!inputBuffer)
-            throw new Error('Uploaded file buffer not available');
+            throw new AppError('Uploaded file buffer not available', 400);
           const processed = await sharp(inputBuffer).png().toBuffer();
           imagesCreate.push({ data: processed, isPrimary: false });
         }
@@ -164,7 +171,10 @@ class ProductBusinessService {
             };
           }
         } catch (err) {
-          throw new Error('Invalid variant format; expected JSON array');
+          throw new AppError(
+            'Invalid variant format; expected JSON array',
+            400,
+          );
         }
       }
 
@@ -174,7 +184,8 @@ class ProductBusinessService {
           String(x.variant).trim(),
         );
         const dup = names.find((n, i) => names.indexOf(n) !== i);
-        if (dup) throw new Error(`Duplicate variant name in payload: ${dup}`);
+        if (dup)
+          throw new AppError(`Duplicate variant name in payload: ${dup}`, 400);
       }
 
       const variantUpdatesRaw = req.body.variantUpdates;
@@ -188,7 +199,10 @@ class ProductBusinessService {
               ? JSON.parse(variantUpdatesRaw)
               : variantUpdatesRaw;
         } catch (err) {
-          throw new Error('Invalid variantUpdates format; expected JSON array');
+          throw new AppError(
+            'Invalid variantUpdates format; expected JSON array',
+            400,
+          );
         }
       }
 
@@ -201,8 +215,9 @@ class ProductBusinessService {
               ? JSON.parse(removeVariantIdsRaw)
               : removeVariantIdsRaw;
         } catch (err) {
-          throw new Error(
+          throw new AppError(
             'Invalid removeVariantIds format; expected JSON array of ids',
+            400,
           );
         }
       }
@@ -215,8 +230,9 @@ class ProductBusinessService {
               ? JSON.parse(removeImageIds)
               : removeImageIds;
         } catch (e) {
-          throw new Error(
+          throw new AppError(
             'Invalid removeImageIds format; expected JSON array of ids',
+            400,
           );
         }
         if (Array.isArray(ids) && ids.length > 0) {
@@ -249,14 +265,18 @@ class ProductBusinessService {
           const name = v.variant ? String(v.variant).trim() : undefined;
           if (name) {
             if (seen.has(name)) {
-              throw new Error(`Duplicate variant name in payload: ${name}`);
+              throw new AppError(
+                `Duplicate variant name in payload: ${name}`,
+                400,
+              );
             }
             seen.add(name);
 
             const existingId = existingMap.get(name);
             if (existingId && existingId !== v.id) {
-              throw new Error(
+              throw new AppError(
                 `Variant name already exists for this product: ${name}`,
+                409,
               );
             }
           }
@@ -302,7 +322,7 @@ class ProductBusinessService {
       }
       if (price !== undefined) {
         const priceNum = Number(price);
-        if (Number.isNaN(priceNum)) throw new Error('Invalid price');
+        if (Number.isNaN(priceNum)) throw new AppError('Invalid price', 400);
         updateData.price = priceNum as any;
       }
       if (categoryId)
@@ -365,7 +385,7 @@ class ProductBusinessService {
   static async deleteProduct(req: Request) {
     return prisma.$transaction(async (prisma) => {
       const id = String(req.params.id || req.body.id || '');
-      if (!id) throw new Error('Product id is required');
+      if (!id) throw new AppError('Product id is required', 400);
 
       const product = await prisma.product.findUnique({
         where: { id },
@@ -376,7 +396,7 @@ class ProductBusinessService {
           seller: { select: { id: true, name: true } },
         },
       });
-      if (!product) throw new Error('Product not found');
+      if (!product) throw new AppError('Product not found', 404);
 
       const sanitized = sanitizeProduct(product as PrismaProductWithRelations);
 

@@ -15,6 +15,7 @@ import { CategoryRouter } from './routers/category.router';
 import { ProductRouter } from './routers/product.router';
 import { WishlistRouter } from './routers/wishlist.router';
 import { CartRouter } from './routers/cart.router';
+import AppError from './libs/appError';
 
 export default class App {
   private app: Express;
@@ -33,24 +34,31 @@ export default class App {
   }
 
   private handleError(): void {
-    // not found
+    // 404 handler
     this.app.use((req: Request, res: Response, next: NextFunction) => {
-      if (req.path.includes('/api/')) {
-        res.status(404).send('Not found !');
-      } else {
-        next();
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ message: 'Not Found' });
       }
+      next();
     });
 
-    // error
+    // Central error handler
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     this.app.use(
-      (err: Error, req: Request, res: Response, next: NextFunction) => {
-        if (req.path.includes('/api/')) {
-          console.error('Error : ', err.stack);
-          res.status(500).send('Error !');
-        } else {
-          next();
+      (err: any, req: Request, res: Response, next: NextFunction) => {
+        if (!req.path.startsWith('/api/')) return next(err);
+
+        const isAppError = err instanceof AppError;
+        const statusCode = isAppError ? err.statusCode : 500;
+        const message = err.message || 'Internal Server Error';
+
+        // Basic logging (could expand with winston later)
+        console.error('[API ERROR]', { statusCode, message, stack: err.stack });
+        if (!isAppError) {
+          // Wrap unknown errors to avoid leaking internals
+          return res.status(500).json({ message: 'Internal Server Error' });
         }
+        return res.status(statusCode).json({ message });
       },
     );
   }

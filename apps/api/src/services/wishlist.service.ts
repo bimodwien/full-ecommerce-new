@@ -4,11 +4,12 @@ import { Prisma } from '@prisma/client';
 import sanitizeProductForList, {
   PrismaProductWithRelations,
 } from './product.helpers';
+import AppError from '@/libs/appError';
 
 class WishlistService {
   static async getAllWishlist(req: Request) {
     const userId = req.user?.id as string;
-    if (!userId) throw new Error('Unauthorized');
+    if (!userId) throw new AppError('Unauthorized', 401);
 
     const page = Math.max(1, Number(req.query.page || 1));
     let limit = Number(req.query.limit || 10);
@@ -69,10 +70,10 @@ class WishlistService {
 
   static async createWishlist(req: Request) {
     const userId = req.user?.id as string;
-    if (!userId) throw new Error('Unauthorized');
+    if (!userId) throw new AppError('Unauthorized', 401);
 
     const { productId, variantId } = req.body;
-    if (!productId) throw new Error('productId is required');
+    if (!productId) throw new AppError('productId is required', 400);
 
     return prisma.$transaction(async (prisma) => {
       // prevent duplicate wishlist entries for same user/product/variant
@@ -83,20 +84,20 @@ class WishlistService {
           variantId: variantId ? String(variantId) : null,
         },
       });
-      if (existingWishlist) throw new Error('Wishlist already exists');
+      if (existingWishlist) throw new AppError('Wishlist already exists', 409);
 
       // validate product
       const product = await prisma.product.findUnique({
         where: { id: String(productId) },
       });
-      if (!product) throw new Error('Product not found');
+      if (!product) throw new AppError('Product not found', 404);
 
       if (variantId) {
         const variant = await prisma.productVariant.findUnique({
           where: { id: String(variantId) },
         });
         if (!variant || variant.productId !== String(productId))
-          throw new Error('Variant not found for product');
+          throw new AppError('Variant not found for product', 404);
       }
 
       // create wishlist entry
@@ -145,10 +146,10 @@ class WishlistService {
 
   static async deleteWishlist(req: Request) {
     const userId = req.user?.id as string;
-    if (!userId) throw new Error('Unauthorized');
+    if (!userId) throw new AppError('Unauthorized', 401);
 
     const id = String(req.params.id || req.body.id || '');
-    if (!id) throw new Error('Wishlist id is required');
+    if (!id) throw new AppError('Wishlist id is required', 400);
 
     return prisma.$transaction(async (prisma) => {
       const existing = await prisma.wishlist.findUnique({
@@ -172,8 +173,8 @@ class WishlistService {
         },
       });
 
-      if (!existing) throw new Error('Wishlist not found');
-      if (existing.userId !== userId) throw new Error('Unauthorized');
+      if (!existing) throw new AppError('Wishlist not found', 404);
+      if (existing.userId !== userId) throw new AppError('Unauthorized', 403);
 
       const prod = existing.Product as PrismaProductWithRelations | null;
       const productSanitized = sanitizeProductForList(prod);
@@ -195,10 +196,10 @@ class WishlistService {
 
   static async toggleWishlist(req: Request) {
     const userId = req.user?.id as string;
-    if (!userId) throw new Error('Unauthorized');
+    if (!userId) throw new AppError('Unauthorized', 401);
 
     const { productId, variantId } = req.body;
-    if (!productId) throw new Error('productId is required');
+    if (!productId) throw new AppError('productId is required', 400);
 
     return prisma.$transaction(async (prisma) => {
       // try to find existing entry first
@@ -251,14 +252,14 @@ class WishlistService {
       const product = await prisma.product.findUnique({
         where: { id: String(productId) },
       });
-      if (!product) throw new Error('Product not found');
+      if (!product) throw new AppError('Product not found', 404);
 
       if (variantId) {
         const variant = await prisma.productVariant.findUnique({
           where: { id: String(variantId) },
         });
         if (!variant || variant.productId !== String(productId))
-          throw new Error('Variant not found for product');
+          throw new AppError('Variant not found for product', 404);
       }
 
       // create wishlist entry

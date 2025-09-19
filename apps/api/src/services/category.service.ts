@@ -1,6 +1,7 @@
 import prisma from '@/prisma';
 import { Prisma } from '@prisma/client';
 import { Request } from 'express';
+import AppError from '@/libs/appError';
 
 class CategoryService {
   static async getAllCategory(req: Request) {
@@ -32,7 +33,7 @@ class CategoryService {
         },
       });
       if (existingCategory) {
-        throw new Error('Category already exists');
+        throw new AppError('Category already exists', 409);
       }
       const data: Prisma.CategoryCreateInput = {
         name,
@@ -51,7 +52,7 @@ class CategoryService {
       const existingCategory = await prisma.category.findUnique({
         where: { id: String(id) },
       });
-      if (!existingCategory) throw new Error('Category not found');
+      if (!existingCategory) throw new AppError('Category not found', 404);
       const data: Prisma.CategoryUpdateInput = {
         name,
       };
@@ -69,7 +70,7 @@ class CategoryService {
       const existingCategory = await prisma.category.findUnique({
         where: { id: String(id) },
       });
-      if (!existingCategory) throw new Error('Category not found');
+      if (!existingCategory) throw new AppError('Category not found', 404);
       await prisma.category.delete({
         where: { id: String(id) },
       });
