@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import prisma from '@/prisma';
 import { Prisma } from '@prisma/client';
+import AppError from '@/libs/appError';
 import sanitizeProductForList, {
   PrismaProductWithRelations,
 } from './product.helpers';
@@ -8,7 +9,7 @@ import sanitizeProductForList, {
 class CartService {
   static async getAllCart(req: Request) {
     const userId = req.user?.id as string;
-    if (!userId) throw new Error('Unauthorized');
+    if (!userId) throw new AppError('Unauthorized', 401);
 
     const page = Math.max(1, Number(req.query.page || 1));
     let limit = Number(req.query.limit || 10);
@@ -68,23 +69,23 @@ class CartService {
 
   static async createCart(req: Request) {
     const userId = req.user?.id as string;
-    if (!userId) throw new Error('Unauthorized');
+    if (!userId) throw new AppError('Unauthorized', 401);
 
     const { productId, variantId, quantity } = req.body;
-    if (!productId) throw new Error('productId is required');
+    if (!productId) throw new AppError('productId is required', 400);
 
     return prisma.$transaction(async (prisma) => {
       const product = await prisma.product.findUnique({
         where: { id: String(productId) },
       });
-      if (!product) throw new Error('Product not found');
+      if (!product) throw new AppError('Product not found', 404);
 
       if (variantId) {
         const variant = await prisma.productVariant.findUnique({
           where: { id: String(variantId) },
         });
         if (!variant || variant.productId !== String(productId))
-          throw new Error('Variant not found for product');
+          throw new AppError('Variant not found for product', 404);
       }
 
       // normalize requested quantity
@@ -95,10 +96,11 @@ class CartService {
         const variantRec = await prisma.productVariant.findUnique({
           where: { id: String(variantId) },
         });
-        if (!variantRec) throw new Error('Variant not found for product');
-        if (reqQty <= 0) throw new Error('Quantity must be at least 1');
+        if (!variantRec)
+          throw new AppError('Variant not found for product', 404);
+        if (reqQty <= 0) throw new AppError('Quantity must be at least 1', 400);
         if (variantRec.stock !== undefined && reqQty > variantRec.stock)
-          throw new Error('Requested quantity exceeds available stock');
+          throw new AppError('Requested quantity exceeds available stock', 400);
       }
 
       // check if cart item exists for same user/product/variant -> if so, increment quantity
@@ -120,7 +122,10 @@ class CartService {
             variantRec2.stock !== undefined &&
             newQty > variantRec2.stock
           )
-            throw new Error('Requested quantity exceeds available stock');
+            throw new AppError(
+              'Requested quantity exceeds available stock',
+              400,
+            );
         }
 
         const updated = await prisma.cart.update({
@@ -205,17 +210,17 @@ class CartService {
 
   static async updateCart(req: Request) {
     const userId = req.user?.id as string;
-    if (!userId) throw new Error('Unauthorized');
+    if (!userId) throw new AppError('Unauthorized', 401);
 
     const id = String(req.params.id || req.body.id || '');
-    if (!id) throw new Error('Cart id is required');
+    if (!id) throw new AppError('Cart id is required', 400);
 
     const { quantity, delta } = req.body;
 
     return prisma.$transaction(async (prisma) => {
       const existing = await prisma.cart.findUnique({ where: { id } });
-      if (!existing) throw new Error('Cart item not found');
-      if (existing.userId !== userId) throw new Error('Unauthorized');
+      if (!existing) throw new AppError('Cart item not found', 404);
+      if (existing.userId !== userId) throw new AppError('Unauthorized', 403);
 
       let newQty = existing.quantity;
       if (delta !== undefined)
@@ -223,7 +228,7 @@ class CartService {
       else if (quantity !== undefined) newQty = Math.max(0, Number(quantity));
 
       if (!Number.isInteger(newQty) || newQty < 0)
-        throw new Error('Quantity must be a non-negative integer');
+        throw new AppError('Quantity must be a non-negative integer', 400);
 
       // if cart item has variant, ensure not exceed stock
       if (existing.variantId) {
@@ -235,7 +240,7 @@ class CartService {
           variantRec.stock !== undefined &&
           newQty > variantRec.stock
         )
-          throw new Error('Requested quantity exceeds available stock');
+          throw new AppError('Requested quantity exceeds available stock', 400);
       }
 
       await prisma.cart.update({ where: { id }, data: { quantity: newQty } });
@@ -281,10 +286,10 @@ class CartService {
 
   static async deleteCart(req: Request) {
     const userId = req.user?.id as string;
-    if (!userId) throw new Error('Unauthorized');
+    if (!userId) throw new AppError('Unauthorized', 401);
 
     const id = String(req.params.id || req.body.id || '');
-    if (!id) throw new Error('Cart id is required');
+    if (!id) throw new AppError('Cart id is required', 400);
 
     return prisma.$transaction(async (prisma) => {
       const existing = await prisma.cart.findUnique({
@@ -306,8 +311,8 @@ class CartService {
           Variant: true,
         },
       });
-      if (!existing) throw new Error('Cart item not found');
-      if (existing.userId !== userId) throw new Error('Unauthorized');
+      if (!existing) throw new AppError('Cart item not found', 404);
+      if (existing.userId !== userId) throw new AppError('Unauthorized', 403);
 
       const prod = existing.Product as PrismaProductWithRelations | null;
       const productSanitized = sanitizeProductForList(prod);

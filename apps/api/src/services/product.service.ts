@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import prisma from '@/prisma';
 import { Prisma } from '@prisma/client';
+import AppError from '@/libs/appError';
 import sanitizeProduct, {
   PrismaProductWithRelations,
   sanitizeProductForList,
@@ -123,7 +124,7 @@ class ProductService {
   // Get single product by id (returns all images)
   static async getProductById(req: Request) {
     const id = String(req.params.id || req.query.id || '');
-    if (!id) throw new Error('Product id is required');
+    if (!id) throw new AppError('Product id is required', 400);
 
     const product = await prisma.product.findUnique({
       where: { id },
@@ -182,7 +183,7 @@ class ProductService {
   static async render(req: Request) {
     const id = String(req.params.id);
     const result = await this.renderImage(id);
-    if (!result) throw new Error('Image not found');
+    if (!result) throw new AppError('Image not found', 404);
 
     // images created by service are PNG; expose contentType for controller
     return {

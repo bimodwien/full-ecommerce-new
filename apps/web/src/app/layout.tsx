@@ -1,6 +1,14 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import StoreProvider from '@/components/providers/store.provider';
+import { Toaster } from '@/components/ui/sonner';
+import { Bebas_Neue } from 'next/font/google';
+
+const bebasNeue = Bebas_Neue({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-bebas-neue',
+});
 
 export const metadata: Metadata = {
   title: 'TokoPakBimo',
@@ -14,8 +22,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className={`${bebasNeue.variable}`}>
         <StoreProvider>{children}</StoreProvider>
+        <Toaster />
       </body>
     </html>
   );
