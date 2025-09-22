@@ -8,8 +8,11 @@ import * as Yup from 'yup';
 import { useAppDispatch } from '@/libraries/redux/hooks';
 import { userRegister } from '@/libraries/redux/middlewares/auth.middleware';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 function RegisterPage() {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,7 +37,9 @@ function RegisterPage() {
     onSubmit: async (values) => {
       setSubmitError(null);
       setIsSubmitting(true);
+      let toastId: string | number | undefined;
       try {
+        toastId = toast.loading('Creating your account...');
         const result = await dispatch(
           // @ts-ignore - depending on thunk typing
           userRegister({
@@ -47,11 +52,37 @@ function RegisterPage() {
         );
         const payload: any = result;
         if (payload?.success) {
-          window.location.href = '/login';
+          toast.success('Registration successful. Please sign in.', {
+            id: toastId,
+          });
+          router.push('/login');
+        } else {
+          toast.error('Register failed', { id: toastId });
         }
       } catch (error: any) {
-        const message =
-          error?.response?.data?.message || error?.message || 'Register failed';
+        // Extract backend error message(s)
+        let message: string = 'Register failed';
+        const data = error?.response?.data;
+        if (typeof data?.message === 'string') {
+          message = data.message;
+        } else if (typeof data?.error === 'string') {
+          message = data.error;
+        } else if (Array.isArray(data?.errors)) {
+          message = data.errors.join(', ');
+        } else if (data && typeof data === 'object') {
+          // Handle possible field error map { field: message }
+          const parts = Object.values(data)
+            .filter((v) => typeof v === 'string')
+            .slice(0, 3) as string[];
+          if (parts.length) message = parts.join(', ');
+        } else if (error?.message) {
+          message = error.message;
+        }
+        if (toastId !== undefined) {
+          toast.error(message, { id: toastId });
+        } else {
+          toast.error(message);
+        }
         setSubmitError(message);
       } finally {
         setIsSubmitting(false);
