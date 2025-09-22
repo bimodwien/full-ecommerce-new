@@ -7,6 +7,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAppDispatch } from '@/libraries/redux/hooks';
 import { userRegister } from '@/libraries/redux/middlewares/auth.middleware';
+import Image from 'next/image';
 
 function RegisterPage() {
   const dispatch = useAppDispatch();
@@ -63,10 +64,12 @@ function RegisterPage() {
       {/* Left Side - Image */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#15AD39]/10 to-[#15AD39]/5 items-center justify-center p-12">
         <div className="max-w-md text-center">
-          <img
+          <Image
             src="/logo.png"
             alt="TokoPakBimo - Premium Sneakers Collection"
             className="w-full h-auto mb-8"
+            width={500}
+            height={500}
           />
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
             Join{' '}

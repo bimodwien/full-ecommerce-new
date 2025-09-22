@@ -4,28 +4,48 @@ import { Request } from 'express';
 import AppError from '@/libs/appError';
 
 class CategoryService {
+  // Capitalize only for output; do not alter DB values
+  private static capitalizeFirst(s: string) {
+    if (!s) return s;
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
   static async getAllCategory(req: Request) {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const page = Math.max(1, Number(req.query.page || 1));
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit || 10)));
     const name = String(req.query.name || '');
-    const categories = await prisma.category.findMany({
-      where: {
-        name: { contains: name },
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-    const total = await prisma.category.count();
+
+    const where: Prisma.CategoryWhereInput = {
+      name: { contains: name, mode: 'insensitive' as Prisma.QueryMode },
+    };
+
+    const [total, rows] = await prisma.$transaction([
+      prisma.category.count({ where }),
+      prisma.category.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        include: { _count: { select: { Product: true } } },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    const categories = rows.map(({ _count, ...c }) => ({
+      ...c,
+      name: CategoryService.capitalizeFirst(c.name),
+      productCount: _count.Product,
+    }));
+
     return {
       categories,
       total,
       page,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit) || 1,
     };
   }
 
   static async createCategory(req: Request) {
-    await prisma.$transaction(async (prisma) => {
+    const created = await prisma.$transaction(async (prisma) => {
       const name = req.body.name;
       const existingCategory = await prisma.category.findFirst({
         where: {
@@ -43,10 +63,12 @@ class CategoryService {
       });
       return newCategory;
     });
+    // Capitalize only in response
+    return { ...created, name: CategoryService.capitalizeFirst(created.name) };
   }
 
   static async editCategory(req: Request) {
-    await prisma.$transaction(async (prisma) => {
+    const updated = await prisma.$transaction(async (prisma) => {
       const id = req.params.id;
       const name = req.body.name;
       const existingCategory = await prisma.category.findUnique({
@@ -62,6 +84,8 @@ class CategoryService {
       });
       return updatedCategory;
     });
+    // Capitalize only in response
+    return { ...updated, name: CategoryService.capitalizeFirst(updated.name) };
   }
 
   static async deleteCategory(req: Request) {
