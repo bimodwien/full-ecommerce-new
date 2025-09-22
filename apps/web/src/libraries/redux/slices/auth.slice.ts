@@ -1,4 +1,4 @@
-import { TUser } from '@/models/user.model';
+import { TUser, Role } from '@/models/user.model';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { deleteCookie } from 'cookies-next';
 
@@ -8,7 +8,6 @@ const initialUser: TUser = {
   email: '',
   username: '',
   password: '',
-  role: '',
 };
 
 export const userSlice = createSlice({
@@ -23,7 +22,8 @@ export const userSlice = createSlice({
         email: action.payload.email || 'NO_EMAIL',
         username: action.payload.username || 'NO_USERNAME',
         password: action.payload.password || 'NO_PASSWORD',
-        role: action.payload.role || 'NO_ROLE',
+        // ensure role conforms to Role union
+        role: action.payload.role as Role,
       };
     },
 
@@ -35,7 +35,7 @@ export const userSlice = createSlice({
       state.email = '';
       state.username = '';
       state.password = '';
-      state.role = '';
+      state.role = undefined;
     },
   },
 });

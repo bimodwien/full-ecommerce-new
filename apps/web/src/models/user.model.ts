@@ -5,7 +5,8 @@ export type TUser = {
   name: string;
   email: string;
   username: string;
-  role: Role;
+  // Role can be absent in logged-out UI state
+  role?: Role;
   googleId?: string | null;
   // Frontend should never persist password; keep optional for forms only
   password?: string;
