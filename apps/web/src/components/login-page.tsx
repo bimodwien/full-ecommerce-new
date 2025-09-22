@@ -8,6 +8,7 @@ import * as Yup from 'yup';
 import { userLogin } from '@/libraries/redux/middlewares/auth.middleware';
 import { useAppDispatch } from '@/libraries/redux/hooks';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 function LoginPage() {
   const dispatch = useAppDispatch();
@@ -52,10 +53,12 @@ function LoginPage() {
       {/* Left Side - Image */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#15AD39]/10 to-[#15AD39]/5 items-center justify-center p-12">
         <div className="max-w-md text-center">
-          <img
+          <Image
             src="/logo.png"
             alt="TokoPakBimo - Premium Sneakers Collection"
             className="w-full h-auto mb-8"
+            width={500}
+            height={500}
           />
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
             Welcome to{' '}
@@ -187,7 +190,7 @@ function LoginPage() {
           {/* Sign Up Link */}
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link
                 href="/register"
                 className="text-[#15AD39] hover:text-[#15AD39]/80 font-medium transition-colors duration-200"
