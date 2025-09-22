@@ -7,11 +7,13 @@ import CategoryTable from '@/components/dashboard/category-table';
 import { Pagination } from '@/components/ui/pagination';
 import { fetchCategory } from '@/helpers/fetch-category';
 import { TCategory } from '@/models/category.model';
+import { useDebounce } from 'use-debounce';
 
 const ITEMS_PER_PAGE = 10;
 
 const Categories = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 1000);
   const [categoriesData, setCategoriesData] = useState<TCategory[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
@@ -22,9 +24,9 @@ const Categories = () => {
 
   const filteredCategories = useMemo(() => {
     return categoriesData.filter((category) =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      category.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()),
     );
-  }, [searchTerm, categoriesData]);
+  }, [debouncedSearchTerm, categoriesData]);
 
   const totalPages = Math.ceil(filteredCategories.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;

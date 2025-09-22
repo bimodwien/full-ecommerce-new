@@ -33,7 +33,10 @@ function LoginPage() {
         );
         // If no error thrown we assume success
         toast.success('Login success', { id });
-        window.location.href = '/';
+        // small delay so the toast is visible before navigating
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
       } catch (error: any) {
         let errorMessage = 'Login failed. Please try again.';
         if (error?.response?.data?.message) {

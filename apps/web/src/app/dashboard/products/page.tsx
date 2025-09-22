@@ -9,6 +9,7 @@ import { fetchProduct } from '@/helpers/fetch-product';
 import { fetchCategory } from '@/helpers/fetch-category';
 import { TProduct } from '@/models/product.model';
 import { TCategory } from '@/models/category.model';
+import { useDebounce } from 'use-debounce';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -25,6 +26,7 @@ type TableProduct = {
 export default function ProductsPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 1000);
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('All Categories');
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,7 +62,7 @@ export default function ProductsPage() {
     return tableProducts.filter((product) => {
       const matchesSearch = product.name
         .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+        .includes(debouncedSearchTerm.toLowerCase());
       const matchesStatus =
         statusFilter === 'all' || product.status === statusFilter;
       const matchesCategory =
@@ -69,7 +71,7 @@ export default function ProductsPage() {
 
       return matchesSearch && matchesStatus && matchesCategory;
     });
-  }, [tableProducts, searchTerm, statusFilter, categoryFilter]);
+  }, [tableProducts, debouncedSearchTerm, statusFilter, categoryFilter]);
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE) || 1;
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
