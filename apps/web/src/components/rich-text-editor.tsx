@@ -6,6 +6,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { Bold, Italic, List, LinkIcon } from 'lucide-react';
 import { Button } from './ui/button';
+import { cn } from '@/lib/utils';
 
 export type RichTextEditorProps = {
   value?: string; // HTML
@@ -41,8 +42,11 @@ export default function RichTextEditor({
     },
     editorProps: {
       attributes: {
-        class:
-          'tiptap-content prose prose-sm max-w-none min-h-[160px] p-3 focus:outline-none',
+        class: cn(
+          'tiptap-content w-full bg-transparent outline-none',
+          // Match shadcn Textarea padding and font sizing
+          'min-h-48 px-3 py-2 text-base md:text-sm',
+        ),
       },
     },
   });
@@ -88,8 +92,14 @@ export default function RichTextEditor({
   };
 
   return (
-    <div className={className}>
-      <div className="border rounded-md">
+    <div className={cn('group', className)}>
+      <div
+        className={cn(
+          // Match shadcn Textarea container look & focus ring
+          'rounded-md border border-input shadow-xs bg-transparent transition-[color,box-shadow]',
+          'focus-within:ring-[3px] focus-within:ring-ring/50 focus-within:border-ring',
+        )}
+      >
         <div className="border-b p-2 flex gap-1">
           {(() => {
             const isBold = editor.isActive('bold');
@@ -162,7 +172,7 @@ export default function RichTextEditor({
         <div className="relative">
           {/* Placeholder overlay when empty and not focused */}
           {editor.isEmpty && !editor.isFocused && (
-            <div className="pointer-events-none absolute inset-0 text-muted-foreground p-3 text-sm select-none">
+            <div className="pointer-events-none absolute inset-0 text-muted-foreground px-3 py-2 text-sm select-none">
               {placeholder}
             </div>
           )}
