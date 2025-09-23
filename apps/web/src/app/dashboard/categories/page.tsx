@@ -59,7 +59,12 @@ const Categories = () => {
         />
       </div>
 
-      <CategoryTable categories={paginatedCategories} />
+      <CategoryTable
+        categories={paginatedCategories}
+        onDeleteSuccess={(id) =>
+          setCategoriesData((prev) => prev.filter((c) => c.id !== id))
+        }
+      />
 
       {filteredCategories.length > 0 && (
         <Pagination

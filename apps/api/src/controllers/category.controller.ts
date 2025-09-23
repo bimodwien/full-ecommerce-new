@@ -14,6 +14,18 @@ export class CategoryController {
     }
   }
 
+  async getById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const category = await CategoryService.getCategoryById(req);
+      res.status(200).json({
+        message: 'Get category success',
+        ...category,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const newCategory = await CategoryService.createCategory(req);
