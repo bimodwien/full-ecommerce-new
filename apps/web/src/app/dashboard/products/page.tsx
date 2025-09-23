@@ -40,7 +40,11 @@ export default function ProductsPage() {
   }, []);
 
   const categories = useMemo(
-    () => ['All Categories', ...categoriesData.map((c) => c.name)],
+    () => [
+      'All Categories',
+      'Uncategorized',
+      ...categoriesData.map((c) => c.name),
+    ],
     [categoriesData],
   );
 
@@ -65,9 +69,15 @@ export default function ProductsPage() {
         .includes(debouncedSearchTerm.toLowerCase());
       const matchesStatus =
         statusFilter === 'all' || product.status === statusFilter;
-      const matchesCategory =
-        categoryFilter === 'All Categories' ||
-        product.category === categoryFilter;
+      const matchesCategory = (() => {
+        if (categoryFilter === 'All Categories') return true;
+        if (categoryFilter === 'Uncategorized')
+          return product.category === 'Uncategorized';
+        return (
+          (product.category || '').trim().toLowerCase() ===
+          (categoryFilter || '').trim().toLowerCase()
+        );
+      })();
 
       return matchesSearch && matchesStatus && matchesCategory;
     });
@@ -100,6 +110,19 @@ export default function ProductsPage() {
     router.push('/dashboard/products/add');
   };
 
+  const handleDeleteSuccess = (id: string) => {
+    setProducts((prev) => prev.filter((p) => String(p.id) !== id));
+    // If current page becomes empty after deletion, move back one page when possible
+    setCurrentPage((prevPage) => {
+      const newFilteredCount = filteredProducts.length - 1;
+      const newTotalPages = Math.max(
+        1,
+        Math.ceil(newFilteredCount / ITEMS_PER_PAGE),
+      );
+      return Math.min(prevPage, newTotalPages);
+    });
+  };
+
   return (
     <div className="p-4 sm:p-6">
       <PageHeader
@@ -118,7 +141,10 @@ export default function ProductsPage() {
         categories={categories}
       />
 
-      <ProductTable products={paginatedProducts} />
+      <ProductTable
+        products={paginatedProducts}
+        onDeleteSuccess={handleDeleteSuccess}
+      />
 
       {filteredProducts.length > 0 && (
         <Pagination

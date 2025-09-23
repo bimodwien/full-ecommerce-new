@@ -19,6 +19,18 @@ import {
 import { Badge } from '../ui/badge';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
+import { deleteProduct } from '@/helpers/fetch-product';
 
 interface Product {
   id: string;
@@ -32,6 +44,7 @@ interface Product {
 
 interface ProductTableProps {
   products: Product[];
+  onDeleteSuccess?: (id: string) => void;
 }
 
 function getStatusBadge(status: string) {
@@ -58,18 +71,35 @@ function getStatusBadge(status: string) {
       return <Badge variant="secondary">{status}</Badge>;
   }
 }
-const ProductTable = ({ products }: ProductTableProps) => {
+const ProductTable = ({ products, onDeleteSuccess }: ProductTableProps) => {
   const router = useRouter();
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [pending, setPending] = React.useState(false);
+  const [selected, setSelected] = React.useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
-  const handleDelete = (productId: string, productName: string) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete "${productName}" product?`,
-      )
-    ) {
-      console.log('Deleting product:', productId);
-      alert('Product deleted successfully!');
-      // Here you would typically call an API to delete the product
+  const promptDelete = (id: string, name: string) => {
+    setSelected({ id, name });
+    setDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selected) return;
+    setPending(true);
+    try {
+      await toast.promise(deleteProduct(selected.id), {
+        loading: 'Deleting product…',
+        success: () => 'Product deleted',
+        error: (err) =>
+          (err as any)?.response?.data?.message || 'Failed to delete product',
+      });
+      onDeleteSuccess?.(selected.id);
+      setDialogOpen(false);
+      setSelected(null);
+    } finally {
+      setPending(false);
     }
   };
 
@@ -139,7 +169,7 @@ const ProductTable = ({ products }: ProductTableProps) => {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-red-600 focus:text-red-600"
-                        onClick={() => handleDelete(product.id, product.name)}
+                        onClick={() => promptDelete(product.id, product.name)}
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete Product
@@ -152,6 +182,32 @@ const ProductTable = ({ products }: ProductTableProps) => {
           </TableBody>
         </Table>
       </div>
+      {/* Delete confirmation dialog */}
+      <AlertDialog
+        open={dialogOpen}
+        onOpenChange={(o) => !pending && setDialogOpen(o)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete product</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete
+              {selected ? ` "${selected.name}"` : ' this product'} and remove
+              its data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={confirmDelete}
+              disabled={pending}
+            >
+              {pending ? 'Deleting…' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

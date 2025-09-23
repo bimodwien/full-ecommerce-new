@@ -10,6 +10,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Table,
   TableBody,
   TableCell,
@@ -19,23 +29,43 @@ import {
 } from '@/components/ui/table';
 import { useRouter } from 'next/navigation';
 import { TCategory } from '@/models/category.model';
+import { deleteCategory } from '@/helpers/fetch-category';
+import { toast } from 'sonner';
 
 interface CategoryTableProps {
   categories: TCategory[];
+  onDeleteSuccess?: (id: string) => void;
 }
 
-const CategoryTable = ({ categories }: CategoryTableProps) => {
+const CategoryTable = ({ categories, onDeleteSuccess }: CategoryTableProps) => {
   const router = useRouter();
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [pending, setPending] = React.useState(false);
+  const [selected, setSelected] = React.useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
-  const handleDelete = (categoryId: string, categoryName: string) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete "${categoryName}" category?`,
-      )
-    ) {
-      console.log('Deleting category:', categoryId);
-      alert('Category deleted successfully!');
-      // Here you would typically call an API to delete the category
+  const promptDelete = (categoryId: string, categoryName: string) => {
+    setSelected({ id: categoryId, name: categoryName });
+    setDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selected) return;
+    setPending(true);
+    try {
+      await toast.promise(deleteCategory(selected.id), {
+        loading: 'Deleting category…',
+        success: () => 'Category deleted',
+        error: (err) =>
+          (err as any)?.response?.data?.message || 'Failed to delete category',
+      });
+      onDeleteSuccess?.(selected.id);
+      setDialogOpen(false);
+      setSelected(null);
+    } finally {
+      setPending(false);
     }
   };
 
@@ -104,7 +134,7 @@ const CategoryTable = ({ categories }: CategoryTableProps) => {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-red-600 focus:text-red-600"
-                        onClick={() => handleDelete(category.id, category.name)}
+                        onClick={() => promptDelete(category.id, category.name)}
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete Category
@@ -117,6 +147,33 @@ const CategoryTable = ({ categories }: CategoryTableProps) => {
           </TableBody>
         </Table>
       </div>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog
+        open={dialogOpen}
+        onOpenChange={(o) => !pending && setDialogOpen(o)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete category</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete
+              {selected ? ` "${selected.name}"` : ' this category'} and remove
+              its data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={confirmDelete}
+              disabled={pending}
+            >
+              {pending ? 'Deleting…' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

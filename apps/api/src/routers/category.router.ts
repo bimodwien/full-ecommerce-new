@@ -16,6 +16,10 @@ export class CategoryRouter {
       '/',
       this.categoryController.getAll.bind(this.categoryController),
     );
+    this.router.get(
+      '/:id',
+      this.categoryController.getById.bind(this.categoryController),
+    );
     this.router.post(
       '/',
       validateToken,

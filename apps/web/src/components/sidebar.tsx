@@ -11,8 +11,9 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import Image from 'next/image';
-import { useAppDispatch } from '@/libraries/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/libraries/redux/hooks';
 import { logout } from '@/libraries/redux/slices/auth.slice';
+import { toast } from 'sonner';
 
 const navigation = [
   { name: 'Home', href: '/dashboard', icon: Home },
@@ -23,11 +24,19 @@ const navigation = [
 const Sidebar = () => {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = () => {
     try {
-      dispatch(logout());
-      window.location.href = '/login';
+      setIsLoggingOut(true);
+      const toastId = toast.loading('Logging out...');
+      setTimeout(() => {
+        toast.success('Logged out successfully', { id: toastId });
+        // Navigate, then clear auth state to avoid a UI flicker
+        window.location.href = '/login';
+        dispatch(logout());
+      }, 600);
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -57,7 +66,12 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav
+        className={cn(
+          'flex-1 p-4 space-y-2',
+          isLoggingOut && 'pointer-events-none opacity-60',
+        )}
+      >
         <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
           Main Menu
         </div>
@@ -90,13 +104,18 @@ const Sidebar = () => {
       {/* User Profile */}
       <div className="p-4 border-t border-gray-200">
         <DropdownMenu>
-          <DropdownMenuTrigger className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+          <DropdownMenuTrigger
+            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60"
+            disabled={isLoggingOut}
+          >
             <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-medium text-sm">JS</span>
+              <span className="text-white font-medium text-sm">TPB</span>
             </div>
             <div className="flex-1 text-left">
-              <p className="text-sm font-medium text-gray-900">John Smith</p>
-              <p className="text-xs text-gray-500">Portfolio Owner</p>
+              <p className="text-sm font-medium text-gray-900">
+                {user?.name || '—'}
+              </p>
+              <p className="text-xs text-gray-500">{user?.username || ''}</p>
             </div>
             <ChevronDown className="w-4 h-4 text-gray-400" />
           </DropdownMenuTrigger>

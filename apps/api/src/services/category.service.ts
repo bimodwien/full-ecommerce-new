@@ -67,6 +67,15 @@ class CategoryService {
     return { ...created, name: CategoryService.capitalizeFirst(created.name) };
   }
 
+  static async getCategoryById(req: Request) {
+    const id = String(req.params.id);
+    const found = await prisma.category.findUnique({ where: { id } });
+    if (!found) throw new AppError('Category not found', 404);
+    return {
+      category: { ...found, name: CategoryService.capitalizeFirst(found.name) },
+    };
+  }
+
   static async editCategory(req: Request) {
     const updated = await prisma.$transaction(async (prisma) => {
       const id = req.params.id;
@@ -95,6 +104,11 @@ class CategoryService {
         where: { id: String(id) },
       });
       if (!existingCategory) throw new AppError('Category not found', 404);
+      // Detach products from this category to avoid FK violations
+      await prisma.product.updateMany({
+        where: { categoryId: String(id) },
+        data: { categoryId: null },
+      });
       await prisma.category.delete({
         where: { id: String(id) },
       });

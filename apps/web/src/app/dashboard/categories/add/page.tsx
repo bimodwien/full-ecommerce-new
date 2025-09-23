@@ -1,7 +1,127 @@
+'use client';
 import React from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft } from 'lucide-react';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { axiosInstance } from '@/libraries/axios';
+import { toast } from 'sonner';
 
 const AddCategories = () => {
-  return <div>AddCategories</div>;
+  const router = useRouter();
+  const initialValues = {
+    name: '',
+  };
+
+  const formik = useFormik({
+    initialValues,
+    validationSchema: Yup.object().shape({
+      name: Yup.string().required('Category name is required'),
+    }),
+    onSubmit: async (values) => {
+      const toastId = toast.loading('Creating category...');
+      try {
+        await axiosInstance().post('/categories', values);
+        toast.success('Category created successfully', { id: toastId });
+        // small delay so the user can see the toast
+        setTimeout(() => router.push('/dashboard/categories'), 600);
+      } catch (err: any) {
+        let message = 'Failed to create category';
+        const data = err?.response?.data;
+        if (typeof data?.message === 'string') message = data.message;
+        else if (typeof data?.error === 'string') message = data.error;
+        else if (Array.isArray(data?.errors)) message = data.errors.join(', ');
+        else if (err?.message) message = err.message;
+        toast.error(message, { id: toastId });
+        console.error('Error creating category:', err);
+      }
+    },
+  });
+
+  return (
+    <div className="min-h-screen bg-white p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="p-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Add New Category
+          </h1>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const errors = await formik.validateForm();
+                // mark fields as touched so inline errors show
+                formik.setTouched({ name: true });
+                if (Object.keys(errors).length > 0) {
+                  const firstMsg =
+                    (errors.name as string) || 'Please fix validation errors';
+                  toast.error(firstMsg);
+                  return;
+                }
+                await formik.handleSubmit(e as any);
+              }}
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle>Category Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Category Name</Label>
+                    <Input
+                      id="name"
+                      {...formik.getFieldProps('name')}
+                      placeholder="Enter category name"
+                      className="mt-1"
+                    />
+                    {formik.touched.name && formik.errors.name && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {formik.errors.name}
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 mt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.back()}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 bg-[#15AD39] hover:bg-[#12a034] text-white"
+                >
+                  Add Category
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default AddCategories;
