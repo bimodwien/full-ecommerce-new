@@ -125,7 +125,10 @@ export function MobileSidebar() {
                 Main Menu
               </div>
               {navigation.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive =
+                  item.href === '/dashboard'
+                    ? pathname === '/dashboard'
+                    : pathname.startsWith(item.href);
                 return (
                   <Link
                     key={item.name}
