@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { formatIDR } from '@/lib/utils';
 import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import {
@@ -148,7 +149,7 @@ const ProductTable = ({ products, onDeleteSuccess }: ProductTableProps) => {
                   </span>
                 </TableCell>
                 <TableCell className="font-medium text-gray-900 hidden md:table-cell">
-                  IDR {product.price.toLocaleString()}
+                  {formatIDR(product.price)}
                 </TableCell>
                 <TableCell>{getStatusBadge(product.status)}</TableCell>
                 <TableCell>
