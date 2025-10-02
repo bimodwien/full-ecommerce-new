@@ -2,12 +2,24 @@ import type { Metadata } from 'next';
 import './globals.css';
 import StoreProvider from '@/components/providers/store.provider';
 import { Toaster } from '@/components/ui/sonner';
-import { Bebas_Neue } from 'next/font/google';
+import { Bebas_Neue, Lato, Quicksand } from 'next/font/google';
 
 const bebasNeue = Bebas_Neue({
   weight: '400',
   subsets: ['latin'],
   variable: '--font-bebas-neue',
+});
+
+const lato = Lato({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-lato',
+});
+
+const quicksand = Quicksand({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-quicksand',
 });
 
 export const metadata: Metadata = {
@@ -22,7 +34,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${bebasNeue.variable}`}>
+      <body
+        className={`${bebasNeue.variable} ${lato.variable} ${quicksand.variable}`}
+      >
         <StoreProvider>{children}</StoreProvider>
         <Toaster />
       </body>
