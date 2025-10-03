@@ -3,7 +3,7 @@ import { Mail } from 'lucide-react';
 
 const NewsLetter = () => {
   return (
-    <section className="relative  w-full rounded-[30px] bg-[#3BB77E] px-6 py-16 sm:px-10 sm:py-16 lg:px-16 lg:py-16 overflow-hidden">
+    <section className="relative w-full rounded-[30px] bg-[#3BB77E] px-6 py-10 sm:px-10 sm:py-14 lg:px-16 lg:py-16 overflow-hidden">
       {/* Decorative watermark background */}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <svg
@@ -25,35 +25,35 @@ const NewsLetter = () => {
         {/* Left: Copy */}
         <div className="text-white">
           <h2
-            className="text-7xl font-bold leading-[72px] sm:text-3xl lg:text-5xl"
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-snug sm:leading-tight lg:leading-[56px]"
             style={{ fontFamily: 'var(--font-quicksand)' }}
           >
             Stay home & get your fashion needs from our shop
           </h2>
-          <p className="my-5 text-white/70 text-base sm:text-lg leading-normal">
+          <p className="mt-3 sm:mt-4 text-white/80 text-base sm:text-lg leading-normal">
             Start Your Fashion & Tech Shopping with TokoPakBimo
           </p>
 
           {/* Email form */}
           <form
-            className="relative mt-6 max-w-[520px]"
+            className="relative mt-5 w-full max-w-[520px]"
             onSubmit={(e) => {
               e.preventDefault();
             }}
           >
-            <div className="relative rounded-full bg-white pl-12 pr-36 py-4 shadow-lg mt-5">
-              <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400" />
+            <div className="relative h-12 rounded-full bg-white pl-12 pr-36 sm:pr-44 shadow-lg">
+              <Mail className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400" />
               <input
                 type="email"
                 required
                 aria-label="Your email address"
                 placeholder="Your email address"
-                className="w-full rounded-full bg-transparent text-zinc-700 placeholder:text-zinc-400 focus:outline-none"
+                className="h-full w-full rounded-full bg-transparent pr-2 text-sm sm:text-base text-zinc-700 placeholder:text-zinc-400 focus:outline-none"
               />
               {/* Subscribe button overlapping on the right */}
               <button
                 type="submit"
-                className="absolute -right-2 top-1/2 cursor-pointer -translate-y-1/2 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-12 py-6 text-white font-semibold shadow-md hover:from-emerald-600 hover:to-emerald-700 focus:outline-none"
+                className="absolute -right-2 sm:-right-3 top-1/2 -translate-y-1/2 inline-flex h-12 sm:h-12 items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 sm:px-6 text-sm sm:text-base font-semibold text-white shadow-lg ring-1 ring-white/60 hover:from-emerald-600 hover:to-emerald-700 focus:outline-none z-10"
               >
                 Subscribe
               </button>

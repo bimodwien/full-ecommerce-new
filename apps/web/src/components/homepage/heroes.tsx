@@ -38,7 +38,7 @@ const Heroes = () => {
 
       <div className="max-w-3xl">
         <h1
-          className="text-7xl font-bold leading-[72px] text-slate-700 sm:text-7xl"
+          className="text-3xl sm:text-5xl lg:text-6xl font-bold leading-snug sm:leading-[56px] lg:leading-[72px] text-slate-700"
           style={{ fontFamily: 'var(--font-quicksand)' }}
         >
           Don&apos;t miss the latest
@@ -47,31 +47,29 @@ const Heroes = () => {
           fashion & tech drops
         </h1>
 
-        <p className="mt-8 text-lg text-zinc-500 sm:text-2xl leading-normal">
+        <p className="mt-4 sm:mt-6 text-base sm:text-xl text-zinc-500 leading-normal">
           Sign up for the daily newsletter
         </p>
 
         <form
-          className="relative mt-8 w-full max-w-md"
+          className="relative mt-6 w-full max-w-[440px]"
           onSubmit={(e) => e.preventDefault()}
         >
-          <div className="flex items-center rounded-full bg-white shadow ring-1 ring-zinc-200 pl-4 pr-40 py-3">
-            <span className="text-zinc-400">
-              <Mail className="h-5 w-5" />
-            </span>
+          <div className="relative h-12 rounded-full bg-white shadow ring-1 ring-zinc-200 pl-12 pr-36 sm:pr-44">
+            <Mail className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400" />
             <input
               type="email"
               placeholder="Your email address"
-              className="min-w-0 flex-1 bg-transparent px-3 py-2 text-base text-zinc-700 placeholder-zinc-400 outline-none"
+              className="h-full w-full rounded-full bg-transparent pr-2 text-sm sm:text-base text-zinc-700 placeholder-zinc-400 outline-none"
             />
+            <button
+              type="submit"
+              aria-label="Subscribe to newsletter"
+              className="absolute -right-2 sm:-right-3 top-1/2 -translate-y-1/2 inline-flex h-12 sm:h-12 items-center justify-center rounded-full bg-emerald-500 px-5 sm:px-6 text-sm sm:text-base font-medium text-white shadow-lg ring-1 ring-white/60 hover:bg-emerald-600"
+            >
+              Subscribe
+            </button>
           </div>
-          <button
-            type="submit"
-            aria-label="Subscribe to newsletter"
-            className="absolute -right-2 top-1/2 -translate-y-1/2 rounded-full bg-emerald-500 px-10 py-6 text-white text-lg shadow-sm transition-colors hover:bg-emerald-600 cursor-pointer"
-          >
-            Subscribe
-          </button>
         </form>
       </div>
 

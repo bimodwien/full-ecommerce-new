@@ -15,7 +15,7 @@ export default function Home() {
       <Header />
       <div className="mx-auto max-w-screen-2xl px-4">
         <div className="flex items-stretch gap-4 py-8">
-          <div className="w-72 shrink-0">
+          <div className="hidden lg:block w-72 shrink-0">
             <HomepageSidebar />
           </div>
           <div className="flex-1 min-w-0">
