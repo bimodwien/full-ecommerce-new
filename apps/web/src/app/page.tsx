@@ -3,7 +3,6 @@
 import React from 'react';
 import Header from '@/components/Header';
 import HomepageSidebar from '@/components/homepage/homepage-sidebar';
-import AuthActionButton from '@/components/auth-action-button';
 import Heroes from '@/components/homepage/heroes';
 import ProductCardSection from '@/components/homepage/product-card-section';
 import NewsLetter from '@/components/homepage/newsletter';
