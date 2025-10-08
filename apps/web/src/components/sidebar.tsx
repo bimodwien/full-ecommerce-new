@@ -34,7 +34,7 @@ const Sidebar = () => {
       setTimeout(() => {
         toast.success('Logged out successfully', { id: toastId });
         // Navigate, then clear auth state to avoid a UI flicker
-        window.location.href = '/login';
+        window.location.href = '/';
         dispatch(logout());
       }, 600);
     } catch (error) {
@@ -43,9 +43,9 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-col">
+    <div className="hidden lg:flex w-64 bg-white border-r border-zinc-200 flex-col">
       {/* Logo/Brand */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-zinc-200">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
             <Image
@@ -57,7 +57,7 @@ const Sidebar = () => {
             />
           </div>
           <span
-            className="text-xl font-semibold text-gray-900"
+            className="text-xl font-semibold text-zinc-800"
             style={{ fontFamily: 'var(--font-bebas-neue)' }}
           >
             TokoPakBimo
@@ -72,7 +72,7 @@ const Sidebar = () => {
           isLoggingOut && 'pointer-events-none opacity-60',
         )}
       >
-        <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
+        <div className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-3">
           Main Menu
         </div>
         {navigation.map((item) => {
@@ -87,15 +87,10 @@ const Sidebar = () => {
               className={cn(
                 'flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                 isActive
-                  ? /* Changed active state to green #15AD39 with white text */
-                    'text-white border-r-2'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
+                  ? 'bg-emerald-600 text-white border-r-2 border-emerald-600'
+                  : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900',
               )}
-              style={
-                isActive
-                  ? { backgroundColor: '#15AD39', borderRightColor: '#15AD39' }
-                  : {}
-              }
+              style={{}}
             >
               <item.icon className="w-5 h-5" />
               <span>{item.name}</span>
@@ -105,22 +100,22 @@ const Sidebar = () => {
       </nav>
 
       {/* User Profile */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-zinc-200">
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60"
+            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-zinc-50 transition-colors disabled:opacity-60"
             disabled={isLoggingOut}
           >
-            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-zinc-600 rounded-full flex items-center justify-center">
               <span className="text-white font-medium text-sm">TPB</span>
             </div>
             <div className="flex-1 text-left">
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-zinc-800">
                 {user?.name || '—'}
               </p>
-              <p className="text-xs text-gray-500">{user?.username || ''}</p>
+              <p className="text-xs text-zinc-500">{user?.username || ''}</p>
             </div>
-            <ChevronDown className="w-4 h-4 text-gray-400" />
+            <ChevronDown className="w-4 h-4 text-zinc-400" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem

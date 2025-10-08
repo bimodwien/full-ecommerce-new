@@ -46,7 +46,7 @@ const AddCategories = () => {
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+  <div className="flex items-center gap-4 mb-8 text-zinc-700">
           <Button
             variant="ghost"
             size="sm"
@@ -55,7 +55,7 @@ const AddCategories = () => {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-2xl font-semibold text-gray-900">
+          <h1 className="text-2xl font-semibold text-zinc-800">
             Add New Category
           </h1>
         </div>
@@ -111,7 +111,7 @@ const AddCategories = () => {
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-[#15AD39] hover:bg-[#12a034] text-white"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
                 >
                   Add Category
                 </Button>

@@ -49,7 +49,7 @@ export function MobileSidebar() {
       setTimeout(() => {
         toast.success('Logged out successfully', { id: toastId });
         setIsOpen(false);
-        router.replace('/login');
+        router.replace('/');
         dispatch(logout());
       }, 600);
     } catch (error) {
@@ -65,7 +65,7 @@ export function MobileSidebar() {
           variant="outline"
           size="sm"
           onClick={() => setIsOpen(true)}
-          className="bg-white shadow-md"
+          className="bg-white shadow-md text-zinc-700"
         >
           <Menu className="w-4 h-4" />
         </Button>
@@ -81,7 +81,7 @@ export function MobileSidebar() {
           />
 
           {/* Sidebar */}
-          <div className="relative w-64 bg-white border-r border-gray-200 flex flex-col">
+          <div className="relative w-64 bg-white border-r border-zinc-200 flex flex-col text-zinc-700">
             {/* Close button */}
             <div className="absolute top-4 right-4">
               <Button
@@ -94,7 +94,7 @@ export function MobileSidebar() {
             </div>
 
             {/* Logo/Brand */}
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-zinc-200">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
                   <Image
@@ -106,7 +106,7 @@ export function MobileSidebar() {
                   />
                 </div>
                 <span
-                  className="text-xl font-semibold text-gray-900"
+                  className="text-xl font-semibold text-zinc-800"
                   style={{ fontFamily: 'var(--font-bebas-neue)' }}
                 >
                   TokoPakBimo
@@ -121,7 +121,7 @@ export function MobileSidebar() {
                 isLoggingOut && 'pointer-events-none opacity-60',
               )}
             >
-              <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
+              <div className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-3">
                 Main Menu
               </div>
               {navigation.map((item) => {
@@ -137,18 +137,9 @@ export function MobileSidebar() {
                     className={cn(
                       'flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                       isActive
-                        ? /* Changed active state from blue to green theme */
-                          'text-white border-r-2'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
+                        ? 'bg-emerald-600 text-white border-r-2 border-emerald-600'
+                        : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900',
                     )}
-                    style={
-                      isActive
-                        ? {
-                            backgroundColor: '#15AD39',
-                            borderRightColor: '#15AD39',
-                          }
-                        : {}
-                    }
                   >
                     <item.icon className="w-5 h-5" />
                     <span>{item.name}</span>
@@ -158,24 +149,24 @@ export function MobileSidebar() {
             </nav>
 
             {/* User Profile */}
-            <div className="p-4 border-t border-gray-200">
+            <div className="p-4 border-t border-zinc-200">
               <DropdownMenu>
                 <DropdownMenuTrigger
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60"
+                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-zinc-50 transition-colors disabled:opacity-60"
                   disabled={isLoggingOut}
                 >
-                  <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-zinc-600 rounded-full flex items-center justify-center">
                     <span className="text-white font-medium text-sm">TPB</span>
                   </div>
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-zinc-800">
                       {user?.name || '—'}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-zinc-500">
                       {user?.username || ''}
                     </p>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                  <ChevronDown className="w-4 h-4 text-zinc-400" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem

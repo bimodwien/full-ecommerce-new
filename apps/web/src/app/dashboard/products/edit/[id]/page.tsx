@@ -260,14 +260,16 @@ export default function EditProduct() {
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-6 text-zinc-700">
           <Link href="/dashboard/products">
             <Button variant="ghost" size="sm" className="p-2">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-semibold">Edit Product</h1>
+            <h1 className="text-2xl font-semibold text-zinc-800">
+              Edit Product
+            </h1>
           </div>
         </div>
 
@@ -280,11 +282,13 @@ export default function EditProduct() {
             {/* Description Section */}
             <Card>
               <CardHeader>
-                <CardTitle>Description</CardTitle>
+                <CardTitle className="text-zinc-800">Description</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="productName">Product Name</Label>
+                  <Label htmlFor="productName" className="text-zinc-700">
+                    Product Name
+                  </Label>
                   <Input
                     id="productName"
                     {...formik.getFieldProps('name')}
@@ -300,7 +304,7 @@ export default function EditProduct() {
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <Label>Product Description</Label>
+                    <Label className="text-zinc-700">Product Description</Label>
                   </div>
                   <RichTextEditor
                     value={descriptionHtml}
@@ -322,11 +326,11 @@ export default function EditProduct() {
             {/* Category Section */}
             <Card>
               <CardHeader>
-                <CardTitle>Category</CardTitle>
+                <CardTitle className="text-zinc-800">Category</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Product Category</Label>
+                  <Label className="text-zinc-700">Product Category</Label>
                   <Select
                     value={formik.values.categoryId}
                     onValueChange={(val) =>
@@ -356,13 +360,13 @@ export default function EditProduct() {
             {/* Variant Section */}
             <Card>
               <CardHeader>
-                <CardTitle>Variant</CardTitle>
+                <CardTitle className="text-zinc-800">Variant</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {variants.map((v) => (
                   <div key={v.key} className="flex gap-3 items-end">
                     <div className="flex-1">
-                      <Label>Variant Name</Label>
+                      <Label className="text-zinc-700">Variant Name</Label>
                       <Input
                         placeholder="e.g., Size M, Red Color"
                         value={v.variant}
@@ -373,7 +377,7 @@ export default function EditProduct() {
                       />
                     </div>
                     <div className="w-24">
-                      <Label>Stock</Label>
+                      <Label className="text-zinc-700">Stock</Label>
                       <Input
                         type="number"
                         placeholder="0"
@@ -396,13 +400,13 @@ export default function EditProduct() {
                   </div>
                 ))}
                 {variants.length === 0 && (
-                  <p className="text-gray-500 text-sm">Product variants</p>
+                  <p className="text-zinc-500 text-sm">Product variants</p>
                 )}
                 <Button
                   type="button"
                   variant="outline"
                   onClick={addVariant}
-                  className="w-full text-[#15AD39] border-[#15AD39] hover:bg-[#15AD39] hover:text-white bg-transparent"
+                  className="w-full text-emerald-600 border-emerald-600 hover:bg-emerald-600 hover:text-white bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Variant
@@ -459,7 +463,7 @@ export default function EditProduct() {
                   {/* New files (remove from client list) */}
                   {newFiles.map((file, idx) => (
                     <div key={`${idx}-${file.name}`} className="relative group">
-                      <div className="relative aspect-square border-2 border-dashed border-gray-200 rounded-lg overflow-hidden">
+                      <div className="relative aspect-square border-2 border-dashed border-zinc-200 rounded-lg overflow-hidden">
                         <Image
                           src={URL.createObjectURL(file)}
                           alt="New Product"
@@ -472,7 +476,7 @@ export default function EditProduct() {
                             type="button"
                             size="sm"
                             variant="secondary"
-                            className="text-xs bg-white hover:bg-gray-100 text-gray-700 px-3 py-1"
+                            className="text-xs bg-white hover:bg-zinc-100 text-zinc-700 px-3 py-1"
                             onClick={() => removeNewFile(idx)}
                           >
                             Remove
@@ -484,7 +488,7 @@ export default function EditProduct() {
 
                   {/* Upload tile appears only if slots left */}
                   {slotsLeft > 0 && (
-                    <div className="aspect-square border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-[#15AD39] transition-colors">
+                    <div className="aspect-square border-2 border-dashed border-zinc-200 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-emerald-600 transition-colors">
                       <input
                         type="file"
                         accept="image/*"
@@ -498,24 +502,24 @@ export default function EditProduct() {
                         htmlFor="image-upload"
                         className="cursor-pointer flex flex-col items-center"
                       >
-                        <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                        <span className="text-sm text-gray-500 text-center">
+                        <Upload className="h-8 w-8 text-zinc-400 mb-2" />
+                        <span className="text-sm text-zinc-500 text-center">
                           Click to upload
                           <br />
                           or drag and drop
                         </span>
-                        <span className="text-xs text-gray-400 mt-1">
+                        <span className="text-xs text-zinc-400 mt-1">
                           {slotsLeft} slot{slotsLeft > 1 ? 's' : ''} left
                         </span>
                       </label>
                     </div>
                   )}
                 </div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-zinc-500">
                   {totalEffectiveCount}/5 images selected. Recommended size:
                   800x800px
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-zinc-500">
                   Existing images can be marked for deletion and will be removed
                   after you save.
                 </p>
@@ -525,13 +529,15 @@ export default function EditProduct() {
             {/* Pricing */}
             <Card>
               <CardHeader>
-                <CardTitle>Pricing</CardTitle>
+                <CardTitle className="text-zinc-800">Pricing</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="price">Price</Label>
+                  <Label htmlFor="price" className="text-zinc-700">
+                    Price
+                  </Label>
                   <div className="flex mt-1">
-                    <div className="px-3 py-2 bg-gray-50 border border-r-0 rounded-l text-sm">
+                    <div className="px-3 py-2 bg-zinc-50 border border-zinc-200 border-r-0 rounded-l text-sm">
                       IDR
                     </div>
                     <Input
@@ -564,7 +570,7 @@ export default function EditProduct() {
               <Button
                 type="submit"
                 disabled={!initialLoaded || formik.isSubmitting}
-                className="flex-1 bg-[#15AD39] hover:bg-[#15AD39]/90 text-white"
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
               >
                 Save Changes
               </Button>

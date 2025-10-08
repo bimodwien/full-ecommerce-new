@@ -29,7 +29,7 @@ const ProductFilter = ({
   categories,
 }: ProductFiltersProps) => {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+    <div className="bg-white rounded-lg border border-zinc-200 p-4 mb-6 text-zinc-700">
       <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
         {/* Search */}
         <SearchBar

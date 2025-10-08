@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { SearchBar } from '@/components/ui/search-bar';
@@ -6,10 +7,10 @@ import {
   Search,
   ChevronDown,
   MapPin,
-  GitCompare,
   Heart,
   ShoppingCart,
   User,
+  LogOut,
   LayoutGrid,
   Flame,
   Headphones,
@@ -17,10 +18,36 @@ import {
   X,
 } from 'lucide-react';
 import Image from 'next/image';
+import { useAppDispatch, useAppSelector } from '@/libraries/redux/hooks';
+import { logout } from '@/libraries/redux/slices/auth.slice';
+import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileQuery, setMobileQuery] = useState('');
+
+  const auth = useAppSelector((s) => s.auth);
+  const dispatch = useAppDispatch();
+
+  const isLoggedIn = Boolean(auth?.id && auth.id !== '');
+  const shortName = (auth?.username ?? 'User').slice(0, 4);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    toast.success('Logged out');
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 500);
+  };
+
   return (
     <header className="w-full border-b border-zinc-200 text-xs text-zinc-500">
       <div className="mx-auto max-w-screen-2xl px-4">
@@ -66,7 +93,7 @@ const Header = () => {
               className="hidden items-center gap-1 sm:flex hover:text-zinc-700"
               aria-label="Change currency"
             >
-              <span>USD</span>
+              <span>IDR</span>
               <ChevronDown size={14} className="text-zinc-500" />
             </button>
           </div>
@@ -138,7 +165,7 @@ const Header = () => {
           <div className="hidden items-center gap-4 lg:flex">
             {/* Location pill */}
             <button
-              className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm hover:bg-zinc-50"
+              className="ml-8 flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm hover:bg-zinc-50 md:ml-12"
               aria-label="Choose location"
             >
               <MapPin className="h-4 w-4 text-emerald-600" />
@@ -148,18 +175,6 @@ const Header = () => {
 
             {/* Icons */}
             <ul className="flex items-center gap-4 text-sm">
-              <li>
-                <Link
-                  href="#"
-                  className="group relative flex items-center gap-1 text-zinc-700 hover:text-emerald-600"
-                >
-                  <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
-                    3
-                  </span>
-                  <GitCompare className="h-6 w-6" />
-                  <span>Compare</span>
-                </Link>
-              </li>
               <li>
                 <Link
                   href="#"
@@ -185,13 +200,38 @@ const Header = () => {
                 </Link>
               </li>
               <li>
-                <Link
-                  href="#"
-                  className="flex items-center gap-1 text-zinc-700 hover:text-emerald-600"
-                >
-                  <User className="h-6 w-6" />
-                  <span>Account</span>
-                </Link>
+                {!isLoggedIn ? (
+                  <Link
+                    href="/login"
+                    className="flex items-center gap-1 text-zinc-700 hover:text-emerald-600"
+                  >
+                    <User className="h-6 w-6" />
+                    <span>Account</span>
+                  </Link>
+                ) : (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="flex items-center gap-1 cursor-pointer text-zinc-700 hover:text-emerald-600">
+                        <User className="h-6 w-6" />
+                        <span className="max-w-[180px] truncate">
+                          hi,{' '}
+                          <span className="text-emerald-600 font-semibold first-letter:capitalize ">
+                            {shortName}
+                          </span>
+                        </span>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem
+                        onClick={handleLogout}
+                        className="flex items-center gap-2"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span className="text-red-500">Logout</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </li>
             </ul>
           </div>
@@ -333,14 +373,28 @@ const Header = () => {
                 value={mobileQuery}
                 onChange={setMobileQuery}
               />
-              <Link
-                href="/login"
-                className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm hover:bg-zinc-50"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <User className="h-5 w-5" />
-                <span>Account</span>
-              </Link>
+              {!isLoggedIn ? (
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm hover:bg-zinc-50"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <User className="h-5 w-5" />
+                  <span>Account</span>
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm hover:bg-zinc-50"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span className="text-red-500">Logout</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

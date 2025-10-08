@@ -52,7 +52,7 @@ function getStatusBadge(status: string) {
   switch (status) {
     case 'IN_STOCK':
       return (
-        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+        <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
           In Stock
         </Badge>
       );
@@ -105,7 +105,7 @@ const ProductTable = ({ products, onDeleteSuccess }: ProductTableProps) => {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-lg border border-zinc-200 overflow-hidden text-zinc-700">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -131,24 +131,24 @@ const ProductTable = ({ products, onDeleteSuccess }: ProductTableProps) => {
                       height={60}
                     />
                     <div className="min-w-0">
-                      <span className="font-medium text-gray-900 text-sm sm:text-base block truncate">
+                      <span className="font-medium text-zinc-700 text-sm sm:text-base block truncate">
                         {product.name}
                       </span>
-                      <span className="text-xs text-gray-500 sm:hidden block">
+                      <span className="text-xs text-zinc-500 sm:hidden block">
                         {product.category}
                       </span>
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="text-gray-600 first-letter:capitalize hidden sm:table-cell">
+                <TableCell className="text-zinc-700 first-letter:capitalize hidden sm:table-cell">
                   {product.category}
                 </TableCell>
                 <TableCell>
-                  <span className="font-medium text-sm text-gray-900">
+                  <span className="font-medium text-sm text-zinc-700">
                     {product.stock}
                   </span>
                 </TableCell>
-                <TableCell className="font-medium text-gray-900 hidden md:table-cell">
+                <TableCell className="font-medium text-zinc-700 hidden md:table-cell">
                   {formatIDR(product.price)}
                 </TableCell>
                 <TableCell>{getStatusBadge(product.status)}</TableCell>
@@ -165,7 +165,7 @@ const ProductTable = ({ products, onDeleteSuccess }: ProductTableProps) => {
                           router.push(`/dashboard/products/edit/${product.id}`)
                         }
                       >
-                        <Edit className="w-4 h-4 mr-2" />
+                        <Edit className="w-4 h-4 mr-2 text-zinc-700" />
                         Edit Product
                       </DropdownMenuItem>
                       <DropdownMenuItem
