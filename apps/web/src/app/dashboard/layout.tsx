@@ -13,7 +13,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex h-screen bg-white text-zinc-700">
       <MobileSidebar />
       <Sidebar />
       <main className="flex-1 overflow-auto pt-16 lg:pt-0">{children}</main>

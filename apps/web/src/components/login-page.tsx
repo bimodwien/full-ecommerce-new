@@ -52,9 +52,9 @@ function LoginPage() {
   });
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex text-zinc-700">
       {/* Left Side - Image */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#15AD39]/10 to-[#15AD39]/5 items-center justify-center p-12">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 items-center justify-center p-12">
         <div className="max-w-md text-center">
           <Image
             src="/logo.png"
@@ -65,11 +65,11 @@ function LoginPage() {
           />
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
             Welcome to{' '}
-            <Link href="/" className="text-[#15AD39] cursor-pointer">
+            <Link href="/" className="text-emerald-600 cursor-pointer">
               TokoPakBimo
             </Link>
           </h2>
-          <p className="text-gray-600 text-lg leading-relaxed">
+          <p className="text-zinc-700 text-lg leading-relaxed">
             Discover our premium fashion items with authentic quality and
             unbeatable prices.
           </p>
@@ -82,9 +82,12 @@ function LoginPage() {
           {/* Header */}
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Sign in to TokoPakBimo
+              Sign in to{' '}
+              <Link href="/" className="text-emerald-600 cursor-pointer">
+                TokoPakBimo
+              </Link>
             </h1>
-            <p className="text-gray-600">
+            <p className="text-zinc-700">
               Welcome back! Please enter your details.
             </p>
           </div>
@@ -95,7 +98,7 @@ function LoginPage() {
             <div className="relative">
               <input
                 type="text"
-                className="peer w-full h-12 text-base border border-gray-300 rounded-lg outline-none px-4 bg-white placeholder-transparent focus:border-2 focus:border-[#15AD39] transition-all duration-300"
+                className="peer w-full h-12 text-base border border-zinc-300 rounded-lg outline-none px-4 bg-white placeholder-transparent focus:border-2 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-300"
                 placeholder=" "
                 id="username"
                 {...formik.getFieldProps('username')}
@@ -103,8 +106,8 @@ function LoginPage() {
               />
               <label
                 htmlFor="username"
-                className="absolute left-4 top-1/2 -translate-y-1/2 px-1 bg-white text-gray-500 text-base transition-all duration-300 pointer-events-none
-                           peer-focus:top-[-8px] peer-focus:left-3 peer-focus:translate-y-0 peer-focus:text-[#15AD39] peer-focus:text-xs peer-focus:font-medium
+                className="absolute left-4 top-1/2 -translate-y-1/2 px-1 bg-white text-zinc-700 text-base transition-all duration-300 pointer-events-none
+                           peer-focus:top-[-8px] peer-focus:left-3 peer-focus:translate-y-0 peer-focus:text-emerald-600 peer-focus:text-xs peer-focus:font-medium
                            peer-[&:not(:placeholder-shown)]:top-[-8px] peer-[&:not(:placeholder-shown)]:left-3 peer-[&:not(:placeholder-shown)]:translate-y-0 peer-[&:not(:placeholder-shown)]:text-xs peer-[&:not(:placeholder-shown)]:font-medium"
               >
                 Username
@@ -115,7 +118,7 @@ function LoginPage() {
             <div className="relative">
               <input
                 type="password"
-                className="peer w-full h-12 text-base border border-gray-300 rounded-lg outline-none px-4 bg-white placeholder-transparent focus:border-2 focus:border-[#15AD39] transition-all duration-300"
+                className="peer w-full h-12 text-base border border-zinc-300 rounded-lg outline-none px-4 bg-white placeholder-transparent focus:border-2 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-300"
                 placeholder=" "
                 id="password"
                 {...formik.getFieldProps('password')}
@@ -123,8 +126,8 @@ function LoginPage() {
               />
               <label
                 htmlFor="password"
-                className="absolute left-4 top-1/2 -translate-y-1/2 px-1 bg-white text-gray-500 text-base transition-all duration-300 pointer-events-none
-                           peer-focus:top-[-8px] peer-focus:left-3 peer-focus:translate-y-0 peer-focus:text-[#15AD39] peer-focus:text-xs peer-focus:font-medium
+                className="absolute left-4 top-1/2 -translate-y-1/2 px-1 bg-white text-zinc-700 text-base transition-all duration-300 pointer-events-none
+                           peer-focus:top-[-8px] peer-focus:left-3 peer-focus:translate-y-0 peer-focus:text-emerald-600 peer-focus:text-xs peer-focus:font-medium
                            peer-[&:not(:placeholder-shown)]:top-[-8px] peer-[&:not(:placeholder-shown)]:left-3 peer-[&:not(:placeholder-shown)]:translate-y-0 peer-[&:not(:placeholder-shown)]:text-xs peer-[&:not(:placeholder-shown)]:font-medium"
               >
                 Password
@@ -135,7 +138,7 @@ function LoginPage() {
             <div className="flex justify-end">
               <button
                 type="button"
-                className="text-sm text-[#15AD39] hover:text-[#15AD39]/80 transition-colors duration-200"
+                className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 rounded"
               >
                 Forgot password?
               </button>
@@ -144,7 +147,7 @@ function LoginPage() {
             {/* Sign In Button */}
             <Button
               type="submit"
-              className="w-full h-12 bg-[#15AD39] hover:bg-[#15AD39]/90 text-white font-medium rounded-lg transition-all duration-300 cursor-pointer"
+              className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
             >
               Sign In
             </Button>
@@ -152,10 +155,10 @@ function LoginPage() {
             {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-300" />
+                <span className="w-full border-t border-zinc-200" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">
+                <span className="bg-white px-2 text-zinc-700">
                   Or continue with
                 </span>
               </div>
@@ -166,7 +169,7 @@ function LoginPage() {
               type="button"
               variant="outline"
               //   onClick={handleGoogleSignIn}
-              className="w-full h-12 border-gray-300 hover:bg-[#15AD39]/10 hover:border-[#15AD39] hover:text-[#15AD39] transition-all duration-300 bg-transparent cursor-pointer"
+              className="w-full h-12 border-zinc-300 text-zinc-700 hover:bg-emerald-50 hover:border-emerald-600 hover:text-emerald-600 transition-all duration-300 bg-transparent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                 <path
@@ -192,11 +195,11 @@ function LoginPage() {
 
           {/* Sign Up Link */}
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-zinc-700">
               Don&apos;t have an account?{' '}
               <Link
                 href="/register"
-                className="text-[#15AD39] hover:text-[#15AD39]/80 font-medium transition-colors duration-200"
+                className="text-emerald-600 hover:text-emerald-700 font-medium transition-colors duration-200"
               >
                 Sign up for free
               </Link>

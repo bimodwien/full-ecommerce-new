@@ -53,9 +53,9 @@ export function Pagination({
 
   return (
     <div
-      className={`flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-4 border-t border-gray-200 gap-4 ${className}`}
+      className={`flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-4 border-t border-zinc-200 gap-4 ${className}`}
     >
-      <div className="text-sm text-gray-600 order-2 sm:order-1">
+      <div className="text-sm text-zinc-700 order-2 sm:order-1">
         Result {startItem}-{endItem} of {totalItems}
       </div>
       <div className="flex items-center space-x-1 sm:space-x-2 order-1 sm:order-2">
@@ -71,7 +71,7 @@ export function Pagination({
 
         {getVisiblePages().map((page, index) =>
           page === '...' ? (
-            <span key={index} className="text-gray-400 px-2">
+            <span key={index} className="text-zinc-400 px-2">
               ...
             </span>
           ) : (
@@ -80,12 +80,7 @@ export function Pagination({
               variant="outline"
               size="sm"
               onClick={() => onPageChange(page as number)}
-              className={`text-xs sm:text-sm ${currentPage === page ? 'text-white' : ''}`}
-              style={
-                currentPage === page
-                  ? { backgroundColor: '#15AD39', borderColor: '#15AD39' }
-                  : {}
-              }
+              className={`text-xs sm:text-sm ${currentPage === page ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700' : ''}`}
             >
               {page}
             </Button>
