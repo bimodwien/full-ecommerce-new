@@ -1,142 +1,52 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ProductCard, type Product } from '@/components/homepage/product-card';
-
-const MOCK_PRODUCTS: Product[] = [
-  {
-    id: '1',
-    image: 'https://placehold.co/246x246',
-    category: 'Snack',
-    title: 'Seeds of Change Organic Quinoa Natural',
-    vendor: 'NestFood',
-    price: 28.85,
-    oldPrice: 32.8,
-    label: 'Hot',
-    rating: 4,
-  },
-  {
-    id: '2',
-    image: 'https://placehold.co/246x246',
-    category: 'Herbs Foods',
-    title: 'All Natural Italian-Style Chicken Meatballs',
-    vendor: 'Stouffer',
-    price: 52.85,
-    oldPrice: 55.8,
-    label: 'Sale',
-    rating: 3.5,
-  },
-  {
-    id: '3',
-    image: 'https://placehold.co/246x246',
-    category: 'Snack',
-    title: "Angie's Boomchickapop Sweet & Salty",
-    vendor: 'StarKist',
-    price: 48.85,
-    oldPrice: 52.8,
-    label: 'New',
-    rating: 4,
-  },
-  {
-    id: '4',
-    image: 'https://placehold.co/246x246',
-    category: 'Vegetables',
-    title: 'Foster Farms Takeout Crispy Classic',
-    vendor: 'NestFood',
-    price: 17.85,
-    oldPrice: 19.8,
-    rating: 4,
-  },
-  {
-    id: '5',
-    image: 'https://placehold.co/246x246',
-    category: 'Pet Foods',
-    title: 'Blue Diamond Almonds Lightly Natural',
-    vendor: 'NestFood',
-    price: 23.85,
-    oldPrice: 25.8,
-    rating: 4,
-  },
-  {
-    id: '6',
-    image: 'https://placehold.co/246x246',
-    category: 'Herbs Foods',
-    title: 'Chobani Complete Vanilla Greek Bottle',
-    vendor: 'NestFood',
-    price: 54.85,
-    oldPrice: 59.8,
-    rating: 4,
-  },
-  {
-    id: '7',
-    image: 'https://placehold.co/246x246',
-    category: 'Meats',
-    title: 'Canada Dry Ginger Ale – 2 L Bottle',
-    vendor: 'NestFood',
-    price: 32.85,
-    oldPrice: 35.8,
-    rating: 4,
-  },
-  {
-    id: '8',
-    image: 'https://placehold.co/246x246',
-    category: 'Snack',
-    title: 'Encore Seafoods Stuffed Alaskan',
-    vendor: 'NestFood',
-    price: 35.85,
-    oldPrice: 37.8,
-    label: 'Sale',
-    rating: 4,
-  },
-  {
-    id: '9',
-    image: 'https://placehold.co/246x246',
-    category: 'Coffes',
-    title: "Gorton's Beer Battered Fish Fillets",
-    vendor: 'Old El Paso',
-    price: 23.85,
-    oldPrice: 25.8,
-    label: 'Hot',
-    rating: 4,
-  },
-  {
-    id: '10',
-    image: 'https://placehold.co/246x246',
-    category: 'Cream',
-    title: 'Haagen-Dazs Caramel Cone Ice Cream',
-    vendor: 'Tyson',
-    price: 22.85,
-    oldPrice: 24.8,
-    rating: 4,
-  },
-  {
-    id: '11',
-    image: 'https://placehold.co/246x246',
-    category: 'Snack',
-    title: 'Organic Granola Clusters Honey Almond',
-    vendor: 'NestFood',
-    price: 18.5,
-    oldPrice: 20,
-    rating: 4.5,
-  },
-  {
-    id: '12',
-    image: 'https://placehold.co/246x246',
-    category: 'Drinks',
-    title: 'Sparkling Water Lime Zero Sugar 330ml',
-    vendor: 'NestFood',
-    price: 12.9,
-    rating: 4,
-  },
-];
+import { ProductCard } from '@/components/homepage/product-card';
+import { fetchProduct, type GetProductsQuery } from '@/helpers/fetch-product';
+import { TProductList } from '@/models/product.model';
+import { useSearchParams } from 'next/navigation';
 
 const ProductCardSection = () => {
+  const [products, setProducts] = useState<TProductList[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    let mounted = true;
+    const run = async () => {
+      try {
+        if (mounted) setLoading(true);
+        const categoryId = searchParams.get('categoryId') || undefined;
+        const name = searchParams.get('name') || undefined;
+        const params: GetProductsQuery = {
+          categoryId,
+          name,
+          sort: 'newest',
+          page: 1,
+          limit: 20,
+        };
+        await fetchProduct((data) => {
+          if (!mounted) return;
+          setProducts(data);
+        }, params);
+      } catch (e) {
+        if (!mounted) return;
+        setError('Failed to load products');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    run();
+    return () => {
+      mounted = false;
+    };
+  }, [searchParams]);
+
   const itemsPerPage = 8;
   const [showAll, setShowAll] = useState(false);
-  const hasMore = MOCK_PRODUCTS.length > itemsPerPage;
-  const visibleProducts = showAll
-    ? MOCK_PRODUCTS
-    : MOCK_PRODUCTS.slice(0, itemsPerPage);
+  const hasMore = products.length > itemsPerPage;
+  const visibleProducts = showAll ? products : products.slice(0, itemsPerPage);
 
   return (
     <section>
@@ -144,9 +54,29 @@ const ProductCardSection = () => {
         id="product-grid"
         className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 xl:grid-cols-4"
       >
-        {visibleProducts.map((p) => (
-          <ProductCard key={p.id} product={p} />
-        ))}
+        {loading && (
+          <>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={`skeleton-${i}`}
+                className="animate-pulse rounded-2xl overflow-hidden border border-zinc-200"
+              >
+                <div className="h-40 sm:h-56 md:h-64 w-full bg-zinc-200" />
+                <div className="p-4 space-y-2">
+                  <div className="h-3 w-24 bg-zinc-200 rounded" />
+                  <div className="h-4 w-full bg-zinc-200 rounded" />
+                  <div className="h-4 w-2/3 bg-zinc-200 rounded" />
+                  <div className="h-5 w-28 bg-zinc-200 rounded mt-2" />
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+        {error && products.length === 0 && (
+          <div className="col-span-full text-sm text-red-500">{error}</div>
+        )}
+        {!loading &&
+          visibleProducts.map((p) => <ProductCard key={p.id} product={p} />)}
       </div>
       {hasMore && !showAll && (
         <div className="mt-4 flex justify-end">

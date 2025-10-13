@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { SearchBar } from '@/components/ui/search-bar';
 import {
@@ -25,10 +25,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useDebounce } from 'use-debounce';
+import { fetchCategory } from '@/helpers/fetch-category';
+import { TCategory } from '@/models/category.model';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -36,6 +38,43 @@ const Header = () => {
 
   const auth = useAppSelector((s) => s.auth);
   const dispatch = useAppDispatch();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Categories for dropdowns
+  const [categories, setCategories] = useState<TCategory[]>([]);
+  useEffect(() => {
+    fetchCategory(setCategories).catch(() => {});
+  }, []);
+
+  // Selected category from URL
+  const selectedCategoryId = searchParams.get('categoryId') || '';
+  const selectedCategoryLabel = useMemo(
+    () =>
+      categories.find((c) => c.id === selectedCategoryId)?.name ||
+      'All Categories',
+    [categories, selectedCategoryId],
+  );
+
+  // Search (desktop input) synced with URL (debounced)
+  const initialName = searchParams.get('name') || '';
+  const [query, setQuery] = useState(initialName);
+  const [debouncedQuery] = useDebounce(query, 500);
+  useEffect(() => {
+    // Keep local state in sync when URL changes externally
+    setQuery(initialName);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialName]);
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (debouncedQuery && debouncedQuery.trim() !== '')
+      params.set('name', debouncedQuery.trim());
+    else params.delete('name');
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedQuery]);
 
   const isLoggedIn = Boolean(auth?.id && auth.id !== '');
   const shortName = (auth?.username ?? 'User').slice(0, 4);
@@ -136,20 +175,65 @@ const Header = () => {
           {/* Search with category (desktop only) */}
           <div className="hidden w-full max-w-3xl flex-1 items-center lg:flex">
             <div className="flex w-full items-stretch rounded-md border border-emerald-200 bg-white shadow-sm">
-              <button
-                type="button"
-                className="flex items-center gap-2 whitespace-nowrap rounded-l-md px-3 py-2 text-sm text-zinc-700 hover:bg-emerald-50"
-                aria-haspopup="listbox"
-                aria-expanded="false"
-              >
-                <span className="font-medium">All Categories</span>
-                <ChevronDown size={16} className="text-zinc-500" />
-              </button>
+              {/* Category dropdown (desktop search) */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 whitespace-nowrap rounded-l-md px-3 py-2 text-sm text-zinc-700 hover:bg-emerald-50"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                  >
+                    <span className="font-medium truncate max-w-[180px]">
+                      {selectedCategoryLabel}
+                    </span>
+                    <ChevronDown size={16} className="text-zinc-500" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  className="max-h-80 w-64 overflow-auto"
+                >
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const params = new URLSearchParams(
+                        searchParams.toString(),
+                      );
+                      params.delete('categoryId');
+                      const qs = params.toString();
+                      router.replace(qs ? `${pathname}?${qs}` : pathname, {
+                        scroll: false,
+                      });
+                    }}
+                  >
+                    All Categories
+                  </DropdownMenuItem>
+                  {categories.map((c) => (
+                    <DropdownMenuItem
+                      key={c.id}
+                      onClick={() => {
+                        const params = new URLSearchParams(
+                          searchParams.toString(),
+                        );
+                        params.set('categoryId', c.id);
+                        const qs = params.toString();
+                        router.replace(qs ? `${pathname}?${qs}` : pathname, {
+                          scroll: false,
+                        });
+                      }}
+                    >
+                      {c.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <span className="my-2 h-6 w-px bg-emerald-200" />
               <input
                 type="text"
                 placeholder="Search for items..."
                 className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-zinc-700 placeholder-zinc-400 outline-none"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
               />
               <button
                 type="button"
@@ -263,15 +347,51 @@ const Header = () => {
 
         {/* Bottom navigation row */}
         <div className="hidden items-center justify-between gap-6 border-t border-zinc-100 py-3 lg:flex">
-          {/* Browse categories */}
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-md bg-[#3BB77E] px-4 py-2.5 text-white shadow hover:bg-emerald-600"
-          >
-            <LayoutGrid className="h-5 w-5" />
-            <span className="font-semibold">Browse All Categories</span>
-            <ChevronDown size={16} className="opacity-90" />
-          </button>
+          {/* Browse categories (dropdown) */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-md bg-[#3BB77E] px-4 py-2.5 text-white shadow hover:bg-emerald-600"
+              >
+                <LayoutGrid className="h-5 w-5" />
+                <span className="font-semibold">Browse All Categories</span>
+                <ChevronDown size={16} className="opacity-90" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              className="max-h-96 w-72 overflow-auto"
+            >
+              <DropdownMenuItem
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.delete('categoryId');
+                  const qs = params.toString();
+                  router.replace(qs ? `${pathname}?${qs}` : pathname, {
+                    scroll: false,
+                  });
+                }}
+              >
+                All Categories
+              </DropdownMenuItem>
+              {categories.map((c) => (
+                <DropdownMenuItem
+                  key={c.id}
+                  onClick={() => {
+                    const params = new URLSearchParams(searchParams.toString());
+                    params.set('categoryId', c.id);
+                    const qs = params.toString();
+                    router.replace(qs ? `${pathname}?${qs}` : pathname, {
+                      scroll: false,
+                    });
+                  }}
+                >
+                  {c.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Main nav */}
           <nav className="hidden flex-1 items-center justify-center gap-6 text-sm text-zinc-700 md:flex">

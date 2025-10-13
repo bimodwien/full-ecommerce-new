@@ -2,16 +2,27 @@
 import React, { useState, useEffect } from 'react';
 import { fetchProduct } from '@/helpers/fetch-product';
 import { fetchCategory } from '@/helpers/fetch-category';
-import { TProduct } from '@/models/product.model';
+import { TProductList } from '@/models/product.model';
 import { TCategory } from '@/models/category.model';
 
 const Dashboard = () => {
-  const [products, setProducts] = useState<TProduct[]>([]);
+  const [products, setProducts] = useState<TProductList[]>([]);
   const [categories, setCategories] = useState<TCategory[]>([]);
 
   useEffect(() => {
-    fetchProduct(setProducts);
-    fetchCategory(setCategories);
+    let mounted = true;
+    // fetch products and categories with unmount guard
+    void fetchProduct((data) => {
+      if (!mounted) return;
+      setProducts(data);
+    });
+    void fetchCategory((data) => {
+      if (!mounted) return;
+      setCategories(data);
+    });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const totalProduct = products.length;
