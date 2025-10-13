@@ -7,21 +7,11 @@ import ProductTable from '@/components/dashboard/product-table';
 import { Pagination } from '@/components/ui/pagination';
 import { fetchProduct } from '@/helpers/fetch-product';
 import { fetchCategory } from '@/helpers/fetch-category';
-import { TProduct } from '@/models/product.model';
+import { TProductList } from '@/models/product.model';
 import { TCategory } from '@/models/category.model';
 import { useDebounce } from 'use-debounce';
 
 const ITEMS_PER_PAGE = 10;
-
-type TableProduct = {
-  id: string;
-  name: string;
-  category: string;
-  stock: number;
-  status: string;
-  price: number;
-  image: string;
-};
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -31,7 +21,7 @@ export default function ProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState('All Categories');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [products, setProducts] = useState<TProduct[]>([]);
+  const [products, setProducts] = useState<TProductList[]>([]);
   const [categoriesData, setCategoriesData] = useState<TCategory[]>([]);
 
   useEffect(() => {
@@ -48,40 +38,28 @@ export default function ProductsPage() {
     [categoriesData],
   );
 
-  const tableProducts: TableProduct[] = useMemo(() => {
-    return (products || []).map((p) => ({
-      id: String(p.id),
-      name: p.name,
-      category: p.Category?.name || 'Uncategorized',
-      stock: p.stockTotal ?? 0,
-      status: p.stockStatus || 'IN_STOCK',
-      price: Number(p.price ?? 0),
-      image:
-        (p.Images && p.Images[0] && (p.Images[0] as any).imageUrl) ||
-        '/placeholder.svg',
-    }));
-  }, [products]);
-
   const filteredProducts = useMemo(() => {
-    return tableProducts.filter((product) => {
+    return (products || []).filter((product) => {
       const matchesSearch = product.name
         .toLowerCase()
         .includes(debouncedSearchTerm.toLowerCase());
       const matchesStatus =
-        statusFilter === 'all' || product.status === statusFilter;
+        statusFilter === 'all' || product.stockStatus === statusFilter;
       const matchesCategory = (() => {
         if (categoryFilter === 'All Categories') return true;
         if (categoryFilter === 'Uncategorized')
-          return product.category === 'Uncategorized';
+          return (
+            (product.Category?.name || 'Uncategorized') === 'Uncategorized'
+          );
         return (
-          (product.category || '').trim().toLowerCase() ===
+          (product.Category?.name || '').trim().toLowerCase() ===
           (categoryFilter || '').trim().toLowerCase()
         );
       })();
 
       return matchesSearch && matchesStatus && matchesCategory;
     });
-  }, [tableProducts, debouncedSearchTerm, statusFilter, categoryFilter]);
+  }, [products, debouncedSearchTerm, statusFilter, categoryFilter]);
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE) || 1;
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;

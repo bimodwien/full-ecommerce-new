@@ -3,82 +3,56 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Star, Plus, ShoppingCart } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { formatIDR } from '@/lib/utils';
+import { TProduct, TProductList } from '@/models/product.model';
 
-export type Product = {
-  id: string;
-  image: string;
-  category: string;
-  title: string;
-  vendor: string;
-  price: number;
-  oldPrice?: number;
-  label?: 'Hot' | 'Sale' | 'New';
-  rating?: number; // 0..5
-};
-
-function LabelPill({ label }: { label?: Product['label'] }) {
-  if (!label) return null;
-  const styles: Record<NonNullable<Product['label']>, string> = {
-    Hot: 'bg-pink-500',
-    Sale: 'bg-sky-500',
-    New: 'bg-emerald-500',
-  };
-  return (
-    <span
-      className={`absolute left-0 top-0 rounded-tl-2xl rounded-br-[20px] px-3 py-1 text-xs font-semibold text-white ${styles[label]}`}
-    >
-      {label}
-    </span>
-  );
-}
-
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product }: { product: TProduct | TProductList }) {
+  const apiBase = (
+    process.env.NEXT_PUBLIC_BASE_API_URL || 'http://localhost:8000/api'
+  ).replace(/\/$/, '');
+  const priceNum =
+    typeof product.price === 'string' ? Number(product.price) : product.price;
+  const imageUrl = `${apiBase}/products/image/${product.id}`;
+  const categoryName = (product as any).Category?.name || '';
+  const vendorName = (product as any).seller?.name || '';
   return (
     <Card className="group relative rounded-2xl overflow-hidden !p-0 !gap-0">
       <div className="relative h-40 sm:h-56 md:h-64 w-full">
         <Image
-          src={product.image || 'https://placehold.co/400/fff/000'}
-          alt={product.title}
+          src={imageUrl || 'https://placehold.co/400/fff/000'}
+          alt={product.name}
           fill
           unoptimized
           sizes="(min-width: 1280px) 246px, (min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
           className="object-cover"
         />
-        <LabelPill label={product.label} />
       </div>
       <CardContent className="space-y-2 px-3 sm:px-4 md:px-5 pb-4 md:pb-5">
-        <div className="pt-2 text-[11px] sm:text-xs text-zinc-400">
-          {product.category}
+        <div className="pt-4 first-letter:capitalize text-[11px] sm:text-xs text-zinc-400">
+          {categoryName}
         </div>
         <Link
           href="#"
-          className="line-clamp-2 text-sm sm:text-base font-bold leading-snug text-zinc-700 hover:text-emerald-600"
+          className="line-clamp-4 text-sm sm:text-base font-bold leading-snug text-zinc-700 hover:text-emerald-600 truncate"
         >
-          {product.title}
+          {product.name}
         </Link>
-        <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-zinc-500">
-          <Star
-            className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-400"
-            fill="currentColor"
-          />
-          <span>({product.rating?.toFixed(1) ?? '4.0'})</span>
-        </div>
+        {/* Rating removed per request */}
         <div className="text-xs sm:text-sm">
           <span className="text-zinc-400">By </span>
           <Link href="#" className="text-emerald-500 hover:underline">
-            {product.vendor}
+            {vendorName}
           </Link>
         </div>
         <div className="mt-2 flex items-center justify-between">
           <div className="flex items-baseline gap-2">
             <div className="text-base sm:text-lg font-extrabold text-emerald-600">
-              {formatIDR(product.price)}
+              {formatIDR(priceNum)}
             </div>
-            {product.oldPrice && (
+            {(product as any).oldPrice && (
               <div className="text-xs sm:text-sm font-semibold text-zinc-400 line-through">
-                {formatIDR(product.oldPrice)}
+                {formatIDR((product as any).oldPrice)}
               </div>
             )}
           </div>

@@ -1,15 +1,26 @@
 import { axiosInstance } from '@/libraries/axios';
-import { TProduct } from '@/models/product.model';
+import { TProduct, TProductList } from '@/models/product.model';
 import type { Dispatch, SetStateAction } from 'react';
 
 const axios = axiosInstance();
 
+export type GetProductsQuery = {
+  page?: number;
+  limit?: number;
+  name?: string;
+  categoryId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: 'newest' | 'price_asc' | 'price_desc' | string;
+};
+
 export const fetchProduct = async (
-  setProducts: Dispatch<SetStateAction<TProduct[]>>,
+  setProducts: Dispatch<SetStateAction<TProductList[]>>,
+  params?: GetProductsQuery,
 ) => {
   try {
-    const response = await axios.get('/products');
-    const products = (response.data?.products || []) as TProduct[];
+    const response = await axios.get('/products', { params });
+    const products = (response.data?.products || []) as TProductList[];
     setProducts(products);
   } catch (error) {
     throw error;

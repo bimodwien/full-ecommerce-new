@@ -32,19 +32,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { deleteProduct } from '@/helpers/fetch-product';
-
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  stock: number;
-  status: string;
-  price: number;
-  image: string;
-}
+import { TProductList } from '@/models/product.model';
 
 interface ProductTableProps {
-  products: Product[];
+  products: TProductList[];
   onDeleteSuccess?: (id: string) => void;
 }
 
@@ -119,67 +110,81 @@ const ProductTable = ({ products, onDeleteSuccess }: ProductTableProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell>
-                  <div className="flex items-center space-x-3">
-                    <Image
-                      src={`http://localhost:8000/api/products/image/${product.id}`}
-                      alt={product.name}
-                      className="w-10 h-10 sm:w-15 sm:h-15 rounded-lg object-cover flex-shrink-0"
-                      width={60}
-                      height={60}
-                    />
-                    <div className="min-w-0">
-                      <span className="font-medium text-zinc-700 text-sm sm:text-base block truncate">
-                        {product.name}
-                      </span>
-                      <span className="text-xs text-zinc-500 sm:hidden block">
-                        {product.category}
-                      </span>
+            {products.map((product) => {
+              const apiBase = (
+                process.env.NEXT_PUBLIC_BASE_API_URL ||
+                'http://localhost:8000/api'
+              ).replace(/\/$/, '');
+              const imageUrl = `${apiBase}/products/image/${product.id}`;
+              const category = product.Category?.name || 'Uncategorized';
+              const stock = product.stockTotal ?? 0;
+              const status = product.stockStatus || 'IN_STOCK';
+              const price = Number(product.price ?? 0);
+              return (
+                <TableRow key={product.id}>
+                  <TableCell>
+                    <div className="flex items-center space-x-3">
+                      <Image
+                        src={imageUrl}
+                        alt={product.name}
+                        className="w-10 h-10 sm:w-15 sm:h-15 rounded-lg object-cover flex-shrink-0"
+                        width={60}
+                        height={60}
+                      />
+                      <div className="min-w-0">
+                        <span className="font-medium text-zinc-700 text-sm sm:text-base block truncate">
+                          {product.name}
+                        </span>
+                        <span className="text-xs text-zinc-500 sm:hidden block">
+                          {category}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell className="text-zinc-700 first-letter:capitalize hidden sm:table-cell">
-                  {product.category}
-                </TableCell>
-                <TableCell>
-                  <span className="font-medium text-sm text-zinc-700">
-                    {product.stock}
-                  </span>
-                </TableCell>
-                <TableCell className="font-medium text-zinc-700 hidden md:table-cell">
-                  {formatIDR(product.price)}
-                </TableCell>
-                <TableCell>{getStatusBadge(product.status)}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() =>
-                          router.push(`/dashboard/products/edit/${product.id}`)
-                        }
-                      >
-                        <Edit className="w-4 h-4 mr-2 text-zinc-700" />
-                        Edit Product
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600 focus:text-red-600"
-                        onClick={() => promptDelete(product.id, product.name)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete Product
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+                  </TableCell>
+                  <TableCell className="text-zinc-700 first-letter:capitalize hidden sm:table-cell">
+                    {category}
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-medium text-sm text-zinc-700">
+                      {stock}
+                    </span>
+                  </TableCell>
+                  <TableCell className="font-medium text-zinc-700 hidden md:table-cell">
+                    {formatIDR(price)}
+                  </TableCell>
+                  <TableCell>{getStatusBadge(status)}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/products/edit/${product.id}`,
+                            )
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => promptDelete(product.id, product.name)}
+                          className="flex items-center gap-2 text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
