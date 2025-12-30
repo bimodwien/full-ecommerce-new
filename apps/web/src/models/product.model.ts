@@ -56,3 +56,15 @@ export type TProductList = Omit<
 > & {
   Images?: (Omit<TProductImage, 'data'> & { imageUrl: string })[];
 };
+
+// Query params used to fetch product lists
+export type ProductSort = 'newest' | 'price_asc' | 'price_desc' | string;
+export type GetProductsQuery = {
+  page?: number;
+  limit?: number;
+  name?: string;
+  categoryId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: ProductSort;
+};

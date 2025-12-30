@@ -264,7 +264,7 @@ const Header = () => {
                   href="#"
                   className="group relative flex items-center gap-1 text-zinc-700 hover:text-emerald-600"
                 >
-                  <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
+                  <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
                     6
                   </span>
                   <Heart className="h-6 w-6" />
@@ -276,7 +276,7 @@ const Header = () => {
                   href="#"
                   className="group relative flex items-center gap-1 text-zinc-700 hover:text-emerald-600"
                 >
-                  <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
+                  <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
                     2
                   </span>
                   <ShoppingCart className="h-6 w-6" />
@@ -327,7 +327,7 @@ const Header = () => {
               className="relative inline-flex items-center text-zinc-700 hover:text-emerald-600"
               aria-label="Wishlist"
             >
-              <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
+              <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
                 6
               </span>
               <Heart className="h-6 w-6" />
@@ -337,7 +337,7 @@ const Header = () => {
               className="relative inline-flex items-center text-zinc-700 hover:text-emerald-600"
               aria-label="Cart"
             >
-              <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
+              <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
                 2
               </span>
               <ShoppingCart className="h-6 w-6" />

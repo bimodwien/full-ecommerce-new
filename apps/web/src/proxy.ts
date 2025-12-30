@@ -19,12 +19,13 @@ interface AccessTokenPayload {
 const PUBLIC_AUTH_ROUTES = ['/login', '/register'];
 const HOMEPAGE = '/';
 const DASHBOARD_ROOT = '/dashboard';
+const PUBLIC_PAGES = ['/detail']; // prefix group for public product pages
 
 // Helper: check if path starts with pattern (for grouping like /dashboard/...)
 const startsWith = (path: string, prefix: string) =>
   path === prefix || path.startsWith(prefix + '/');
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Skip Next.js internals & static files quickly
@@ -39,9 +40,13 @@ export function middleware(req: NextRequest) {
 
   const accessToken = req.cookies.get('access_token')?.value;
 
-  // 1. No token: allow homepage + login + register, block others
+  // 1. No token: allow homepage + login + register + public pages (/detail/**), block others
   if (!accessToken) {
-    if (PUBLIC_AUTH_ROUTES.includes(pathname) || pathname === HOMEPAGE) {
+    if (
+      PUBLIC_AUTH_ROUTES.includes(pathname) ||
+      pathname === HOMEPAGE ||
+      PUBLIC_PAGES.some((p) => startsWith(pathname, p))
+    ) {
       return NextResponse.next();
     }
     return NextResponse.redirect(new URL('/login', req.url));
@@ -67,8 +72,11 @@ export function middleware(req: NextRequest) {
     if (PUBLIC_AUTH_ROUTES.includes(pathname)) {
       return NextResponse.redirect(new URL('/', req.url));
     }
-    // If trying something else not explicitly allowed (e.g., other pages) redirect to homepage for now
-    if (pathname !== HOMEPAGE) {
+    // Allow public product pages as well
+    if (
+      pathname !== HOMEPAGE &&
+      !PUBLIC_PAGES.some((p) => startsWith(pathname, p))
+    ) {
       return NextResponse.redirect(new URL('/', req.url));
     }
     return NextResponse.next();

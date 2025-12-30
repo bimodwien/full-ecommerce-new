@@ -130,17 +130,34 @@ const HomepageSidebar = () => {
             {newest.slice(0, 3).map((p) => (
               <li key={p.id} className="py-3">
                 <a
-                  href={`#/product/${p.id}`}
+                  href={`/detail/${p.id}`}
                   className="grid grid-cols-[56px_1fr] items-center gap-3"
                 >
                   {/* Image */}
-                  <Image
-                    src={`http://localhost:8000/api/products/image/${p.id}`}
-                    alt={p.name}
-                    className="h-14 w-14 rounded-md object-cover border border-emerald-100 bg-emerald-50"
-                    width={56}
-                    height={56}
-                  />
+                  {(() => {
+                    const apiBase = (
+                      process.env.NEXT_PUBLIC_BASE_API_URL ||
+                      'http://localhost:8000/api'
+                    ).replace(/\/$/, '');
+                    const apiOrigin = apiBase.replace(/\/api\/?$/, '');
+                    const rawImage = (p as any).Images?.[0]?.imageUrl as
+                      | string
+                      | undefined;
+                    const src = rawImage
+                      ? rawImage.startsWith('http')
+                        ? rawImage
+                        : `${apiOrigin}${rawImage.startsWith('/') ? '' : '/'}${rawImage}`
+                      : `${apiBase}/products/image/${p.id}`;
+                    return (
+                      <Image
+                        src={src}
+                        alt={p.name}
+                        className="h-14 w-14 rounded-md object-cover border border-emerald-100 bg-emerald-50"
+                        width={56}
+                        height={56}
+                      />
+                    );
+                  })()}
                   {/* Info */}
                   <div className="min-w-0">
                     <div className="truncate font-semibold text-emerald-600">

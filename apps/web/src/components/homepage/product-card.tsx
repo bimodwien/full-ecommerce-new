@@ -8,16 +8,22 @@ import { formatIDR } from '@/lib/utils';
 import { TProduct, TProductList } from '@/models/product.model';
 
 export function ProductCard({ product }: { product: TProduct | TProductList }) {
+  const priceNum =
+    typeof product.price === 'string' ? Number(product.price) : product.price;
   const apiBase = (
     process.env.NEXT_PUBLIC_BASE_API_URL || 'http://localhost:8000/api'
   ).replace(/\/$/, '');
-  const priceNum =
-    typeof product.price === 'string' ? Number(product.price) : product.price;
-  const imageUrl = `${apiBase}/products/image/${product.id}`;
+  const apiOrigin = apiBase.replace(/\/api\/?$/, '');
+  const rawImage = (product as any).Images?.[0]?.imageUrl as string | undefined;
+  const imageUrl = rawImage
+    ? rawImage.startsWith('http')
+      ? rawImage
+      : `${apiOrigin}${rawImage.startsWith('/') ? '' : '/'}${rawImage}`
+    : `${apiBase}/products/image/${product.id}`;
   const categoryName = (product as any).Category?.name || '';
   const vendorName = (product as any).seller?.name || '';
   return (
-    <Card className="group relative rounded-2xl overflow-hidden !p-0 !gap-0">
+    <Card className="group relative rounded-2xl overflow-hidden p-0! gap-0!">
       <div className="relative h-40 sm:h-56 md:h-64 w-full">
         <Image
           src={imageUrl || 'https://placehold.co/400/fff/000'}
@@ -33,7 +39,7 @@ export function ProductCard({ product }: { product: TProduct | TProductList }) {
           {categoryName}
         </div>
         <Link
-          href="#"
+          href={`/detail/${product.id}`}
           className="line-clamp-4 text-sm sm:text-base font-bold leading-snug text-zinc-700 hover:text-emerald-600 truncate"
         >
           {product.name}
