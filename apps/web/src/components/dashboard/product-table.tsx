@@ -115,7 +115,15 @@ const ProductTable = ({ products, onDeleteSuccess }: ProductTableProps) => {
                 process.env.NEXT_PUBLIC_BASE_API_URL ||
                 'http://localhost:8000/api'
               ).replace(/\/$/, '');
-              const imageUrl = `${apiBase}/products/image/${product.id}`;
+              const rawImage = (product as any).Images?.[0]?.imageUrl as
+                | string
+                | undefined;
+              const apiOrigin = apiBase.replace(/\/api\/?$/, '');
+              const imageUrl = rawImage
+                ? rawImage.startsWith('http')
+                  ? rawImage
+                  : `${apiOrigin}${rawImage.startsWith('/') ? '' : '/'}${rawImage}`
+                : `${apiBase}/products/image/${product.id}`;
               const category = product.Category?.name || 'Uncategorized';
               const stock = product.stockTotal ?? 0;
               const status = product.stockStatus || 'IN_STOCK';
@@ -127,7 +135,7 @@ const ProductTable = ({ products, onDeleteSuccess }: ProductTableProps) => {
                       <Image
                         src={imageUrl}
                         alt={product.name}
-                        className="w-10 h-10 sm:w-15 sm:h-15 rounded-lg object-cover flex-shrink-0"
+                        className="w-10 h-10 sm:w-15 sm:h-15 rounded-lg object-cover shrink-0"
                         width={60}
                         height={60}
                       />

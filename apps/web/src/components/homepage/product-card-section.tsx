@@ -5,6 +5,7 @@ import { ProductCard } from '@/components/homepage/product-card';
 import { fetchProduct, type GetProductsQuery } from '@/helpers/fetch-product';
 import { TProductList } from '@/models/product.model';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 const ProductCardSection = () => {
   const [products, setProducts] = useState<TProductList[]>([]);

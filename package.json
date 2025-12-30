@@ -11,18 +11,18 @@
     "postprepare": "bash -c 'chmod ug+x .husky/*'"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.1.0",
-    "@commitlint/config-conventional": "^20.0.0",
-    "eslint": "^9.37.0",
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0",
+    "eslint": "^9.39.2",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.4",
-    "prettier": "^3.6.2",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4",
     "tsc-alias": "^1.8.16",
     "tsconfig": "*",
-    "turbo": "^2.5.8"
+    "turbo": "^2.7.2"
   },
   "name": "finpro-nextjs-express-prisma",
-  "packageManager": "npm@11.6.2",
+  "packageManager": "npm@11.7.0",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -33,6 +33,6 @@
     }
   },
   "dependencies": {
-    "google-auth-library": "10.4.0"
+    "google-auth-library": "10.5.0"
   }
 }

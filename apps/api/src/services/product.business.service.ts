@@ -92,7 +92,8 @@ class ProductBusinessService {
           : undefined,
         Images: {
           create: imagesCreate.map((img) => ({
-            data: img.data,
+            // Cast to any to satisfy Prisma Bytes type across Node typings
+            data: img.data as any,
             isPrimary: img.isPrimary,
           })),
         },

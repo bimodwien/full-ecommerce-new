@@ -2,12 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
+    unoptimized: true, // Development: disable optimization for localhost
     remotePatterns: [
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '8000',
-        pathname: '/api/products/image/**',
+        pathname: '/**',
       },
       {
         protocol: 'https',
