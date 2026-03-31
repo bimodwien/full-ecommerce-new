@@ -101,7 +101,7 @@ const Header = () => {
               My Account
             </Link>
             <span className="h-3 w-px bg-zinc-200" />
-            <Link href="#" className="hover:text-zinc-700">
+            <Link href="/wishlist" className="hover:text-zinc-700">
               Wishlist
             </Link>
             <span className="h-3 w-px bg-zinc-200" />
@@ -164,7 +164,7 @@ const Header = () => {
               height={40}
             />
             <span
-              className="inline-block text-base sm:text-xl font-semibold text-gray-900 whitespace-nowrap truncate max-w-[140px] sm:max-w-none"
+              className="inline-block text-base sm:text-xl font-semibold text-gray-900 whitespace-nowrap truncate max-w-35 sm:max-w-none"
               style={{ fontFamily: 'var(--font-bebas-neue)' }}
             >
               TokoPakBimo
@@ -184,7 +184,7 @@ const Header = () => {
                     aria-haspopup="listbox"
                     aria-expanded="false"
                   >
-                    <span className="font-medium truncate max-w-[180px]">
+                    <span className="font-medium truncate max-w-45">
                       {selectedCategoryLabel}
                     </span>
                     <ChevronDown size={16} className="text-zinc-500" />
@@ -261,7 +261,7 @@ const Header = () => {
             <ul className="flex items-center gap-4 text-sm">
               <li>
                 <Link
-                  href="#"
+                  href="/wishlist"
                   className="group relative flex items-center gap-1 text-zinc-700 hover:text-emerald-600"
                 >
                   <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
@@ -273,7 +273,7 @@ const Header = () => {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/cart"
                   className="group relative flex items-center gap-1 text-zinc-700 hover:text-emerald-600"
                 >
                   <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
@@ -297,7 +297,7 @@ const Header = () => {
                     <DropdownMenuTrigger asChild>
                       <button className="flex items-center gap-1 cursor-pointer text-zinc-700 hover:text-emerald-600">
                         <User className="h-6 w-6" />
-                        <span className="max-w-[180px] truncate">
+                        <span className="max-w-45 truncate">
                           hi,{' '}
                           <span className="text-emerald-600 font-semibold first-letter:capitalize ">
                             {shortName}
@@ -323,7 +323,7 @@ const Header = () => {
           {/* Mobile right icons */}
           <div className="lg:hidden justify-self-end flex items-center gap-4">
             <Link
-              href="#"
+              href="/wishlist"
               className="relative inline-flex items-center text-zinc-700 hover:text-emerald-600"
               aria-label="Wishlist"
             >
@@ -333,7 +333,7 @@ const Header = () => {
               <Heart className="h-6 w-6" />
             </Link>
             <Link
-              href="#"
+              href="/cart"
               className="relative inline-flex items-center text-zinc-700 hover:text-emerald-600"
               aria-label="Cart"
             >
@@ -403,7 +403,7 @@ const Header = () => {
               <span>Deals</span>
             </Link>
             <Link
-              href="#"
+              href="/"
               className="inline-flex items-center gap-1 font-semibold text-emerald-600"
             >
               Home
