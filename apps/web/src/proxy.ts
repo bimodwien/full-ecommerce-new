@@ -20,6 +20,7 @@ const PUBLIC_AUTH_ROUTES = ['/login', '/register'];
 const HOMEPAGE = '/';
 const DASHBOARD_ROOT = '/dashboard';
 const PUBLIC_PAGES = ['/detail']; // prefix group for public product pages
+const BUYER_ONLY_PAGES = ['/cart', '/wishlist']; // prefix group for buyer-only flows
 
 // Helper: check if path starts with pattern (for grouping like /dashboard/...)
 const startsWith = (path: string, prefix: string) =>
@@ -72,11 +73,12 @@ export function proxy(req: NextRequest) {
     if (PUBLIC_AUTH_ROUTES.includes(pathname)) {
       return NextResponse.redirect(new URL('/', req.url));
     }
-    // Allow public product pages as well
-    if (
-      pathname !== HOMEPAGE &&
-      !PUBLIC_PAGES.some((p) => startsWith(pathname, p))
-    ) {
+    // Allow homepage, public product pages, and explicit buyer-only flows (cart, wishlist)
+    const buyerAllowed =
+      pathname === HOMEPAGE ||
+      PUBLIC_PAGES.some((p) => startsWith(pathname, p)) ||
+      BUYER_ONLY_PAGES.some((p) => startsWith(pathname, p));
+    if (!buyerAllowed) {
       return NextResponse.redirect(new URL('/', req.url));
     }
     return NextResponse.next();

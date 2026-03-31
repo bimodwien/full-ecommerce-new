@@ -1,17 +1,14 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { FiMapPin, FiPhone, FiMail, FiClock } from 'react-icons/fi';
 import {
-  MapPin,
-  Phone,
-  Mail,
-  Clock,
-  Facebook,
-  Twitter,
-  Instagram,
-  Youtube,
-  Linkedin,
-} from 'lucide-react';
+  FaFacebookF,
+  FaTwitter,
+  FaInstagram,
+  FaYoutube,
+  FaLinkedinIn,
+} from 'react-icons/fa';
 
 const COL_CLASS = 'space-y-3';
 
@@ -84,7 +81,7 @@ const Footer = () => {
             <ul className="mt-4 space-y-2 text-zinc-600">
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                  <MapPin className="h-4 w-4" />
+                  <FiMapPin className="h-4 w-4" />
                 </span>
                 <div>
                   <span className="text-zinc-400">Address: </span>
@@ -93,7 +90,7 @@ const Footer = () => {
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                  <Phone className="h-4 w-4" />
+                  <FiPhone className="h-4 w-4" />
                 </span>
                 <div>
                   <span className="text-zinc-400">Call Us: </span>
@@ -102,7 +99,7 @@ const Footer = () => {
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                  <Mail className="h-4 w-4" />
+                  <FiMail className="h-4 w-4" />
                 </span>
                 <div>
                   <span className="text-zinc-400">Email: </span>
@@ -111,7 +108,7 @@ const Footer = () => {
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                  <Clock className="h-4 w-4" />
+                  <FiClock className="h-4 w-4" />
                 </span>
                 <div>
                   <span className="text-zinc-400">Hours: </span>
@@ -190,7 +187,7 @@ const Footer = () => {
             <div className="flex flex-wrap items-center gap-6">
               <div className="flex items-center gap-2">
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                  <Phone className="h-5 w-5" />
+                  <FiPhone className="h-5 w-5" />
                 </span>
                 <div className="leading-tight">
                   <div className="text-lg font-extrabold text-emerald-600">
@@ -203,7 +200,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-2">
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                  <Phone className="h-5 w-5" />
+                  <FiPhone className="h-5 w-5" />
                 </span>
                 <div className="leading-tight">
                   <div className="text-lg font-extrabold text-emerald-600">
@@ -228,7 +225,7 @@ const Footer = () => {
                     aria-label="Follow on Facebook"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                   >
-                    <Facebook className="h-4 w-4" />
+                    <FaFacebookF className="h-4 w-4" />
                   </Link>
                 </li>
                 <li>
@@ -237,7 +234,7 @@ const Footer = () => {
                     aria-label="Follow on Twitter"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                   >
-                    <Twitter className="h-4 w-4" />
+                    <FaTwitter className="h-4 w-4" />
                   </Link>
                 </li>
                 <li>
@@ -246,7 +243,7 @@ const Footer = () => {
                     aria-label="Follow on Instagram"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                   >
-                    <Instagram className="h-4 w-4" />
+                    <FaInstagram className="h-4 w-4" />
                   </Link>
                 </li>
                 <li>
@@ -255,7 +252,7 @@ const Footer = () => {
                     aria-label="Follow on YouTube"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                   >
-                    <Youtube className="h-4 w-4" />
+                    <FaYoutube className="h-4 w-4" />
                   </Link>
                 </li>
                 <li>
@@ -264,7 +261,7 @@ const Footer = () => {
                     aria-label="Follow on LinkedIn"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                   >
-                    <Linkedin className="h-4 w-4" />
+                    <FaLinkedinIn className="h-4 w-4" />
                   </Link>
                 </li>
               </ul>
