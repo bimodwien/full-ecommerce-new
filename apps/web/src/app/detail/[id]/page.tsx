@@ -1,8 +1,16 @@
 'use client';
-import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import React, {
+  Suspense,
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+} from 'react';
 import Header from '@/components/Header';
 import HomepageSidebar from '@/components/homepage/homepage-sidebar';
 import { fetchProductDetail } from '@/helpers/fetch-product';
+import { toggleWishlist } from '@/helpers/fetch-wishlist';
+import { addToCart } from '@/helpers/fetch-cart';
 import { TProduct } from '@/models/product.model';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
@@ -15,6 +23,14 @@ import {
   Heart,
   Shuffle,
 } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '@/libraries/redux/hooks';
+import {
+  addWishlistProduct,
+  removeWishlistProduct,
+} from '@/libraries/redux/slices/wishlist.slice';
+import { setCartCount } from '@/libraries/redux/slices/cart.slice';
+import { fetchCartCount } from '@/helpers/fetch-cart';
+import { toast } from 'sonner';
 
 function PageDetail() {
   const params = useParams<{ id: string }>();
@@ -25,6 +41,14 @@ function PageDetail() {
     null,
   );
   const [qty, setQty] = useState<number>(1);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [cartLoading, setCartLoading] = useState(false);
+
+  const dispatch = useAppDispatch();
+  const auth = useAppSelector((s) => s.auth);
+  const wishlistProductIds = useAppSelector((s) => s.wishlist.productIds);
+  const isLoggedIn = Boolean(auth.id);
+  const wishlisted = wishlistProductIds.includes(id);
   const imageBase = useMemo(() => {
     const base =
       process.env.NEXT_PUBLIC_BASE_API_URL || 'http://localhost:8000/api';
@@ -58,6 +82,49 @@ function PageDetail() {
       mounted = false;
     };
   }, [id]);
+
+  const handleWishlist = useCallback(async () => {
+    if (!isLoggedIn) {
+      toast.warning('You must be logged in to add to wishlist.');
+      return;
+    }
+    if (wishlistLoading) return;
+    setWishlistLoading(true);
+    try {
+      const result = await toggleWishlist(id, selectedVariantId);
+      if (result.added) {
+        dispatch(addWishlistProduct(id));
+      } else {
+        dispatch(removeWishlistProduct(id));
+      }
+      toast.success(
+        result.added ? 'Added to wishlist!' : 'Removed from wishlist.',
+      );
+    } catch {
+      toast.error('Failed to update wishlist.');
+    } finally {
+      setWishlistLoading(false);
+    }
+  }, [isLoggedIn, wishlistLoading, id, selectedVariantId, dispatch]);
+
+  const handleAddToCart = useCallback(async () => {
+    if (!isLoggedIn) {
+      toast.warning('You must be logged in to add to cart.');
+      return;
+    }
+    if (cartLoading) return;
+    setCartLoading(true);
+    try {
+      await addToCart(id, qty, selectedVariantId);
+      const count = await fetchCartCount();
+      dispatch(setCartCount(count));
+      toast.success('Product added to cart!');
+    } catch {
+      toast.error('Failed to add to cart.');
+    } finally {
+      setCartLoading(false);
+    }
+  }, [isLoggedIn, cartLoading, id, qty, selectedVariantId, dispatch]);
 
   return (
     <>
@@ -207,7 +274,11 @@ function PageDetail() {
                       </div>
 
                       {/* Add to cart */}
-                      <Button className="h-12 px-8 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold tracking-wide flex items-center gap-2">
+                      <Button
+                        onClick={handleAddToCart}
+                        disabled={cartLoading}
+                        className="h-12 px-8 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold tracking-wide flex items-center gap-2 disabled:opacity-60"
+                      >
                         <ShoppingCart className="h-5 w-5" />
                         Add to cart
                       </Button>
@@ -215,10 +286,24 @@ function PageDetail() {
                       {/* Optional placeholders to match screenshot spacing */}
                       <button
                         type="button"
-                        className="h-12 w-12 rounded-lg border-2 border-zinc-200 text-zinc-500 hover:bg-zinc-50 flex items-center justify-center"
-                        aria-label="Wishlist"
+                        onClick={handleWishlist}
+                        disabled={wishlistLoading}
+                        className={`h-12 w-12 rounded-lg border-2 flex items-center justify-center transition-colors disabled:opacity-60 ${
+                          wishlisted
+                            ? 'border-red-400 bg-red-50 text-red-500'
+                            : 'border-zinc-200 text-zinc-500 hover:bg-zinc-50'
+                        }`}
+                        aria-label={
+                          wishlisted
+                            ? 'Hapus dari wishlist'
+                            : 'Tambah ke wishlist'
+                        }
                       >
-                        <Heart className="h-5 w-5" />
+                        <Heart
+                          className={`h-5 w-5 transition-colors ${
+                            wishlisted ? 'fill-red-500 text-red-500' : ''
+                          }`}
+                        />
                       </button>
                       <button
                         type="button"

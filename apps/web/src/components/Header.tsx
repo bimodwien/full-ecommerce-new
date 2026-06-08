@@ -37,6 +37,8 @@ const Header = () => {
   const [mobileQuery, setMobileQuery] = useState('');
 
   const auth = useAppSelector((s) => s.auth);
+  const wishlistCount = useAppSelector((s) => s.wishlist.count);
+  const cartCount = useAppSelector((s) => s.cart.count);
   const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
@@ -47,6 +49,9 @@ const Header = () => {
   useEffect(() => {
     fetchCategory(setCategories).catch(() => {});
   }, []);
+
+  // isLoggedIn derived from Redux auth
+  const isLoggedIn = Boolean(auth?.id && auth.id !== '');
 
   // Selected category from URL
   const selectedCategoryId = searchParams.get('categoryId') || '';
@@ -76,7 +81,6 @@ const Header = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQuery]);
 
-  const isLoggedIn = Boolean(auth?.id && auth.id !== '');
   const shortName = (auth?.username ?? 'User').slice(0, 4);
 
   const handleLogout = () => {
@@ -260,28 +264,48 @@ const Header = () => {
             {/* Icons */}
             <ul className="flex items-center gap-4 text-sm">
               <li>
-                <Link
-                  href="/wishlist"
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isLoggedIn) {
+                      toast.warning(
+                        'You must be logged in to access Wishlist.',
+                      );
+                      return;
+                    }
+                    router.push('/wishlist');
+                  }}
                   className="group relative flex items-center gap-1 text-zinc-700 hover:text-emerald-600"
                 >
-                  <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
-                    6
-                  </span>
+                  {wishlistCount > 0 && (
+                    <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
+                      {wishlistCount}
+                    </span>
+                  )}
                   <Heart className="h-6 w-6" />
                   <span>Wishlist</span>
-                </Link>
+                </button>
               </li>
               <li>
-                <Link
-                  href="/cart"
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isLoggedIn) {
+                      toast.warning('You must be logged in to access Cart.');
+                      return;
+                    }
+                    router.push('/cart');
+                  }}
                   className="group relative flex items-center gap-1 text-zinc-700 hover:text-emerald-600"
                 >
-                  <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
-                    2
-                  </span>
+                  {cartCount > 0 && (
+                    <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
+                      {cartCount}
+                    </span>
+                  )}
                   <ShoppingCart className="h-6 w-6" />
                   <span>Cart</span>
-                </Link>
+                </button>
               </li>
               <li>
                 {!isLoggedIn ? (
@@ -290,7 +314,7 @@ const Header = () => {
                     className="flex items-center gap-1 text-zinc-700 hover:text-emerald-600"
                   >
                     <User className="h-6 w-6" />
-                    <span>Account</span>
+                    <span>Login</span>
                   </Link>
                 ) : (
                   <DropdownMenu>
@@ -322,26 +346,44 @@ const Header = () => {
 
           {/* Mobile right icons */}
           <div className="lg:hidden justify-self-end flex items-center gap-4">
-            <Link
-              href="/wishlist"
+            <button
+              type="button"
+              onClick={() => {
+                if (!isLoggedIn) {
+                  toast.warning('You must be logged in to access Wishlist.');
+                  return;
+                }
+                router.push('/wishlist');
+              }}
               className="relative inline-flex items-center text-zinc-700 hover:text-emerald-600"
               aria-label="Wishlist"
             >
-              <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
-                6
-              </span>
+              {wishlistCount > 0 && (
+                <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
+                  {wishlistCount}
+                </span>
+              )}
               <Heart className="h-6 w-6" />
-            </Link>
-            <Link
-              href="/cart"
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!isLoggedIn) {
+                  toast.warning('You must be logged in to access Cart.');
+                  return;
+                }
+                router.push('/cart');
+              }}
               className="relative inline-flex items-center text-zinc-700 hover:text-emerald-600"
               aria-label="Cart"
             >
-              <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
-                2
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
+                  {cartCount}
+                </span>
+              )}
               <ShoppingCart className="h-6 w-6" />
-            </Link>
+            </button>
           </div>
         </div>
 
