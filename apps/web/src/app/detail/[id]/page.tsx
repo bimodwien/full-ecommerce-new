@@ -194,7 +194,7 @@ function PageDetail() {
                     <h1 className="justify-center text-slate-700 text-4xl font-bold font-['Quicksand'] leading-12">
                       {product.name}
                     </h1>
-                    <div className="justify-center text-emerald-400 text-2xl font-bold font-['Quicksand'] leading-[58px]">
+                    <div className="justify-center text-emerald-400 text-2xl font-bold font-['Quicksand'] leading-14.5">
                       {typeof product.price === 'string'
                         ? Number(product.price).toLocaleString('id-ID', {
                             style: 'currency',

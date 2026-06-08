@@ -101,7 +101,7 @@ const ProductTable = ({ products, onDeleteSuccess }: ProductTableProps) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[200px]">Product Name</TableHead>
+              <TableHead className="min-w-50">Product Name</TableHead>
               <TableHead className="hidden sm:table-cell">Category</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead className="hidden md:table-cell">Price</TableHead>
