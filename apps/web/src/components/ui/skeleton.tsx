@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 function Skeleton({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
-      className={cn('animate-pulse rounded-md bg-zinc-200', className)}
+      className={cn('animate-pulse rounded-none bg-soft-cloud', className)}
       {...props}
     />
   );

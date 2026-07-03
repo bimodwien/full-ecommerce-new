@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCart, Trash2, Minus, Plus } from 'lucide-react';
+import { ShoppingCart, Trash2, Minus, Plus, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -111,7 +111,7 @@ const CartSection = () => {
     return (
       <div className="flex flex-col gap-4">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-36 rounded-2xl" />
+          <Skeleton key={i} className="h-36" />
         ))}
       </div>
     );
@@ -119,16 +119,18 @@ const CartSection = () => {
 
   if (carts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-zinc-400">
-        <ShoppingCart className="h-16 w-16 mb-4 text-zinc-200" />
-        <p className="text-lg font-semibold">Your cart is empty</p>
-        <p className="text-sm mt-1">
-          Start shopping at the{' '}
-          <Link href="/" className="text-emerald-500 hover:underline">
-            homepage
-          </Link>
-          .
+      <div className="flex flex-col items-center justify-center py-20 text-stone">
+        <ShoppingCart className="h-16 w-16 mb-4 text-stone" />
+        <p className="text-lg font-medium text-ink">Your cart is empty</p>
+        <p className="text-sm mt-1 mb-4 text-mute">
+          Start shopping at the homepage.
         </p>
+        <Button asChild size="pill">
+          <Link href="/">
+            Go to homepage
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
       </div>
     );
   }
@@ -150,10 +152,10 @@ const CartSection = () => {
           const isDeleting = deletingId === cart.id;
 
           return (
-            <Card key={cart.id} className="rounded-2xl overflow-hidden">
-              <CardContent className="flex gap-4 p-4">
+            <Card key={cart.id} className="overflow-hidden">
+              <CardContent className="flex gap-4 p-4 bg-canvas border border-hairline">
                 {/* Image */}
-                <div className="relative h-24 w-24 shrink-0 rounded-xl overflow-hidden bg-zinc-100">
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden bg-soft-cloud">
                   <Image
                     src={getImageUrl(cart)}
                     alt={product?.name || 'Product'}
@@ -164,25 +166,25 @@ const CartSection = () => {
                 </div>
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs text-zinc-400 mb-0.5">
+                  <div className="text-xs text-mute mb-0.5">
                     {categoryName}
                   </div>
                   <Link
                     href={`/detail/${cart.productId}`}
-                    className="block text-sm font-bold text-zinc-700 hover:text-emerald-600 truncate"
+                    className="block text-sm font-medium text-ink hover:text-mute truncate"
                   >
                     {product?.name || 'Product name unavailable'}
                   </Link>
-                  <div className="text-xs text-zinc-400 mt-0.5">
-                    By <span className="text-emerald-500">{vendorName}</span>
+                  <div className="text-xs text-mute mt-0.5">
+                    By <span className="text-mute">{vendorName}</span>
                   </div>
                   {cart.Variant && (
-                    <div className="text-xs text-zinc-500 bg-zinc-100 rounded px-2 py-0.5 w-fit mt-1">
+                    <div className="text-xs text-mute bg-soft-cloud px-2 py-0.5 w-fit mt-1">
                       Variant: {cart.Variant.variant}
                     </div>
                   )}
                   <div className="mt-2 flex items-center justify-between flex-wrap gap-2">
-                    <span className="text-base font-extrabold text-emerald-600">
+                    <span className="text-base font-medium text-ink">
                       {formatIDR(priceNum)}
                     </span>
                     {/* Quantity control */}
@@ -199,7 +201,7 @@ const CartSection = () => {
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
-                      <span className="min-w-8 text-center text-sm font-semibold text-zinc-700">
+                      <span className="min-w-8 text-center text-sm font-medium text-ink">
                         {cart.quantity}
                       </span>
                       <Button
@@ -212,21 +214,20 @@ const CartSection = () => {
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="h-7 w-7 ml-2 text-red-500 hover:bg-red-50 border-red-200"
+                      <button
+                        type="button"
                         onClick={() => handleDelete(cart.id)}
                         disabled={isUpdating || isDeleting}
                         aria-label="Remove product"
+                        className="flex h-7 w-7 items-center justify-center rounded-full ml-2 bg-soft-cloud text-ink hover:bg-hairline-soft disabled:opacity-60"
                       >
                         <Trash2 className="h-3 w-3" />
-                      </Button>
+                      </button>
                     </div>
                   </div>
-                  <div className="text-xs text-zinc-400 mt-1">
+                  <div className="text-xs text-mute mt-1">
                     Subtotal:{' '}
-                    <span className="font-semibold text-zinc-600">
+                    <span className="font-medium text-ink">
                       {formatIDR(priceNum * cart.quantity)}
                     </span>
                   </div>
@@ -239,21 +240,25 @@ const CartSection = () => {
 
       {/* Order summary */}
       <div className="w-full lg:w-72 shrink-0">
-        <Card className="rounded-2xl sticky top-4">
-          <CardContent className="p-5">
-            <h2 className="text-lg font-bold text-zinc-700 mb-4">
+        <Card className="sticky top-4">
+          <CardContent className="p-5 bg-soft-cloud">
+            <h2 className="text-lg font-medium text-ink mb-4">
               Order Summary
             </h2>
-            <div className="flex justify-between text-sm text-zinc-500 mb-2">
+            <div className="flex justify-between text-sm text-mute mb-2">
               <span>Total items</span>
               <span>{totalItems} items</span>
             </div>
             <Separator className="my-3" />
-            <div className="flex justify-between font-bold text-zinc-700">
+            <div className="flex justify-between font-medium text-ink">
               <span>Total</span>
-              <span className="text-emerald-600">{formatIDR(totalPrice)}</span>
+              <span>{formatIDR(totalPrice)}</span>
             </div>
-            <Button className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
+            <Button
+              size="pill"
+              className="w-full mt-4"
+              onClick={() => toast.info('Checkout belum tersedia')}
+            >
               Proceed to Checkout
             </Button>
           </CardContent>
