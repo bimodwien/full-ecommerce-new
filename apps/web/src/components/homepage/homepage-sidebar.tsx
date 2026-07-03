@@ -46,13 +46,13 @@ const HomepageSidebar = () => {
       <Card>
         <CardHeader>
           <div>
-            <CardTitle className="text-xl text-zinc-700 font-semibold">
+            <CardTitle className="text-xl text-ink font-semibold">
               Categories
             </CardTitle>
-            <div className="mt-2 h-0.5 w-16 rounded bg-emerald-300" />
+            <div className="mt-2 h-0.5 w-16 bg-hairline" />
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="pt-2">
           <nav aria-label="Product categories">
             <ul id="sidebar-categories" className="flex flex-col gap-2">
               {visibleCategories.map((item) => (
@@ -73,19 +73,13 @@ const HomepageSidebar = () => {
                         scroll: false,
                       });
                     }}
-                    className={`w-full text-left flex items-center justify-between gap-2 rounded-md py-2 px-2 text-sm transition-colors ${
+                    className={`w-full text-left flex items-center justify-between gap-2 py-2 px-2 text-sm transition-colors ${
                       selectedCategoryId === item.id
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'text-zinc-700 hover:bg-accent hover:text-accent-foreground'
+                        ? 'bg-soft-cloud text-ink font-medium'
+                        : 'text-ink hover:bg-soft-cloud'
                     }`}
                   >
-                    <span className="flex min-w-0 items-center gap-2">
-                      <span
-                        aria-hidden
-                        className="h-2 w-2 shrink-0 rounded-full bg-emerald-600"
-                      />
-                      <span className="truncate pl-1">{item.name}</span>
-                    </span>
+                    <span className="truncate">{item.name}</span>
                     <Badge
                       variant="secondary"
                       aria-label={`${item.productCount ?? 0} items`}
@@ -100,9 +94,9 @@ const HomepageSidebar = () => {
               <div className="mt-1">
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="secondary"
                   size="sm"
-                  className="px-2 text-emerald-600 text-sm hover:text-emerald-700 cursor-pointer"
+                  className="cursor-pointer"
                   aria-expanded={showAllCategories}
                   aria-controls="sidebar-categories"
                   onClick={() => setShowAllCategories((v) => !v)}
@@ -119,14 +113,14 @@ const HomepageSidebar = () => {
       <Card className="mt-6">
         <CardHeader>
           <div>
-            <CardTitle className="text-xl text-zinc-700 font-semibold">
+            <CardTitle className="text-xl text-ink font-semibold">
               New products
             </CardTitle>
-            <div className="mt-2 h-0.5 w-16 rounded bg-emerald-300" />
+            <div className="mt-2 h-0.5 w-16 bg-hairline" />
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
-          <ul className="divide-y divide-zinc-200">
+        <CardContent className="pt-2">
+          <ul className="divide-y divide-hairline">
             {newest.slice(0, 3).map((p) => (
               <li key={p.id} className="py-3">
                 <a
@@ -152,7 +146,7 @@ const HomepageSidebar = () => {
                       <Image
                         src={src}
                         alt={p.name}
-                        className="h-14 w-14 rounded-md object-cover border border-emerald-100 bg-emerald-50"
+                        className="h-14 w-14 object-cover bg-soft-cloud"
                         width={56}
                         height={56}
                       />
@@ -160,10 +154,10 @@ const HomepageSidebar = () => {
                   })()}
                   {/* Info */}
                   <div className="min-w-0">
-                    <div className="truncate font-semibold text-emerald-600">
+                    <div className="truncate font-medium text-ink">
                       {p.name}
                     </div>
-                    <div className="text-zinc-700 text-sm">
+                    <div className="text-ink text-sm">
                       {formatIDR(
                         typeof p.price === 'string' ? Number(p.price) : p.price,
                       )}
@@ -173,7 +167,7 @@ const HomepageSidebar = () => {
               </li>
             ))}
             {newest.length === 0 && (
-              <li className="py-3 text-sm text-zinc-500">No products</li>
+              <li className="py-3 text-sm text-mute">No products</li>
             )}
           </ul>
         </CardContent>

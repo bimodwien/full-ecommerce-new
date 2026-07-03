@@ -41,8 +41,8 @@ const Cart = () => {
           {/* Main content */}
           <div className="flex-1 min-w-0">
             <div className="mb-6 flex items-center gap-2">
-              <ShoppingCart className="h-6 w-6 text-emerald-600" />
-              <h1 className="text-2xl font-bold text-zinc-700">My Cart</h1>
+              <ShoppingCart className="h-6 w-6 text-ink" />
+              <h1 className="text-2xl font-medium text-ink">My Cart</h1>
             </div>
             <CartSection />
           </div>

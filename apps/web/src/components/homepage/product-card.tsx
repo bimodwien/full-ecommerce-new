@@ -66,28 +66,9 @@ export function ProductCard({ product }: { product: TProduct | TProductList }) {
     }
   }, [isLoggedIn, wishlistLoading, product.id, dispatch]);
 
-  const handleAddToCart = useCallback(async () => {
-    if (!isLoggedIn) {
-      toast.warning('You must be logged in to add to cart.');
-      return;
-    }
-    if (cartLoading) return;
-    setCartLoading(true);
-    try {
-      await addToCart(product.id, 1);
-      const count = await fetchCartCount();
-      dispatch(setCartCount(count));
-      toast.success('Product added to cart!');
-    } catch {
-      toast.error('Failed to add to cart.');
-    } finally {
-      setCartLoading(false);
-    }
-  }, [isLoggedIn, cartLoading, product.id, dispatch]);
-
   return (
-    <Card className="group relative rounded-2xl overflow-hidden p-0! gap-0!">
-      <div className="relative h-40 sm:h-56 md:h-64 w-full">
+    <Card className="group relative overflow-hidden">
+      <div className="relative aspect-square w-full bg-soft-cloud">
         <Image
           src={imageUrl || 'https://placehold.co/400/fff/000'}
           alt={product.name}
@@ -101,53 +82,41 @@ export function ProductCard({ product }: { product: TProduct | TProductList }) {
           type="button"
           onClick={handleWishlist}
           disabled={wishlistLoading}
-          className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow transition-colors disabled:opacity-60"
+          className="absolute top-2 right-2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-soft-cloud transition-colors disabled:opacity-60"
           aria-label={wishlisted ? 'Hapus dari wishlist' : 'Tambah ke wishlist'}
         >
           <Heart
-            className={`h-4 w-4 sm:h-5 sm:w-5 transition-colors ${wishlisted ? 'fill-red-500 text-red-500' : 'text-zinc-400 hover:text-red-400'}`}
+            className={`h-4 w-4 sm:h-5 sm:w-5 transition-colors ${wishlisted ? 'fill-ink text-ink' : 'text-mute'}`}
           />
         </button>
       </div>
-      <CardContent className="space-y-2 px-3 sm:px-4 md:px-5 pb-4 md:pb-5">
-        <div className="pt-4 first-letter:capitalize text-[11px] sm:text-xs text-zinc-400">
+      <CardContent className="space-y-2 pt-3 pb-1">
+        <div className="first-letter:capitalize text-[11px] sm:text-xs text-mute">
           {categoryName}
         </div>
         <Link
           href={`/detail/${product.id}`}
-          className="line-clamp-4 text-sm sm:text-base font-bold leading-snug text-zinc-700 hover:text-emerald-600 truncate"
+          className="line-clamp-4 text-sm sm:text-base font-medium leading-snug text-ink hover:text-mute truncate"
         >
           {product.name}
         </Link>
-        {/* Rating removed per request */}
         <div className="text-xs sm:text-sm">
-          <span className="text-zinc-400">By </span>
-          <Link href="#" className="text-emerald-500 hover:underline">
+          <span className="text-mute">By </span>
+          <Link href="#" className="text-mute hover:underline">
             {vendorName}
           </Link>
         </div>
-        <div className="mt-2 flex items-center justify-between">
+        <div className="mt-2 flex items-center justify-between gap-2">
           <div className="flex items-baseline gap-2">
-            <div className="text-base sm:text-lg font-extrabold text-emerald-600">
+            <div className="text-base sm:text-lg font-medium text-ink">
               {formatIDR(priceNum)}
             </div>
             {(product as any).oldPrice && (
-              <div className="text-xs sm:text-sm font-semibold text-zinc-400 line-through">
+              <div className="text-xs sm:text-sm font-medium text-mute line-through">
                 {formatIDR((product as any).oldPrice)}
               </div>
             )}
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleAddToCart}
-            disabled={cartLoading}
-            className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-200 px-2 sm:px-3 disabled:opacity-60"
-          >
-            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span className="ml-1 hidden sm:inline">Add</span>
-          </Button>
         </div>
       </CardContent>
     </Card>

@@ -14,25 +14,23 @@ export default function Home() {
       <Suspense fallback={null}>
         <Header />
       </Suspense>
-      <div className="mx-auto max-w-screen-2xl px-4">
-        <div className="flex items-stretch gap-4 py-8">
+      <div className="mx-auto max-w-screen-2xl px-4 py-8 space-y-12">
+        <div className="flex items-stretch gap-4">
           <div className="hidden lg:block w-72 shrink-0">
             <Suspense fallback={null}>
               <HomepageSidebar />
             </Suspense>
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 space-y-12">
             <Heroes />
-            <div className="mt-6">
-              <Suspense fallback={null}>
-                <ProductCardSection />
-              </Suspense>
-            </div>
+            <Suspense fallback={null}>
+              <ProductCardSection />
+            </Suspense>
           </div>
         </div>
         <NewsLetter />
-        <Footer />
       </div>
+      <Footer />
     </>
   );
 }

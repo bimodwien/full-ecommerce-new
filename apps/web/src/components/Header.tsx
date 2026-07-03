@@ -82,6 +82,7 @@ const Header = () => {
   }, [debouncedQuery]);
 
   const shortName = (auth?.username ?? 'User').slice(0, 4);
+  const isHome = pathname === '/';
 
   const handleLogout = () => {
     dispatch(logout());
@@ -92,52 +93,52 @@ const Header = () => {
   };
 
   return (
-    <header className="w-full border-b border-zinc-200 text-xs text-zinc-500">
+    <header className="w-full border-b border-hairline text-xs text-mute">
       <div className="mx-auto max-w-screen-2xl px-4">
         {/* Top utility bar */}
         <div className="hidden h-9 items-center justify-between gap-4 lg:flex">
           <nav className="flex items-center gap-3">
-            <Link href="#" className="hover:text-zinc-700">
+            <Link href="#" className="hover:text-ink">
               About Us
             </Link>
-            <span className="h-3 w-px bg-zinc-200" />
-            <Link href="#" className="hover:text-zinc-700">
+            <span className="h-3 w-px bg-hairline" />
+            <Link href="#" className="hover:text-ink">
               My Account
             </Link>
-            <span className="h-3 w-px bg-zinc-200" />
-            <Link href="/wishlist" className="hover:text-zinc-700">
+            <span className="h-3 w-px bg-hairline" />
+            <Link href="/wishlist" className="hover:text-ink">
               Wishlist
             </Link>
-            <span className="h-3 w-px bg-zinc-200" />
-            <Link href="#" className="hover:text-zinc-700">
+            <span className="h-3 w-px bg-hairline" />
+            <Link href="#" className="hover:text-ink">
               Order Tracking
             </Link>
           </nav>
 
-          <p className="hidden text-center text-sm font-semibold md:block">
+          <p className="hidden text-center text-sm font-semibold text-ink md:block">
             100% Secure delivery without contacting the courier
           </p>
 
           <div className="flex items-center gap-3">
             <p>
               <span>Need help? Call Us: </span>
-              <span className="font-semibold text-emerald-500">+1800 900</span>
+              <span className="font-semibold text-ink">+1800 900</span>
             </p>
-            <span className="hidden h-3 w-px bg-zinc-200 sm:block" />
+            <span className="hidden h-3 w-px bg-hairline sm:block" />
             <button
-              className="hidden items-center gap-1 sm:flex hover:text-zinc-700"
+              className="hidden items-center gap-1 sm:flex hover:text-ink"
               aria-label="Change language"
             >
               <span>English</span>
-              <ChevronDown size={14} className="text-zinc-500" />
+              <ChevronDown size={14} className="text-mute" />
             </button>
-            <span className="hidden h-3 w-px bg-zinc-200 sm:block" />
+            <span className="hidden h-3 w-px bg-hairline sm:block" />
             <button
-              className="hidden items-center gap-1 sm:flex hover:text-zinc-700"
+              className="hidden items-center gap-1 sm:flex hover:text-ink"
               aria-label="Change currency"
             >
               <span>IDR</span>
-              <ChevronDown size={14} className="text-zinc-500" />
+              <ChevronDown size={14} className="text-mute" />
             </button>
           </div>
         </div>
@@ -149,7 +150,7 @@ const Header = () => {
             <button
               type="button"
               aria-label="Open menu"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-700 shadow-sm"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-canvas text-ink"
               onClick={() => setMobileMenuOpen(true)}
             >
               <Menu className="h-5 w-5" />
@@ -168,7 +169,7 @@ const Header = () => {
               height={40}
             />
             <span
-              className="inline-block text-base sm:text-xl font-semibold text-gray-900 whitespace-nowrap truncate max-w-35 sm:max-w-none"
+              className="inline-block text-base sm:text-xl font-semibold text-ink whitespace-nowrap truncate max-w-35 sm:max-w-none"
               style={{ fontFamily: 'var(--font-bebas-neue)' }}
             >
               TokoPakBimo
@@ -178,25 +179,25 @@ const Header = () => {
 
           {/* Search with category (desktop only) */}
           <div className="hidden w-full max-w-3xl flex-1 items-center lg:flex">
-            <div className="flex w-full items-stretch rounded-md border border-emerald-200 bg-white shadow-sm">
+            <div className="flex w-full items-stretch rounded-3xl bg-soft-cloud has-[input:focus]:bg-canvas has-[input:focus]:border-2 has-[input:focus]:border-ink has-[input:focus]:ring-4 has-[input:focus]:ring-soft-cloud transition-colors">
               {/* Category dropdown (desktop search) */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex items-center gap-2 whitespace-nowrap rounded-l-md px-3 py-2 text-sm text-zinc-700 hover:bg-emerald-50"
+                    className="flex items-center gap-2 whitespace-nowrap rounded-l-full px-4 py-2 text-sm text-ink hover:bg-hairline-soft"
                     aria-haspopup="listbox"
                     aria-expanded="false"
                   >
                     <span className="font-medium truncate max-w-45">
                       {selectedCategoryLabel}
                     </span>
-                    <ChevronDown size={16} className="text-zinc-500" />
+                    <ChevronDown size={16} className="text-mute" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="start"
-                  className="max-h-80 w-64 overflow-auto"
+                  className="max-h-80 w-64 overflow-auto rounded-none border-hairline"
                 >
                   <DropdownMenuItem
                     onClick={() => {
@@ -231,17 +232,17 @@ const Header = () => {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <span className="my-2 h-6 w-px bg-emerald-200" />
+              <span className="my-2 h-6 w-px bg-hairline" />
               <input
                 type="text"
                 placeholder="Search for items..."
-                className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-zinc-700 placeholder-zinc-400 outline-none"
+                className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-ink placeholder-mute outline-none"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
               <button
                 type="button"
-                className="px-3 text-emerald-600 hover:text-emerald-700"
+                className="px-4 text-ink hover:text-mute"
                 aria-label="Search"
               >
                 <Search className="h-5 w-5" />
@@ -253,12 +254,12 @@ const Header = () => {
           <div className="hidden items-center gap-4 lg:flex">
             {/* Location pill */}
             <button
-              className="ml-8 flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm hover:bg-zinc-50 md:ml-12"
+              className="ml-8 flex items-center gap-2 rounded-full border border-hairline bg-canvas px-3 py-2 text-sm text-ink hover:bg-soft-cloud md:ml-12"
               aria-label="Choose location"
             >
-              <MapPin className="h-4 w-4 text-emerald-600" />
+              <MapPin className="h-4 w-4 text-ink" />
               <span>Your Location</span>
-              <ChevronDown size={14} className="text-zinc-500" />
+              <ChevronDown size={14} className="text-mute" />
             </button>
 
             {/* Icons */}
@@ -275,10 +276,10 @@ const Header = () => {
                     }
                     router.push('/wishlist');
                   }}
-                  className="group relative flex items-center gap-1 text-zinc-700 hover:text-emerald-600"
+                  className="group relative flex items-center gap-1 text-ink hover:text-mute"
                 >
                   {wishlistCount > 0 && (
-                    <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
+                    <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[10px] font-semibold text-canvas">
                       {wishlistCount}
                     </span>
                   )}
@@ -296,10 +297,10 @@ const Header = () => {
                     }
                     router.push('/cart');
                   }}
-                  className="group relative flex items-center gap-1 text-zinc-700 hover:text-emerald-600"
+                  className="group relative flex items-center gap-1 text-ink hover:text-mute"
                 >
                   {cartCount > 0 && (
-                    <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
+                    <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[10px] font-semibold text-canvas">
                       {cartCount}
                     </span>
                   )}
@@ -311,7 +312,7 @@ const Header = () => {
                 {!isLoggedIn ? (
                   <Link
                     href="/login"
-                    className="flex items-center gap-1 text-zinc-700 hover:text-emerald-600"
+                    className="flex items-center gap-1 text-ink hover:text-mute"
                   >
                     <User className="h-6 w-6" />
                     <span>Login</span>
@@ -319,23 +320,26 @@ const Header = () => {
                 ) : (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="flex items-center gap-1 cursor-pointer text-zinc-700 hover:text-emerald-600">
+                      <button className="flex items-center gap-1 cursor-pointer text-ink hover:text-mute">
                         <User className="h-6 w-6" />
                         <span className="max-w-45 truncate">
                           hi,{' '}
-                          <span className="text-emerald-600 font-semibold first-letter:capitalize ">
+                          <span className="font-semibold first-letter:capitalize">
                             {shortName}
                           </span>
                         </span>
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-48 rounded-none border-hairline"
+                    >
                       <DropdownMenuItem
                         onClick={handleLogout}
                         className="flex items-center gap-2"
                       >
                         <LogOut className="h-4 w-4" />
-                        <span className="text-red-500">Logout</span>
+                        <span className="text-ink">Logout</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -355,11 +359,11 @@ const Header = () => {
                 }
                 router.push('/wishlist');
               }}
-              className="relative inline-flex items-center text-zinc-700 hover:text-emerald-600"
+              className="relative inline-flex items-center text-ink hover:text-mute"
               aria-label="Wishlist"
             >
               {wishlistCount > 0 && (
-                <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
+                <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[10px] font-semibold text-canvas">
                   {wishlistCount}
                 </span>
               )}
@@ -374,11 +378,11 @@ const Header = () => {
                 }
                 router.push('/cart');
               }}
-              className="relative inline-flex items-center text-zinc-700 hover:text-emerald-600"
+              className="relative inline-flex items-center text-ink hover:text-mute"
               aria-label="Cart"
             >
               {cartCount > 0 && (
-                <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-white">
+                <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[10px] font-semibold text-canvas">
                   {cartCount}
                 </span>
               )}
@@ -388,13 +392,13 @@ const Header = () => {
         </div>
 
         {/* Bottom navigation row */}
-        <div className="hidden items-center justify-between gap-6 border-t border-zinc-100 py-3 lg:flex">
+        <div className="hidden items-center justify-between gap-6 border-t border-hairline-soft py-3 lg:flex">
           {/* Browse categories (dropdown) */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-md bg-[#3BB77E] px-4 py-2.5 text-white shadow hover:bg-emerald-600"
+                className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-canvas hover:bg-ink/90"
               >
                 <LayoutGrid className="h-5 w-5" />
                 <span className="font-semibold">Browse All Categories</span>
@@ -403,7 +407,7 @@ const Header = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="start"
-              className="max-h-96 w-72 overflow-auto"
+              className="max-h-96 w-72 overflow-auto rounded-none border-hairline"
             >
               <DropdownMenuItem
                 onClick={() => {
@@ -436,76 +440,71 @@ const Header = () => {
           </DropdownMenu>
 
           {/* Main nav */}
-          <nav className="hidden flex-1 items-center justify-center gap-6 text-sm text-zinc-700 md:flex">
+          <nav className="hidden flex-1 items-center justify-center gap-6 text-sm text-ink md:flex">
             <Link
               href="#"
-              className="inline-flex items-center gap-1 hover:text-emerald-600"
+              className="inline-flex items-center gap-1 hover:text-mute"
             >
-              <Flame className="h-4 w-4 text-emerald-500" />
+              <Flame className="h-4 w-4" />
               <span>Deals</span>
             </Link>
             <Link
               href="/"
-              className="inline-flex items-center gap-1 font-semibold text-emerald-600"
+              className={`inline-flex items-center gap-1 pb-1 ${isHome ? 'border-b-2 border-ink font-medium' : 'hover:text-mute'}`}
             >
               Home
-              <ChevronDown size={14} className="text-emerald-600" />
             </Link>
-            <Link href="#" className="hover:text-emerald-600">
+            <Link href="#" className="hover:text-mute">
               About
             </Link>
             <Link
               href="#"
-              className="inline-flex items-center gap-1 hover:text-emerald-600"
+              className="inline-flex items-center gap-1 hover:text-mute"
             >
               Shop
               <ChevronDown size={14} />
             </Link>
             <Link
               href="#"
-              className="inline-flex items-center gap-1 hover:text-emerald-600"
+              className="inline-flex items-center gap-1 hover:text-mute"
             >
               Vendors
               <ChevronDown size={14} />
             </Link>
             <Link
               href="#"
-              className="inline-flex items-center gap-1 hover:text-emerald-600"
+              className="inline-flex items-center gap-1 hover:text-mute"
             >
               Mega menu
               <ChevronDown size={14} />
             </Link>
             <Link
               href="#"
-              className="inline-flex items-center gap-1 hover:text-emerald-600"
+              className="inline-flex items-center gap-1 hover:text-mute"
             >
               Blog
               <ChevronDown size={14} />
             </Link>
             <Link
               href="#"
-              className="inline-flex items-center gap-1 hover:text-emerald-600"
+              className="inline-flex items-center gap-1 hover:text-mute"
             >
               Pages
               <ChevronDown size={14} />
             </Link>
-            <Link href="#" className="hover:text-emerald-600">
+            <Link href="#" className="hover:text-mute">
               Contact
             </Link>
           </nav>
 
           {/* Support */}
           <div className="hidden items-center gap-2 md:flex">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-soft-cloud text-ink">
               <Headphones className="h-5 w-5" />
             </span>
             <div className="leading-tight">
-              <div className="text-lg font-extrabold text-emerald-600">
-                1900 - 888
-              </div>
-              <div className="text-[11px] text-zinc-400">
-                24/7 Support Center
-              </div>
+              <div className="text-lg font-extrabold text-ink">1900 - 888</div>
+              <div className="text-[11px] text-mute">24/7 Support Center</div>
             </div>
           </div>
         </div>
@@ -517,13 +516,13 @@ const Header = () => {
             className="absolute inset-0 bg-black/50"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="absolute inset-x-0 top-0 rounded-b-xl bg-white p-4 shadow-lg">
+          <div className="absolute inset-x-0 top-0 bg-canvas p-4 border-b border-hairline">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-zinc-700">Menu</span>
+              <span className="text-sm font-semibold text-ink">Menu</span>
               <button
                 type="button"
                 aria-label="Close menu"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-700"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-hairline bg-canvas text-ink"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <X className="h-4 w-4" />
@@ -538,7 +537,7 @@ const Header = () => {
               {!isLoggedIn ? (
                 <Link
                   href="/login"
-                  className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm hover:bg-zinc-50"
+                  className="flex items-center gap-2 rounded-full border border-hairline bg-canvas px-3 py-2 text-sm text-ink hover:bg-soft-cloud"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <User className="h-5 w-5" />
@@ -547,14 +546,14 @@ const Header = () => {
               ) : (
                 <button
                   type="button"
-                  className="flex w-full items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm hover:bg-zinc-50"
+                  className="flex w-full items-center gap-2 rounded-full border border-hairline bg-canvas px-3 py-2 text-sm text-ink hover:bg-soft-cloud"
                   onClick={() => {
                     setMobileMenuOpen(false);
                     handleLogout();
                   }}
                 >
                   <LogOut className="h-5 w-5" />
-                  <span className="text-red-500">Logout</span>
+                  <span>Logout</span>
                 </button>
               )}
             </div>

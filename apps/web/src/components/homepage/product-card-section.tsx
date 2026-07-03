@@ -53,28 +53,31 @@ const ProductCardSection = () => {
     <section>
       <div
         id="product-grid"
-        className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 xl:grid-cols-4"
+        className="grid grid-cols-1 mobile-landscape:grid-cols-2 tablet:grid-cols-3 desktop-small:grid-cols-4 gap-2"
       >
         {loading && (
           <>
             {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={`skeleton-${i}`}
-                className="animate-pulse rounded-2xl overflow-hidden border border-zinc-200"
-              >
-                <div className="h-40 sm:h-56 md:h-64 w-full bg-zinc-200" />
-                <div className="p-4 space-y-2">
-                  <div className="h-3 w-24 bg-zinc-200 rounded" />
-                  <div className="h-4 w-full bg-zinc-200 rounded" />
-                  <div className="h-4 w-2/3 bg-zinc-200 rounded" />
-                  <div className="h-5 w-28 bg-zinc-200 rounded mt-2" />
+              <div key={`skeleton-${i}`} className="overflow-hidden">
+                <div className="aspect-square w-full animate-pulse bg-soft-cloud" />
+                <div className="pt-3 space-y-2">
+                  <div className="h-3 w-24 animate-pulse bg-soft-cloud" />
+                  <div className="h-4 w-full animate-pulse bg-soft-cloud" />
+                  <div className="h-4 w-2/3 animate-pulse bg-soft-cloud" />
+                  <div className="h-5 w-28 animate-pulse bg-soft-cloud mt-2" />
                 </div>
               </div>
             ))}
           </>
         )}
         {error && products.length === 0 && (
-          <div className="col-span-full text-sm text-red-500">{error}</div>
+          <div className="col-span-full text-sm text-sale">{error}</div>
+        )}
+        {!loading && !error && products.length === 0 && (
+          <div className="col-span-full flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
+            <p className="text-base font-medium">No products found</p>
+            <p className="text-sm">Try changing your search or filter.</p>
+          </div>
         )}
         {!loading &&
           visibleProducts.map((p) => <ProductCard key={p.id} product={p} />)}
@@ -83,9 +86,9 @@ const ProductCardSection = () => {
         <div className="mt-4 flex justify-end">
           <Button
             type="button"
-            variant="ghost"
+            variant="secondary"
             size="sm"
-            className="px-2 text-emerald-600 text-sm hover:text-emerald-700 cursor-pointer"
+            className="cursor-pointer"
             aria-controls="product-grid"
             onClick={() => setShowAll(true)}
           >

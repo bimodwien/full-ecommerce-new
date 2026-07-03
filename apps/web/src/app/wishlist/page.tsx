@@ -41,8 +41,8 @@ const Wishlist = () => {
           {/* Main content */}
           <div className="flex-1 min-w-0">
             <div className="mb-6 flex items-center gap-2">
-              <Heart className="h-6 w-6 text-red-500" />
-              <h1 className="text-2xl font-bold text-zinc-700">My Wishlist</h1>
+              <Heart className="h-6 w-6 text-ink" />
+              <h1 className="text-2xl font-medium text-ink">My Wishlist</h1>
             </div>
             <WishlistCard />
           </div>
