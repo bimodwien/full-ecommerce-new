@@ -44,7 +44,9 @@ const Cart = () => {
               <ShoppingCart className="h-6 w-6 text-ink" />
               <h1 className="text-2xl font-medium text-ink">My Cart</h1>
             </div>
-            <CartSection />
+            <Suspense fallback={null}>
+              <CartSection />
+            </Suspense>
           </div>
         </div>
       </div>

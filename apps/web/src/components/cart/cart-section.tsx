@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCart, Trash2, Minus, Plus, ArrowRight } from 'lucide-react';
@@ -17,13 +17,31 @@ import { TCart } from '@/models/cart.model';
 import { toast } from 'sonner';
 import { useAppDispatch } from '@/libraries/redux/hooks';
 import { decrementCartCount } from '@/libraries/redux/slices/cart.slice';
+import { useSearchParams } from 'next/navigation';
 
 const CartSection = () => {
   const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
   const [carts, setCarts] = useState<TCart[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const name = searchParams.get('name') || '';
+  const categoryId = searchParams.get('categoryId') || '';
+
+  const filteredCarts = useMemo(() => {
+    return carts.filter((cart) => {
+      const product = cart.Product as any;
+      const matchesName = name
+        ? product?.name?.toLowerCase().includes(name.toLowerCase())
+        : true;
+      const matchesCategory = categoryId
+        ? product?.categoryId === categoryId
+        : true;
+      return matchesName && matchesCategory;
+    });
+  }, [carts, name, categoryId]);
 
   const apiBase = (
     process.env.NEXT_PUBLIC_BASE_API_URL || 'http://localhost:8000/api'
@@ -139,7 +157,13 @@ const CartSection = () => {
     <div className="flex flex-col lg:flex-row gap-6">
       {/* Cart items */}
       <div className="flex-1 flex flex-col gap-4">
-        {carts.map((cart) => {
+        {filteredCarts.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
+            <p className="text-base font-medium">No cart items found</p>
+            <p className="text-sm">Try changing your search or filter.</p>
+          </div>
+        )}
+        {filteredCarts.map((cart) => {
           const product = cart.Product;
           const priceNum = product
             ? typeof product.price === 'string'
