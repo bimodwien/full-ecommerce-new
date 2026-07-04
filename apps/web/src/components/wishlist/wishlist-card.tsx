@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, Trash2, ShoppingCart, ArrowRight } from 'lucide-react';
@@ -14,13 +14,31 @@ import { toast } from 'sonner';
 import { useAppDispatch } from '@/libraries/redux/hooks';
 import { removeWishlistProduct } from '@/libraries/redux/slices/wishlist.slice';
 import { setCartCount } from '@/libraries/redux/slices/cart.slice';
+import { useSearchParams } from 'next/navigation';
 
 const WishlistCard = () => {
   const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
   const [wishlists, setWishlists] = useState<TWishlist[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [cartLoadingId, setCartLoadingId] = useState<string | null>(null);
+
+  const name = searchParams.get('name') || '';
+  const categoryId = searchParams.get('categoryId') || '';
+
+  const filteredWishlists = useMemo(() => {
+    return wishlists.filter((wishlist) => {
+      const product = wishlist.Product as any;
+      const matchesName = name
+        ? product?.name?.toLowerCase().includes(name.toLowerCase())
+        : true;
+      const matchesCategory = categoryId
+        ? product?.categoryId === categoryId
+        : true;
+      return matchesName && matchesCategory;
+    });
+  }, [wishlists, name, categoryId]);
 
   const apiBase = (
     process.env.NEXT_PUBLIC_BASE_API_URL || 'http://localhost:8000/api'
@@ -116,9 +134,18 @@ const WishlistCard = () => {
     );
   }
 
+  if (filteredWishlists.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
+        <p className="text-base font-medium">No wishlist items found</p>
+        <p className="text-sm">Try changing your search or filter.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 grid grid-cols-1 tablet-narrow:grid-cols-2 desktop-small:grid-cols-3 gap-2">
-      {wishlists.map((wishlist) => {
+      {filteredWishlists.map((wishlist) => {
         const product = wishlist.Product;
         const priceNum = product
           ? typeof product.price === 'string'

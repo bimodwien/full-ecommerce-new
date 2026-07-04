@@ -44,7 +44,9 @@ const Wishlist = () => {
               <Heart className="h-6 w-6 text-ink" />
               <h1 className="text-2xl font-medium text-ink">My Wishlist</h1>
             </div>
-            <WishlistCard />
+            <Suspense fallback={null}>
+              <WishlistCard />
+            </Suspense>
           </div>
         </div>
       </div>
