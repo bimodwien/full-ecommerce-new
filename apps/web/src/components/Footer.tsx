@@ -1,6 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { FiMapPin, FiPhone, FiMail, FiClock } from 'react-icons/fi';
 import {
   FaFacebookF,
@@ -53,6 +54,11 @@ const popularLinks = [
   'Tea & Kombucha',
   'Cheese',
 ];
+
+const handleNotAvailable = (e: React.MouseEvent) => {
+  e.preventDefault();
+  toast.info('In development stage');
+};
 
 const Footer = () => {
   return (
@@ -126,7 +132,11 @@ const Footer = () => {
             <ul className="space-y-2">
               {companyLinks.map((item) => (
                 <li key={item}>
-                  <Link href="#" className="hover:text-ink">
+                  <Link
+                    href="#"
+                    className="hover:text-ink"
+                    onClick={handleNotAvailable}
+                  >
                     {item}
                   </Link>
                 </li>
@@ -139,7 +149,11 @@ const Footer = () => {
             <ul className="space-y-2">
               {accountLinks.map((item) => (
                 <li key={item}>
-                  <Link href="#" className="hover:text-ink">
+                  <Link
+                    href="#"
+                    className="hover:text-ink"
+                    onClick={handleNotAvailable}
+                  >
                     {item}
                   </Link>
                 </li>
@@ -152,7 +166,11 @@ const Footer = () => {
             <ul className="space-y-2">
               {corporateLinks.map((item) => (
                 <li key={item}>
-                  <Link href="#" className="hover:text-ink">
+                  <Link
+                    href="#"
+                    className="hover:text-ink"
+                    onClick={handleNotAvailable}
+                  >
                     {item}
                   </Link>
                 </li>
@@ -165,7 +183,11 @@ const Footer = () => {
             <ul className="space-y-2">
               {popularLinks.map((item) => (
                 <li key={item}>
-                  <Link href="#" className="hover:text-ink">
+                  <Link
+                    href="#"
+                    className="hover:text-ink"
+                    onClick={handleNotAvailable}
+                  >
                     {item}
                   </Link>
                 </li>
@@ -179,7 +201,11 @@ const Footer = () => {
           <div className="flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
             <p className="text-xs text-mute">
               © {new Date().getFullYear()},{' '}
-              <Link href="#" className="text-ink hover:underline">
+              <Link
+                href="#"
+                className="text-ink hover:underline"
+                onClick={handleNotAvailable}
+              >
                 TokoPakBimo
               </Link>{' '}
               — All rights reserved
@@ -224,6 +250,7 @@ const Footer = () => {
                     href="#"
                     aria-label="Follow on Facebook"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-soft-cloud text-ink hover:bg-hairline-soft"
+                    onClick={handleNotAvailable}
                   >
                     <FaFacebookF className="h-4 w-4" />
                   </Link>
@@ -233,6 +260,7 @@ const Footer = () => {
                     href="#"
                     aria-label="Follow on Twitter"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-soft-cloud text-ink hover:bg-hairline-soft"
+                    onClick={handleNotAvailable}
                   >
                     <FaTwitter className="h-4 w-4" />
                   </Link>
@@ -242,6 +270,7 @@ const Footer = () => {
                     href="#"
                     aria-label="Follow on Instagram"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-soft-cloud text-ink hover:bg-hairline-soft"
+                    onClick={handleNotAvailable}
                   >
                     <FaInstagram className="h-4 w-4" />
                   </Link>
@@ -251,6 +280,7 @@ const Footer = () => {
                     href="#"
                     aria-label="Follow on YouTube"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-soft-cloud text-ink hover:bg-hairline-soft"
+                    onClick={handleNotAvailable}
                   >
                     <FaYoutube className="h-4 w-4" />
                   </Link>
@@ -260,6 +290,7 @@ const Footer = () => {
                     href="#"
                     aria-label="Follow on LinkedIn"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-soft-cloud text-ink hover:bg-hairline-soft"
+                    onClick={handleNotAvailable}
                   >
                     <FaLinkedinIn className="h-4 w-4" />
                   </Link>
