@@ -84,6 +84,11 @@ const Header = () => {
   const shortName = (auth?.username ?? 'User').slice(0, 4);
   const isHome = pathname === '/';
 
+  const handleNotAvailable = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast.info('In development stage');
+  };
+
   const handleLogout = () => {
     dispatch(logout());
     toast.success('Logged out');
@@ -98,11 +103,11 @@ const Header = () => {
         {/* Top utility bar */}
         <div className="hidden h-9 items-center justify-between gap-4 lg:flex">
           <nav className="flex items-center gap-3">
-            <Link href="#" className="hover:text-ink">
+            <Link href="#" className="hover:text-ink" onClick={handleNotAvailable}>
               About Us
             </Link>
             <span className="h-3 w-px bg-hairline" />
-            <Link href="#" className="hover:text-ink">
+            <Link href="#" className="hover:text-ink" onClick={handleNotAvailable}>
               My Account
             </Link>
             <span className="h-3 w-px bg-hairline" />
@@ -110,7 +115,7 @@ const Header = () => {
               Wishlist
             </Link>
             <span className="h-3 w-px bg-hairline" />
-            <Link href="#" className="hover:text-ink">
+            <Link href="#" className="hover:text-ink" onClick={handleNotAvailable}>
               Order Tracking
             </Link>
           </nav>
@@ -128,6 +133,7 @@ const Header = () => {
             <button
               className="hidden items-center gap-1 sm:flex hover:text-ink"
               aria-label="Change language"
+              onClick={handleNotAvailable}
             >
               <span>English</span>
               <ChevronDown size={14} className="text-mute" />
@@ -136,6 +142,7 @@ const Header = () => {
             <button
               className="hidden items-center gap-1 sm:flex hover:text-ink"
               aria-label="Change currency"
+              onClick={handleNotAvailable}
             >
               <span>IDR</span>
               <ChevronDown size={14} className="text-mute" />
@@ -256,6 +263,7 @@ const Header = () => {
             <button
               className="ml-8 flex items-center gap-2 rounded-full border border-hairline bg-canvas px-3 py-2 text-sm text-ink hover:bg-soft-cloud md:ml-12"
               aria-label="Choose location"
+              onClick={handleNotAvailable}
             >
               <MapPin className="h-4 w-4 text-ink" />
               <span>Your Location</span>
@@ -444,6 +452,7 @@ const Header = () => {
             <Link
               href="#"
               className="inline-flex items-center gap-1 hover:text-mute"
+              onClick={handleNotAvailable}
             >
               <Flame className="h-4 w-4" />
               <span>Deals</span>
@@ -454,12 +463,17 @@ const Header = () => {
             >
               Home
             </Link>
-            <Link href="#" className="hover:text-mute">
+            <Link
+              href="#"
+              className="hover:text-mute"
+              onClick={handleNotAvailable}
+            >
               About
             </Link>
             <Link
               href="#"
               className="inline-flex items-center gap-1 hover:text-mute"
+              onClick={handleNotAvailable}
             >
               Shop
               <ChevronDown size={14} />
@@ -467,6 +481,7 @@ const Header = () => {
             <Link
               href="#"
               className="inline-flex items-center gap-1 hover:text-mute"
+              onClick={handleNotAvailable}
             >
               Vendors
               <ChevronDown size={14} />
@@ -474,6 +489,7 @@ const Header = () => {
             <Link
               href="#"
               className="inline-flex items-center gap-1 hover:text-mute"
+              onClick={handleNotAvailable}
             >
               Mega menu
               <ChevronDown size={14} />
@@ -481,6 +497,7 @@ const Header = () => {
             <Link
               href="#"
               className="inline-flex items-center gap-1 hover:text-mute"
+              onClick={handleNotAvailable}
             >
               Blog
               <ChevronDown size={14} />
@@ -488,11 +505,16 @@ const Header = () => {
             <Link
               href="#"
               className="inline-flex items-center gap-1 hover:text-mute"
+              onClick={handleNotAvailable}
             >
               Pages
               <ChevronDown size={14} />
             </Link>
-            <Link href="#" className="hover:text-mute">
+            <Link
+              href="#"
+              className="hover:text-mute"
+              onClick={handleNotAvailable}
+            >
               Contact
             </Link>
           </nav>
