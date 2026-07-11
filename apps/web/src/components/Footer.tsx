@@ -247,30 +247,27 @@ const Footer = () => {
               <ul className="flex items-center gap-2">
                 <li>
                   <Link
-                    href="#"
+                    href="https://web.facebook.com/bimo.dwien.prabowo/"
                     aria-label="Follow on Facebook"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-soft-cloud text-ink hover:bg-hairline-soft"
-                    onClick={handleNotAvailable}
                   >
                     <FaFacebookF className="h-4 w-4" />
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="#"
+                    href="https://x.com/yaelahmoo"
                     aria-label="Follow on Twitter"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-soft-cloud text-ink hover:bg-hairline-soft"
-                    onClick={handleNotAvailable}
                   >
                     <FaTwitter className="h-4 w-4" />
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="#"
+                    href="https://www.instagram.com/bimodprabowo/"
                     aria-label="Follow on Instagram"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-soft-cloud text-ink hover:bg-hairline-soft"
-                    onClick={handleNotAvailable}
                   >
                     <FaInstagram className="h-4 w-4" />
                   </Link>
@@ -287,10 +284,9 @@ const Footer = () => {
                 </li>
                 <li>
                   <Link
-                    href="#"
+                    href="https://www.linkedin.com/in/bimodwien/"
                     aria-label="Follow on LinkedIn"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-soft-cloud text-ink hover:bg-hairline-soft"
-                    onClick={handleNotAvailable}
                   >
                     <FaLinkedinIn className="h-4 w-4" />
                   </Link>
