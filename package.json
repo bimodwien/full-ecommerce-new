@@ -15,11 +15,11 @@
     "@commitlint/config-conventional": "^21.2.0",
     "eslint": "^10.7.0",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.8",
-    "prettier": "^3.9.5",
+    "lint-staged": "^17.2.0",
+    "prettier": "^3.9.6",
     "tsc-alias": "^1.9.1",
     "tsconfig": "*",
-    "turbo": "^2.10.5"
+    "turbo": "^2.10.6"
   },
   "name": "finpro-nextjs-express-prisma",
   "packageManager": "npm@12.0.1",
@@ -33,14 +33,14 @@
     }
   },
   "dependencies": {
-    "google-auth-library": "10.9.0"
+    "google-auth-library": "10.9.1"
   },
   "allowScripts": {
-    "@prisma/engines@7.8.0": true,
     "bcrypt@6.0.0": true,
-    "prisma@7.8.0": true,
     "sharp@0.34.5": true,
     "unrs-resolver@1.12.2": true,
-    "cypress@15.17.0": true
+    "cypress@15.17.0": true,
+    "@prisma/engines@7.9.0": true,
+    "prisma@7.9.0": true
   }
 }
