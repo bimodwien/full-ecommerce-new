@@ -43,7 +43,7 @@ const HomepageSidebar = () => {
 
   return (
     <aside className="w-full max-w-72">
-      <Card>
+      <Card className="gap-2">
         <CardHeader>
           <div>
             <CardTitle className="text-xl text-ink font-semibold">
@@ -54,7 +54,7 @@ const HomepageSidebar = () => {
         </CardHeader>
         <CardContent className="pt-2">
           <nav aria-label="Product categories">
-            <ul id="sidebar-categories" className="flex flex-col gap-2">
+            <ul id="sidebar-categories" className="flex flex-col gap-0">
               {visibleCategories.map((item) => (
                 <li key={item.id}>
                   <button
@@ -73,7 +73,7 @@ const HomepageSidebar = () => {
                         scroll: false,
                       });
                     }}
-                    className={`w-full text-left flex items-center justify-between gap-2 py-2 px-2 text-sm transition-colors ${
+                    className={`w-full text-left flex items-center justify-between gap-1 py-2 px-2 text-sm transition-colors ${
                       selectedCategoryId === item.id
                         ? 'bg-soft-cloud text-ink font-medium'
                         : 'text-ink hover:bg-soft-cloud'
@@ -110,7 +110,7 @@ const HomepageSidebar = () => {
       </Card>
 
       {/* New products - top 3 newest */}
-      <Card className="mt-6">
+      <Card className="mt-6 gap-2">
         <CardHeader>
           <div>
             <CardTitle className="text-xl text-ink font-semibold">
@@ -135,8 +135,7 @@ const HomepageSidebar = () => {
                     ).replace(/\/$/, '');
                     const apiOrigin = apiBase.replace(/\/api\/?$/, '');
                     const rawImage = (p as any).Images?.[0]?.imageUrl as
-                      | string
-                      | undefined;
+                      string | undefined;
                     const src = rawImage
                       ? rawImage.startsWith('http')
                         ? rawImage
@@ -154,9 +153,7 @@ const HomepageSidebar = () => {
                   })()}
                   {/* Info */}
                   <div className="min-w-0">
-                    <div className="truncate font-medium text-ink">
-                      {p.name}
-                    </div>
+                    <div className="truncate font-md text-ink">{p.name}</div>
                     <div className="text-ink text-sm">
                       {formatIDR(
                         typeof p.price === 'string' ? Number(p.price) : p.price,

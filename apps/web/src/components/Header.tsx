@@ -35,6 +35,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileQuery, setMobileQuery] = useState('');
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const auth = useAppSelector((s) => s.auth);
   const wishlistCount = useAppSelector((s) => s.wishlist.count);
@@ -50,8 +52,10 @@ const Header = () => {
     fetchCategory(setCategories).catch(() => {});
   }, []);
 
-  // isLoggedIn derived from Redux auth
-  const isLoggedIn = Boolean(auth?.id && auth.id !== '');
+  // isLoggedIn derived from Redux auth; gated on `mounted` so the first
+  // client render always matches the server (hydration-safe), even if
+  // AuthProvider's auth check resolves before this component hydrates.
+  const isLoggedIn = mounted && Boolean(auth?.id && auth.id !== '');
 
   // Selected category from URL
   const selectedCategoryId = searchParams.get('categoryId') || '';
@@ -103,11 +107,19 @@ const Header = () => {
         {/* Top utility bar */}
         <div className="hidden h-9 items-center justify-between gap-4 lg:flex">
           <nav className="flex items-center gap-3">
-            <Link href="#" className="hover:text-ink" onClick={handleNotAvailable}>
+            <Link
+              href="#"
+              className="hover:text-ink"
+              onClick={handleNotAvailable}
+            >
               About Us
             </Link>
             <span className="h-3 w-px bg-hairline" />
-            <Link href="#" className="hover:text-ink" onClick={handleNotAvailable}>
+            <Link
+              href="#"
+              className="hover:text-ink"
+              onClick={handleNotAvailable}
+            >
               My Account
             </Link>
             <span className="h-3 w-px bg-hairline" />
@@ -115,7 +127,7 @@ const Header = () => {
               Wishlist
             </Link>
             <span className="h-3 w-px bg-hairline" />
-            <Link href="#" className="hover:text-ink" onClick={handleNotAvailable}>
+            <Link href="/order" className="hover:text-ink">
               Order Tracking
             </Link>
           </nav>
@@ -176,7 +188,7 @@ const Header = () => {
               height={40}
             />
             <span
-              className="inline-block text-base sm:text-xl font-semibold text-ink whitespace-nowrap truncate max-w-35 sm:max-w-none"
+              className="inline-block text-base sm:text-4xl font-semibold text-ink whitespace-nowrap truncate max-w-35 sm:max-w-none"
               style={{ fontFamily: 'var(--font-bebas-neue)' }}
             >
               TokoPakBimo

@@ -1,6 +1,6 @@
 import { Dispatch } from 'redux';
 import { axiosInstance } from '@/libraries/axios';
-import { login } from '../slices/auth.slice';
+import { login, authChecked } from '../slices/auth.slice';
 import { TUser, Role } from '@/models/user.model';
 import { getCookie, deleteCookie } from 'cookies-next';
 import { jwtDecode } from 'jwt-decode';
@@ -51,11 +51,14 @@ export const keepLogin = () => async (dispatch: Dispatch) => {
       } else {
         throw new Error('Invalid token payload');
       }
+    } else {
+      dispatch(authChecked());
     }
   } catch (error) {
     console.error('Keep login failed: ', error);
     deleteCookie('access_token');
     deleteCookie('refresh_token');
+    dispatch(authChecked());
   }
 };
 

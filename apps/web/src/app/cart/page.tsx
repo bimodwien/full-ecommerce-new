@@ -15,13 +15,14 @@ const Cart = () => {
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
+    if (!auth.initialized) return;
     if (!auth.id) {
       toast.warning('You must be logged in to access the cart page.');
       router.replace('/login');
     } else {
       setChecked(true);
     }
-  }, [auth.id, router]);
+  }, [auth.initialized, auth.id, router]);
 
   if (!checked) return null;
 

@@ -5,7 +5,7 @@ const Heroes = () => {
   return (
     <section className="relative w-full rounded-none bg-soft-cloud px-6 py-10 sm:px-10 sm:py-14 lg:px-16 lg:py-16 overflow-hidden">
       <div className="max-w-3xl">
-        <h1 className="campaign-headline text-[56px] tablet-narrow:text-[72px] desktop-small:text-[96px] text-ink">
+        <h1 className="campaign-headline text-[32px] tablet-narrow:text-[40px] desktop-small:text-[48px] text-ink">
           Don&apos;t miss the latest
           <br />
           fashion &amp; tech drops

@@ -2,6 +2,8 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Script from 'next/script';
+import { useRouter } from 'next/navigation';
 import { ShoppingCart, Trash2, Minus, Plus, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,19 +15,23 @@ import {
   updateCartQuantity,
   deleteCart,
 } from '@/helpers/fetch-cart';
+import { createOrder } from '@/helpers/fetch-order';
 import { TCart } from '@/models/cart.model';
 import { toast } from 'sonner';
 import { useAppDispatch } from '@/libraries/redux/hooks';
-import { decrementCartCount } from '@/libraries/redux/slices/cart.slice';
+import { decrementCartCount, clearCart } from '@/libraries/redux/slices/cart.slice';
 import { useSearchParams } from 'next/navigation';
 
 const CartSection = () => {
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [carts, setCarts] = useState<TCart[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [snapReady, setSnapReady] = useState(false);
+  const [checkingOut, setCheckingOut] = useState(false);
 
   const name = searchParams.get('name') || '';
   const categoryId = searchParams.get('categoryId') || '';
@@ -113,6 +119,54 @@ const CartSection = () => {
     },
     [dispatch],
   );
+
+  const handleCheckout = useCallback(async () => {
+    setCheckingOut(true);
+    try {
+      const { order, snapToken, paymentInitError } = await createOrder();
+      dispatch(clearCart());
+      setCarts([]);
+
+      if (paymentInitError || !snapToken) {
+        toast.error(
+          'Order created, but payment setup failed. Retry from Order History.',
+        );
+        router.push(`/order/${order.id}`);
+        return;
+      }
+
+      if (!window.snap) {
+        toast.error('Payment is not ready yet, please try again.');
+        router.push(`/order/${order.id}`);
+        return;
+      }
+
+      window.snap.pay(snapToken, {
+        onSuccess: () => {
+          toast.success('Payment successful.');
+          router.push(`/order/${order.id}`);
+        },
+        onPending: () => {
+          toast.info('Payment pending.');
+          router.push(`/order/${order.id}`);
+        },
+        onError: () => {
+          toast.error('Payment failed.');
+          router.push(`/order/${order.id}`);
+        },
+        onClose: () => {
+          toast.warning('Payment popup closed. Finish payment from Order History.');
+          router.push('/order');
+        },
+      });
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || 'Failed to start checkout.',
+      );
+    } finally {
+      setCheckingOut(false);
+    }
+  }, [dispatch, router]);
 
   const totalPrice = carts.reduce((acc, cart) => {
     const price = cart.Product
@@ -281,13 +335,21 @@ const CartSection = () => {
             <Button
               size="pill"
               className="w-full mt-4"
-              onClick={() => toast.info('Checkout belum tersedia')}
+              onClick={handleCheckout}
+              disabled={checkingOut || !snapReady}
             >
-              Proceed to Checkout
+              {checkingOut ? 'Processing...' : 'Proceed to Checkout'}
             </Button>
           </CardContent>
         </Card>
       </div>
+
+      <Script
+        src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
+        strategy="afterInteractive"
+        onLoad={() => setSnapReady(true)}
+      />
     </div>
   );
 };

@@ -32,8 +32,11 @@ const AuthProvider = ({ children }: Props) => {
       .then((items) => {
         dispatch(
           setWishlist({
-            productIds: items.map((w) => w.productId),
-            count: items.length,
+            items: items.map((w) => ({
+              id: w.id,
+              productId: w.productId,
+              variantId: w.variantId ?? null,
+            })),
           }),
         );
       })

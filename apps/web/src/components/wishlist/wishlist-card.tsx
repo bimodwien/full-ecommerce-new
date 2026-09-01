@@ -12,7 +12,7 @@ import { addToCart, fetchCartCount } from '@/helpers/fetch-cart';
 import { TWishlist } from '@/models/wishlist.model';
 import { toast } from 'sonner';
 import { useAppDispatch } from '@/libraries/redux/hooks';
-import { removeWishlistProduct } from '@/libraries/redux/slices/wishlist.slice';
+import { removeWishlistEntry } from '@/libraries/redux/slices/wishlist.slice';
 import { setCartCount } from '@/libraries/redux/slices/cart.slice';
 import { useSearchParams } from 'next/navigation';
 
@@ -62,12 +62,12 @@ const WishlistCard = () => {
   }, [loadWishlists]);
 
   const handleDelete = useCallback(
-    async (id: string, productId: string) => {
+    async (id: string, productId: string, variantId?: string | null) => {
       setDeletingId(id);
       try {
         await deleteWishlist(id);
         setWishlists((prev) => prev.filter((w) => w.id !== id));
-        dispatch(removeWishlistProduct(productId));
+        dispatch(removeWishlistEntry({ id, productId, variantId }));
         toast.success('Product removed from wishlist.');
       } catch {
         toast.error('Failed to remove from wishlist.');
@@ -98,8 +98,7 @@ const WishlistCard = () => {
 
   const getImageUrl = (wishlist: TWishlist) => {
     const rawImage = (wishlist.Product as any)?.Images?.[0]?.imageUrl as
-      | string
-      | undefined;
+      string | undefined;
     if (!rawImage) return `${apiBase}/products/image/${wishlist.productId}`;
     return rawImage.startsWith('http')
       ? rawImage
@@ -201,7 +200,13 @@ const WishlistCard = () => {
                 </Button>
                 <button
                   type="button"
-                  onClick={() => handleDelete(wishlist.id, wishlist.productId)}
+                  onClick={() =>
+                    handleDelete(
+                      wishlist.id,
+                      wishlist.productId,
+                      wishlist.variantId,
+                    )
+                  }
                   disabled={deletingId === wishlist.id}
                   aria-label="Remove from wishlist"
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-soft-cloud text-ink hover:bg-hairline-soft disabled:opacity-60"

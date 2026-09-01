@@ -14,6 +14,13 @@ config({ path: resolve(__dirname, `../${envFile}.local`), override: true });
 export const PORT = process.env.PORT || 8000;
 export const DATABASE_URL = process.env.DATABASE_URL || '';
 export const SECRET_KEY = process.env.SECRET_KEY || '';
+export const CLIENT_URL = process.env.CLIENT_URL || '';
+
+// config for Midtrans
+export const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY || '';
+export const MIDTRANS_CLIENT_KEY = process.env.MIDTRANS_CLIENT_KEY || '';
+export const MIDTRANS_IS_PRODUCTION =
+  process.env.MIDTRANS_IS_PRODUCTION === 'true';
 
 // config for cors
 export const corsOptions: CorsOptions = {
