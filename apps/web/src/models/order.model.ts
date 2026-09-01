@@ -27,7 +27,20 @@ export type TOrder = {
   userId: string;
   status: OrderStatus;
   totalAmount: string | number; // Prisma Decimal serialized
+  midtransOrderId?: string | null;
+  snapToken?: string | null;
+  snapRedirectUrl?: string | null;
+  paymentType?: string | null;
+  transactionStatus?: string | null;
+  paidAt?: string | null;
   createdAt: string;
   updatedAt: string;
   OrderItems?: TOrderItem[];
+};
+
+export type TCreateOrderResponse = {
+  order: TOrder;
+  snapToken: string | null;
+  redirectUrl: string | null;
+  paymentInitError?: boolean;
 };

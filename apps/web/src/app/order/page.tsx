@@ -4,12 +4,12 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HomepageSidebar from '@/components/homepage/homepage-sidebar';
-import WishlistCard from '@/components/wishlist/wishlist-card';
+import OrderList from '@/components/order/order-list';
 import { useAppSelector } from '@/libraries/redux/hooks';
-import { Heart } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { toast } from 'sonner';
 
-const Wishlist = () => {
+const Orders = () => {
   const auth = useAppSelector((s) => s.auth);
   const router = useRouter();
   const [checked, setChecked] = useState(false);
@@ -17,7 +17,7 @@ const Wishlist = () => {
   useEffect(() => {
     if (!auth.initialized) return;
     if (!auth.id) {
-      toast.warning('You must be logged in to access the wishlist page.');
+      toast.warning('You must be logged in to access your orders.');
       router.replace('/login');
     } else {
       setChecked(true);
@@ -42,12 +42,10 @@ const Wishlist = () => {
           {/* Main content */}
           <div className="flex-1 min-w-0">
             <div className="mb-6 flex items-center gap-2">
-              <Heart className="h-6 w-6 text-ink" />
-              <h1 className="text-2xl font-medium text-ink">My Wishlist</h1>
+              <Package className="h-6 w-6 text-ink" />
+              <h1 className="text-2xl font-medium text-ink">My Orders</h1>
             </div>
-            <Suspense fallback={null}>
-              <WishlistCard />
-            </Suspense>
+            <OrderList />
           </div>
         </div>
       </div>
@@ -56,4 +54,4 @@ const Wishlist = () => {
   );
 };
 
-export default Wishlist;
+export default Orders;

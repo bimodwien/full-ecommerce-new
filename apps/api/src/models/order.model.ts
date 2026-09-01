@@ -7,6 +7,12 @@ export type TOrder = {
   userId: string;
   status: OrderStatus;
   totalAmount: string;
+  midtransOrderId?: string | null;
+  snapToken?: string | null;
+  snapRedirectUrl?: string | null;
+  paymentType?: string | null;
+  transactionStatus?: string | null;
+  paidAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   user?: TUser;

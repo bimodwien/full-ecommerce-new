@@ -5,7 +5,6 @@ import { ProductCard } from '@/components/homepage/product-card';
 import { fetchProduct, type GetProductsQuery } from '@/helpers/fetch-product';
 import { TProductList } from '@/models/product.model';
 import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 
 const ProductCardSection = () => {
   const [products, setProducts] = useState<TProductList[]>([]);
@@ -53,7 +52,7 @@ const ProductCardSection = () => {
     <section>
       <div
         id="product-grid"
-        className="grid grid-cols-1 mobile-landscape:grid-cols-2 tablet:grid-cols-3 desktop-small:grid-cols-4 gap-2"
+        className="grid grid-cols-1 mobile-landscape:grid-cols-2 tablet:grid-cols-3 desktop-small:grid-cols-4 gap-4"
       >
         {loading && (
           <>

@@ -7,6 +7,7 @@ import React, {
   useCallback,
 } from 'react';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import HomepageSidebar from '@/components/homepage/homepage-sidebar';
 import { fetchProductDetail } from '@/helpers/fetch-product';
 import { toggleWishlist } from '@/helpers/fetch-wishlist';
@@ -25,8 +26,8 @@ import {
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/libraries/redux/hooks';
 import {
-  addWishlistProduct,
-  removeWishlistProduct,
+  addWishlistEntry,
+  removeWishlistEntry,
 } from '@/libraries/redux/slices/wishlist.slice';
 import { setCartCount } from '@/libraries/redux/slices/cart.slice';
 import { fetchCartCount } from '@/helpers/fetch-cart';
@@ -54,8 +55,14 @@ function compareVariants(a: string, b: string): number {
   if (idxA !== -1) return -1;
   if (idxB !== -1) return 1;
 
-  const groupA = normA.replace(/[\d/.]+/g, ' ').replace(/\s+/g, ' ').trim();
-  const groupB = normB.replace(/[\d/.]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const groupA = normA
+    .replace(/[\d/.]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const groupB = normB
+    .replace(/[\d/.]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
   if (groupA !== groupB) return groupA.localeCompare(groupB);
 
   const numA = parseFloat((normA.match(/\d+(\.\d+)?/) || [])[0] ?? '');
@@ -82,9 +89,14 @@ function PageDetail() {
 
   const dispatch = useAppDispatch();
   const auth = useAppSelector((s) => s.auth);
-  const wishlistProductIds = useAppSelector((s) => s.wishlist.productIds);
+  const wishlistItems = useAppSelector((s) => s.wishlist.items);
   const isLoggedIn = Boolean(auth.id);
-  const wishlisted = wishlistProductIds.includes(id);
+  // Wishlist status must match the currently selected variant, not just
+  // "this product has some wishlisted variant".
+  const wishlisted = wishlistItems.some(
+    (i) =>
+      i.productId === id && (i.variantId ?? null) === (selectedVariantId ?? null),
+  );
   const imageBase = useMemo(() => {
     const base =
       process.env.NEXT_PUBLIC_BASE_API_URL || 'http://localhost:8000/api';
@@ -133,10 +145,21 @@ function PageDetail() {
     setWishlistLoading(true);
     try {
       const result = await toggleWishlist(id, selectedVariantId);
-      if (result.added) {
-        dispatch(addWishlistProduct(id));
+      if (result.added && result.wishlist) {
+        dispatch(
+          addWishlistEntry({
+            id: result.wishlist.id,
+            productId: id,
+            variantId: selectedVariantId ?? null,
+          }),
+        );
       } else {
-        dispatch(removeWishlistProduct(id));
+        dispatch(
+          removeWishlistEntry({
+            productId: id,
+            variantId: selectedVariantId ?? null,
+          }),
+        );
       }
       toast.success(
         result.added ? 'Added to wishlist!' : 'Removed from wishlist.',
@@ -168,25 +191,25 @@ function PageDetail() {
   }, [isLoggedIn, cartLoading, id, qty, selectedVariantId, dispatch]);
 
   return (
-    <>
+    <div>
       <Header />
-      <div className="mx-auto max-w-screen-2xl px-4">
+      <div className="mx-auto max-w-screen-2xl px-4 min-h-screen">
         <div className="flex items-stretch gap-4 py-8">
           <div className="flex-1 min-w-0">
             {!product ? (
               <div>Loading...</div>
             ) : (
               <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col md:flex-row gap-10">
                   {/* Gallery */}
-                  <div>
+                  <div className="w-full md:w-96 shrink-0 md:self-start md:sticky md:top-8">
                     <div className="relative aspect-square w-full overflow-hidden bg-soft-cloud">
                       {selectedImageId ? (
                         <Image
                           src={`${imageBase}/products/image/${selectedImageId}`}
                           alt={product.name}
                           fill
-                          sizes="(min-width: 768px) 50vw, 100vw"
+                          sizes="(min-width: 768px) 384px, 100vw"
                           className="object-contain p-2"
                         />
                       ) : (
@@ -194,7 +217,7 @@ function PageDetail() {
                           src="https://placehold.co/800x800/fff/aaa?text=No+Image"
                           alt="No image"
                           fill
-                          sizes="(min-width: 768px) 50vw, 100vw"
+                          sizes="(min-width: 768px) 384px, 100vw"
                           className="object-contain p-2"
                         />
                       )}
@@ -229,11 +252,11 @@ function PageDetail() {
                   </div>
 
                   {/* Summary */}
-                  <div className="">
-                    <h1 className="text-ink text-4xl font-medium leading-12">
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-ink text-2xl font-medium leading-8">
                       {product.name}
                     </h1>
-                    <div className="text-ink text-2xl font-medium leading-14.5 mt-1">
+                    <div className="text-ink text-xl font-medium leading-10">
                       {typeof product.price === 'string'
                         ? Number(product.price).toLocaleString('id-ID', {
                             style: 'currency',
@@ -247,7 +270,7 @@ function PageDetail() {
                           })}
                     </div>
                     {product.Variants && product.Variants.length > 0 && (
-                      <div className="space-y-2 mt-4">
+                      <div className="space-y-2 mt-2">
                         <div className="text-sm text-mute">
                           Available Variants:
                         </div>
@@ -317,7 +340,7 @@ function PageDetail() {
                         size="pill"
                         onClick={handleAddToCart}
                         disabled={cartLoading}
-                        className="font-medium tracking-wide flex items-center gap-2 disabled:opacity-60"
+                        className="font-medium tracking-wide flex items-center gap-1 disabled:opacity-60"
                       >
                         <ShoppingCart className="h-5 w-5" />
                         Add to cart
@@ -348,34 +371,38 @@ function PageDetail() {
                         <Shuffle className="h-5 w-5" />
                       </button>
                     </div>
-                  </div>
-                </div>
 
-                <div className="mt-6">
-                  <h2 className="text-lg font-semibold text-ink mb-6">
-                    Description
-                  </h2>
-                  <article
-                    className="tiptap-content text-ink text-sm leading-7 space-y-4"
-                    dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(
-                        product.descriptionHtml || product.description || '',
-                        { USE_PROFILES: { html: true } },
-                      ),
-                    }}
-                  />
+                    {/* Description */}
+                    <div className="mt-6">
+                      <h2 className="text-lg font-semibold text-ink mb-3">
+                        Description
+                      </h2>
+                      <article
+                        className="tiptap-content text-ink text-sm leading-7 space-y-4"
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(
+                            product.descriptionHtml ||
+                              product.description ||
+                              '',
+                            { USE_PROFILES: { html: true } },
+                          ),
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-          <div className="hidden lg:block w-72 shrink-0">
+          <div className="hidden lg:block w-72 shrink-0 self-start sticky top-8">
             <Suspense fallback={null}>
               <HomepageSidebar />
             </Suspense>
           </div>
         </div>
       </div>
-    </>
+      <Footer />
+    </div>
   );
 }
 
