@@ -21,6 +21,9 @@ export const cartSlice = createSlice({
     decrementCartCount: (state) => {
       state.count = Math.max(0, state.count - 1);
     },
+    decrementCartCountBy: (state, action: PayloadAction<number>) => {
+      state.count = Math.max(0, state.count - action.payload);
+    },
     clearCart: () => initialState,
   },
 });
@@ -29,6 +32,7 @@ export const {
   setCartCount,
   incrementCartCount,
   decrementCartCount,
+  decrementCartCountBy,
   clearCart,
 } = cartSlice.actions;
 export default cartSlice.reducer;

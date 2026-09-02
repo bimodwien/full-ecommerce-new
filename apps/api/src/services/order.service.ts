@@ -50,8 +50,22 @@ class OrderService {
     const userId = req.user?.id as string;
     if (!userId) throw new AppError('Unauthorized', 401);
 
-    const carts = await prisma.cart.findMany({ where: { userId } });
+    const cartItemIds = req.body?.cartItemIds;
+    if (!Array.isArray(cartItemIds) || cartItemIds.length === 0)
+      throw new AppError('cartItemIds is required', 400);
+    if (!cartItemIds.every((id) => typeof id === 'string' && id.length > 0))
+      throw new AppError(
+        'cartItemIds must be an array of non-empty strings',
+        400,
+      );
+    const uniqueCartItemIds = Array.from(new Set(cartItemIds));
+
+    const carts = await prisma.cart.findMany({
+      where: { id: { in: uniqueCartItemIds }, userId },
+    });
     if (carts.length === 0) throw new AppError('Cart is empty', 400);
+    if (carts.length !== uniqueCartItemIds.length)
+      throw new AppError('Some selected items are no longer in your cart', 400);
 
     const order = await prisma.$transaction(async (tx) => {
       const orderItemsData: {
@@ -119,7 +133,9 @@ class OrderService {
         }
       }
 
-      await tx.cart.deleteMany({ where: { userId } });
+      await tx.cart.deleteMany({
+        where: { id: { in: uniqueCartItemIds }, userId },
+      });
 
       return created;
     });

@@ -14,6 +14,7 @@ import { toggleWishlist } from '@/helpers/fetch-wishlist';
 import { addToCart } from '@/helpers/fetch-cart';
 import { TProduct } from '@/models/product.model';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 import DOMPurify from 'dompurify';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ import {
   ShoppingCart,
   Heart,
   Shuffle,
+  ArrowLeft,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/libraries/redux/hooks';
 import {
@@ -95,7 +97,8 @@ function PageDetail() {
   // "this product has some wishlisted variant".
   const wishlisted = wishlistItems.some(
     (i) =>
-      i.productId === id && (i.variantId ?? null) === (selectedVariantId ?? null),
+      i.productId === id &&
+      (i.variantId ?? null) === (selectedVariantId ?? null),
   );
   const imageBase = useMemo(() => {
     const base =
@@ -196,6 +199,13 @@ function PageDetail() {
       <div className="mx-auto max-w-screen-2xl px-4 min-h-screen">
         <div className="flex items-stretch gap-4 py-8">
           <div className="flex-1 min-w-0">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1 text-sm text-mute hover:text-ink w-fit mb-3"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to homepage
+            </Link>
             {!product ? (
               <div>Loading...</div>
             ) : (
@@ -374,11 +384,11 @@ function PageDetail() {
 
                     {/* Description */}
                     <div className="mt-6">
-                      <h2 className="text-lg font-semibold text-ink mb-3">
+                      <h2 className="text-xl font-semibold text-ink mb-3">
                         Description
                       </h2>
                       <article
-                        className="tiptap-content text-ink text-sm leading-7 space-y-4"
+                        className="tiptap-content text-ink text-sm leading-6 space-y-4"
                         dangerouslySetInnerHTML={{
                           __html: DOMPurify.sanitize(
                             product.descriptionHtml ||

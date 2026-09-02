@@ -38,8 +38,8 @@ const accountLinks = [
 const corporateLinks = [
   'Become a Vendor',
   'Affiliate Program',
-  'Farm Business',
-  'Farm Careers',
+  'Suppliers Business',
+  'Suppliers Careers',
   'Our Suppliers',
   'Accessibility',
   'Promotions',
@@ -83,7 +83,7 @@ const Footer = () => {
               </span>
             </Link>
             <p className="mt-3 max-w-md text-mute">
-              Awesome grocery store website template
+              Awesome tech & Fashion store website
             </p>
 
             <ul className="mt-4 space-y-2 text-mute">
@@ -93,7 +93,7 @@ const Footer = () => {
                 </span>
                 <div>
                   <span className="text-stone">Address: </span>
-                  5171 W Campbell Ave, Kent, Utah 53127
+                  Permata Hijau, Jakarta Selatan, Indonesia
                 </div>
               </li>
               <li className="flex items-start gap-2">
@@ -102,7 +102,7 @@ const Footer = () => {
                 </span>
                 <div>
                   <span className="text-stone">Call Us: </span>
-                  (+62) 540-025-124553
+                  (+62) 8xx-8xxx-5xxx
                 </div>
               </li>
               <li className="flex items-start gap-2">

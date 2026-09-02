@@ -1,12 +1,13 @@
 'use client';
 import React, { Suspense, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HomepageSidebar from '@/components/homepage/homepage-sidebar';
 import WishlistCard from '@/components/wishlist/wishlist-card';
 import { useAppSelector } from '@/libraries/redux/hooks';
-import { Heart } from 'lucide-react';
+import { Heart, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Wishlist = () => {
@@ -41,6 +42,13 @@ const Wishlist = () => {
           </div>
           {/* Main content */}
           <div className="flex-1 min-w-0">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1 text-sm text-mute hover:text-ink w-fit mb-3"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to homepage
+            </Link>
             <div className="mb-6 flex items-center gap-2">
               <Heart className="h-6 w-6 text-ink" />
               <h1 className="text-2xl font-medium text-ink">My Wishlist</h1>

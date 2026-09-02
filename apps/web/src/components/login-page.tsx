@@ -54,7 +54,7 @@ function LoginPage() {
   return (
     <div className="min-h-screen flex text-zinc-700">
       {/* Left Side - Image */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 items-center justify-center p-12">
+      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-emerald-500/10 to-emerald-500/5 items-center justify-center p-12">
         <div className="max-w-md text-center">
           <Image
             src="/logo.png"
@@ -107,8 +107,8 @@ function LoginPage() {
               <label
                 htmlFor="username"
                 className="absolute left-4 top-1/2 -translate-y-1/2 px-1 bg-white text-zinc-700 text-base transition-all duration-300 pointer-events-none
-                           peer-focus:top-[-8px] peer-focus:left-3 peer-focus:translate-y-0 peer-focus:text-emerald-600 peer-focus:text-xs peer-focus:font-medium
-                           peer-[&:not(:placeholder-shown)]:top-[-8px] peer-[&:not(:placeholder-shown)]:left-3 peer-[&:not(:placeholder-shown)]:translate-y-0 peer-[&:not(:placeholder-shown)]:text-xs peer-[&:not(:placeholder-shown)]:font-medium"
+                           peer-focus:-top-2 peer-focus:left-3 peer-focus:translate-y-0 peer-focus:text-emerald-600 peer-focus:text-xs peer-focus:font-medium
+                           peer-not-placeholder-shown:-top-2 peer-not-placeholder-shown:left-3 peer-not-placeholder-shown:translate-y-0 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:font-medium"
               >
                 Username
               </label>
@@ -118,7 +118,7 @@ function LoginPage() {
             <div className="relative">
               <input
                 type="password"
-                className="peer w-full h-12 text-base border border-zinc-300 rounded-lg outline-none px-4 bg-white placeholder-transparent focus:border-2 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-300"
+                className="peer w-full h-12 text-sm border border-zinc-300 rounded-lg outline-none px-4 bg-white placeholder-transparent focus:border-2 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-300"
                 placeholder=" "
                 id="password"
                 {...formik.getFieldProps('password')}
@@ -127,8 +127,8 @@ function LoginPage() {
               <label
                 htmlFor="password"
                 className="absolute left-4 top-1/2 -translate-y-1/2 px-1 bg-white text-zinc-700 text-base transition-all duration-300 pointer-events-none
-                           peer-focus:top-[-8px] peer-focus:left-3 peer-focus:translate-y-0 peer-focus:text-emerald-600 peer-focus:text-xs peer-focus:font-medium
-                           peer-[&:not(:placeholder-shown)]:top-[-8px] peer-[&:not(:placeholder-shown)]:left-3 peer-[&:not(:placeholder-shown)]:translate-y-0 peer-[&:not(:placeholder-shown)]:text-xs peer-[&:not(:placeholder-shown)]:font-medium"
+                           peer-focus:-top-2 peer-focus:left-3 peer-focus:translate-y-0 peer-focus:text-emerald-600 peer-focus:text-xs peer-focus:font-medium
+                           peer-not-placeholder-shown:-top-2 peer-not-placeholder-shown:left-3 peer-not-placeholder-shown:translate-y-0 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:font-medium"
               >
                 Password
               </label>

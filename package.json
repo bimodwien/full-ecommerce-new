@@ -15,9 +15,9 @@
     "@commitlint/config-conventional": "^21.2.2",
     "eslint": "^10.9.1",
     "husky": "^9.1.7",
-    "lint-staged": "^17.3.0",
+    "lint-staged": "^17.4.1",
     "prettier": "^3.9.6",
-    "tsc-alias": "^1.9.2",
+    "tsc-alias": "^1.9.3",
     "tsconfig": "*",
     "turbo": "^2.10.12"
   },
@@ -39,8 +39,8 @@
     "bcrypt@6.0.0": true,
     "sharp@0.34.5": true,
     "unrs-resolver@1.12.2": true,
-    "cypress@15.19.0": true,
     "prisma@7.10.0": true,
-    "@prisma/engines@7.10.0": true
+    "@prisma/engines@7.10.0": true,
+    "cypress@15.21.1": true
   }
 }

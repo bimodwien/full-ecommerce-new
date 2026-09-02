@@ -57,6 +57,11 @@ const Header = () => {
   // AuthProvider's auth check resolves before this component hydrates.
   const isLoggedIn = mounted && Boolean(auth?.id && auth.id !== '');
 
+  // Same reason for the badge counts: Redux only has them after the client
+  // hydrates, so the server always renders 0 (no badge).
+  const shownWishlistCount = mounted ? wishlistCount : 0;
+  const shownCartCount = mounted ? cartCount : 0;
+
   // Selected category from URL
   const selectedCategoryId = searchParams.get('categoryId') || '';
   const selectedCategoryLabel = useMemo(
@@ -139,7 +144,7 @@ const Header = () => {
           <div className="flex items-center gap-3">
             <p>
               <span>Need help? Call Us: </span>
-              <span className="font-semibold text-ink">+1800 900</span>
+              <span className="font-semibold text-ink">+1800 XXX</span>
             </p>
             <span className="hidden h-3 w-px bg-hairline sm:block" />
             <button
@@ -298,9 +303,9 @@ const Header = () => {
                   }}
                   className="group relative flex items-center gap-1 text-ink hover:text-mute"
                 >
-                  {wishlistCount > 0 && (
+                  {shownWishlistCount > 0 && (
                     <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[10px] font-semibold text-canvas">
-                      {wishlistCount}
+                      {shownWishlistCount}
                     </span>
                   )}
                   <Heart className="h-6 w-6" />
@@ -319,9 +324,9 @@ const Header = () => {
                   }}
                   className="group relative flex items-center gap-1 text-ink hover:text-mute"
                 >
-                  {cartCount > 0 && (
+                  {shownCartCount > 0 && (
                     <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[10px] font-semibold text-canvas">
-                      {cartCount}
+                      {shownCartCount}
                     </span>
                   )}
                   <ShoppingCart className="h-6 w-6" />
@@ -382,9 +387,9 @@ const Header = () => {
               className="relative inline-flex items-center text-ink hover:text-mute"
               aria-label="Wishlist"
             >
-              {wishlistCount > 0 && (
+              {shownWishlistCount > 0 && (
                 <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[10px] font-semibold text-canvas">
-                  {wishlistCount}
+                  {shownWishlistCount}
                 </span>
               )}
               <Heart className="h-6 w-6" />
@@ -401,9 +406,9 @@ const Header = () => {
               className="relative inline-flex items-center text-ink hover:text-mute"
               aria-label="Cart"
             >
-              {cartCount > 0 && (
+              {shownCartCount > 0 && (
                 <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[10px] font-semibold text-canvas">
-                  {cartCount}
+                  {shownCartCount}
                 </span>
               )}
               <ShoppingCart className="h-6 w-6" />
@@ -537,7 +542,7 @@ const Header = () => {
               <Headphones className="h-5 w-5" />
             </span>
             <div className="leading-tight">
-              <div className="text-lg font-extrabold text-ink">1900 - 888</div>
+              <div className="text-lg font-extrabold text-ink">1900 - XXX</div>
               <div className="text-[11px] text-mute">24/7 Support Center</div>
             </div>
           </div>
