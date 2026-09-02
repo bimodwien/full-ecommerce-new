@@ -76,7 +76,7 @@ const OrderDetail = ({ orderId }: { orderId: string }) => {
           toast.error('Payment failed.');
         },
         onClose: () => {
-          toast.warning('Payment popup closed.');
+          toast.warning('Payment closed.');
         },
       });
     } catch (err: any) {

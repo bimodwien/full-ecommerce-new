@@ -20,7 +20,7 @@ const PUBLIC_AUTH_ROUTES = ['/login', '/register'];
 const HOMEPAGE = '/';
 const DASHBOARD_ROOT = '/dashboard';
 const PUBLIC_PAGES = ['/detail']; // prefix group for public product pages
-const BUYER_ONLY_PAGES = ['/cart', '/wishlist', '/order']; // prefix group for buyer-only flows
+const BUYER_ONLY_PAGES = ['/cart', '/wishlist', '/order', '/checkout']; // prefix group for buyer-only flows
 
 // Helper: check if path starts with pattern (for grouping like /dashboard/...)
 const startsWith = (path: string, prefix: string) =>

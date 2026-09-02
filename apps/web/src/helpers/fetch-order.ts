@@ -1,8 +1,10 @@
 import { axiosInstance } from '@/libraries/axios';
 import { TOrder, TCreateOrderResponse } from '@/models/order.model';
 
-export const createOrder = async (): Promise<TCreateOrderResponse> => {
-  const response = await axiosInstance().post('/orders');
+export const createOrder = async (
+  cartItemIds: string[],
+): Promise<TCreateOrderResponse> => {
+  const response = await axiosInstance().post('/orders', { cartItemIds });
   return {
     order: response.data?.order as TOrder,
     snapToken: response.data?.snapToken ?? null,

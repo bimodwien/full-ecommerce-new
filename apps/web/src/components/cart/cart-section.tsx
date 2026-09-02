@@ -1,8 +1,7 @@
 'use client';
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import { ShoppingCart, Trash2, Minus, Plus, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,11 +14,10 @@ import {
   updateCartQuantity,
   deleteCart,
 } from '@/helpers/fetch-cart';
-import { createOrder } from '@/helpers/fetch-order';
 import { TCart } from '@/models/cart.model';
 import { toast } from 'sonner';
 import { useAppDispatch } from '@/libraries/redux/hooks';
-import { decrementCartCount, clearCart } from '@/libraries/redux/slices/cart.slice';
+import { decrementCartCount } from '@/libraries/redux/slices/cart.slice';
 import { useSearchParams } from 'next/navigation';
 
 const CartSection = () => {
@@ -30,8 +28,8 @@ const CartSection = () => {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [snapReady, setSnapReady] = useState(false);
-  const [checkingOut, setCheckingOut] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const selectAllRef = useRef<HTMLInputElement>(null);
 
   const name = searchParams.get('name') || '';
   const categoryId = searchParams.get('categoryId') || '';
@@ -109,6 +107,12 @@ const CartSection = () => {
       try {
         await deleteCart(id);
         setCarts((prev) => prev.filter((c) => c.id !== id));
+        setSelectedIds((prev) => {
+          if (!prev.has(id)) return prev;
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
         dispatch(decrementCartCount());
         toast.success('Product removed from cart.');
       } catch {
@@ -120,55 +124,26 @@ const CartSection = () => {
     [dispatch],
   );
 
-  const handleCheckout = useCallback(async () => {
-    setCheckingOut(true);
-    try {
-      const { order, snapToken, paymentInitError } = await createOrder();
-      dispatch(clearCart());
-      setCarts([]);
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
-      if (paymentInitError || !snapToken) {
-        toast.error(
-          'Order created, but payment setup failed. Retry from Order History.',
-        );
-        router.push(`/order/${order.id}`);
-        return;
-      }
+  const handleProceedToCheckout = useCallback(() => {
+    const ids = Array.from(selectedIds).join(',');
+    router.push(`/checkout?items=${encodeURIComponent(ids)}`);
+  }, [selectedIds, router]);
 
-      if (!window.snap) {
-        toast.error('Payment is not ready yet, please try again.');
-        router.push(`/order/${order.id}`);
-        return;
-      }
+  const selectedCarts = useMemo(
+    () => carts.filter((c) => selectedIds.has(c.id)),
+    [carts, selectedIds],
+  );
 
-      window.snap.pay(snapToken, {
-        onSuccess: () => {
-          toast.success('Payment successful.');
-          router.push(`/order/${order.id}`);
-        },
-        onPending: () => {
-          toast.info('Payment pending.');
-          router.push(`/order/${order.id}`);
-        },
-        onError: () => {
-          toast.error('Payment failed.');
-          router.push(`/order/${order.id}`);
-        },
-        onClose: () => {
-          toast.warning('Payment popup closed. Finish payment from Order History.');
-          router.push('/order');
-        },
-      });
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || 'Failed to start checkout.',
-      );
-    } finally {
-      setCheckingOut(false);
-    }
-  }, [dispatch, router]);
-
-  const totalPrice = carts.reduce((acc, cart) => {
+  const totalPrice = selectedCarts.reduce((acc, cart) => {
     const price = cart.Product
       ? typeof cart.Product.price === 'string'
         ? Number(cart.Product.price)
@@ -177,7 +152,33 @@ const CartSection = () => {
     return acc + price * cart.quantity;
   }, 0);
 
-  const totalItems = carts.reduce((acc, c) => acc + c.quantity, 0);
+  const totalItems = selectedCarts.reduce((acc, c) => acc + c.quantity, 0);
+
+  const allFilteredSelected =
+    filteredCarts.length > 0 &&
+    filteredCarts.every((c) => selectedIds.has(c.id));
+  const someFilteredSelected = filteredCarts.some((c) => selectedIds.has(c.id));
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const filteredIds = filteredCarts.map((c) => c.id);
+      const allSelected = filteredIds.every((id) => next.has(id));
+      if (allSelected) {
+        filteredIds.forEach((id) => next.delete(id));
+      } else {
+        filteredIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  }, [filteredCarts]);
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate =
+        someFilteredSelected && !allFilteredSelected;
+    }
+  }, [someFilteredSelected, allFilteredSelected]);
 
   if (loading) {
     return (
@@ -211,6 +212,19 @@ const CartSection = () => {
     <div className="flex flex-col lg:flex-row gap-6">
       {/* Cart items */}
       <div className="flex-1 flex flex-col gap-4">
+        {filteredCarts.length > 0 && (
+          <label className="flex items-center gap-2 text-sm text-ink cursor-pointer select-none">
+            <input
+              ref={selectAllRef}
+              type="checkbox"
+              className="h-4 w-4 accent-ink"
+              checked={allFilteredSelected}
+              onChange={toggleSelectAll}
+              aria-label="Select all items"
+            />
+            Select all
+          </label>
+        )}
         {filteredCarts.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
             <p className="text-base font-medium">No cart items found</p>
@@ -232,6 +246,14 @@ const CartSection = () => {
           return (
             <Card key={cart.id} className="overflow-hidden">
               <CardContent className="flex gap-4 p-4 bg-canvas border border-hairline">
+                {/* Select */}
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 mt-1 shrink-0 accent-ink"
+                  checked={selectedIds.has(cart.id)}
+                  onChange={() => toggleSelect(cart.id)}
+                  aria-label={`Select ${product?.name || 'product'}`}
+                />
                 {/* Image */}
                 <div className="relative h-24 w-24 shrink-0 overflow-hidden bg-soft-cloud">
                   <Image
@@ -324,7 +346,7 @@ const CartSection = () => {
               Order Summary
             </h2>
             <div className="flex justify-between text-sm text-mute mb-2">
-              <span>Total items</span>
+              <span>Selected items</span>
               <span>{totalItems} items</span>
             </div>
             <Separator className="my-3" />
@@ -335,21 +357,14 @@ const CartSection = () => {
             <Button
               size="pill"
               className="w-full mt-4"
-              onClick={handleCheckout}
-              disabled={checkingOut || !snapReady}
+              onClick={handleProceedToCheckout}
+              disabled={selectedIds.size === 0}
             >
-              {checkingOut ? 'Processing...' : 'Proceed to Checkout'}
+              Proceed to Checkout
             </Button>
           </CardContent>
         </Card>
       </div>
-
-      <Script
-        src="https://app.sandbox.midtrans.com/snap/snap.js"
-        data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
-        strategy="afterInteractive"
-        onLoad={() => setSnapReady(true)}
-      />
     </div>
   );
 };
