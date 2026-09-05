@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '@/prisma';
+import AppError from '@/libs/appError';
 
 export const verifyAdmin = async (
   req: Request,
@@ -12,7 +13,10 @@ export const verifyAdmin = async (
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user || user.role !== 'seller') {
-      const error = new Error('Unauthorized, only seller can access this API');
+      const error = new AppError(
+        'Unauthorized, only seller can access this API',
+        403,
+      );
       return next(error);
     }
 
@@ -33,7 +37,10 @@ export const verifyUser = async (
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user || user.role !== 'buyer') {
-      const error = new Error('Unauthorized, only buyer can access this API');
+      const error = new AppError(
+        'Unauthorized, only buyer can access this API',
+        403,
+      );
       return next(error);
     }
 

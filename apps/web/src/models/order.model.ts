@@ -5,7 +5,8 @@ export type OrderStatus =
   | 'PAID'
   | 'SHIPPED'
   | 'COMPLETED'
-  | 'CANCELLED';
+  | 'CANCELLED'
+  | 'RETURNED';
 
 export type TOrderItem = {
   id: string;
@@ -33,9 +34,17 @@ export type TOrder = {
   paymentType?: string | null;
   transactionStatus?: string | null;
   paidAt?: string | null;
+  returnReason?: string | null;
   createdAt: string;
   updatedAt: string;
   OrderItems?: TOrderItem[];
+  // Only present on admin responses
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    username: string;
+  } | null;
 };
 
 export type TCreateOrderResponse = {

@@ -8,9 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatIDR } from '@/lib/utils';
-import { fetchOrderById, retryOrderPayment } from '@/helpers/fetch-order';
+import {
+  fetchOrderById,
+  retryOrderPayment,
+  completeOrder,
+} from '@/helpers/fetch-order';
 import { TOrder, TOrderItem } from '@/models/order.model';
 import OrderStatusBadge from './order-status-badge';
+import OrderReturnDialog from './order-return-dialog';
 import { toast } from 'sonner';
 
 const apiBase = (
@@ -23,6 +28,8 @@ const OrderDetail = ({ orderId }: { orderId: string }) => {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [snapReady, setSnapReady] = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const [returnDialogOpen, setReturnDialogOpen] = useState(false);
 
   const loadOrder = useCallback(async () => {
     try {
@@ -42,8 +49,7 @@ const OrderDetail = ({ orderId }: { orderId: string }) => {
 
   const getImageUrl = (item: TOrderItem) => {
     const rawImage = (item.Product as any)?.Images?.[0]?.imageUrl as
-      | string
-      | undefined;
+      string | undefined;
     if (!rawImage) return `${apiBase}/products/image/${item.productId}`;
     return rawImage.startsWith('http')
       ? rawImage
@@ -88,6 +94,20 @@ const OrderDetail = ({ orderId }: { orderId: string }) => {
     }
   }, [order, loadOrder]);
 
+  const handleComplete = useCallback(async () => {
+    if (!order) return;
+    setCompleting(true);
+    try {
+      const updated = await completeOrder(order.id);
+      setOrder(updated);
+      toast.success('Order completed.');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to complete order.');
+    } finally {
+      setCompleting(false);
+    }
+  }, [order]);
+
   if (loading) {
     return (
       <div className="flex flex-col gap-4">
@@ -101,7 +121,7 @@ const OrderDetail = ({ orderId }: { orderId: string }) => {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-stone">
         <p className="text-lg font-medium text-ink">Order not found</p>
-        <Button asChild size="pill" className="mt-4">
+        <Button asChild size="pill" className="mt-4 rounded-none">
           <Link href="/order">
             <ArrowLeft className="h-4 w-4" />
             Back to orders
@@ -179,21 +199,49 @@ const OrderDetail = ({ orderId }: { orderId: string }) => {
       <Card>
         <CardContent className="p-5 bg-soft-cloud">
           <div className="flex justify-between font-medium text-ink">
-            <span>Total</span>
+            <span className="underline">Total</span>
             <span>{formatIDR(totalAmount)}</span>
           </div>
           {order.status === 'PENDING' && (
             <Button
               size="pill"
-              className="w-full mt-4"
+              className="w-full mt-4 rounded-none"
               onClick={handlePayNow}
               disabled={paying || !snapReady}
             >
               {paying ? 'Processing...' : 'Pay Now'}
             </Button>
           )}
+          {order.status === 'SHIPPED' && (
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-none cursor-pointer"
+                onClick={() => setReturnDialogOpen(true)}
+                disabled={completing}
+              >
+                Submit Return
+              </Button>
+              <Button
+                size="sm"
+                className="rounded-none cursor-pointer"
+                onClick={handleComplete}
+                disabled={completing}
+              >
+                {completing ? 'Processing...' : 'Completed the Order'}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      <OrderReturnDialog
+        orderId={order.id}
+        open={returnDialogOpen}
+        onOpenChange={setReturnDialogOpen}
+        onSuccess={setOrder}
+      />
 
       <Script
         src="https://app.sandbox.midtrans.com/snap/snap.js"

@@ -8,6 +8,7 @@ import {
   Home,
   Package,
   FolderOpen,
+  Truck,
   Menu,
   X,
   ChevronDown,
@@ -29,6 +30,7 @@ const navigation = [
   { name: 'Home', href: '/dashboard', icon: Home },
   { name: 'Products', href: '/dashboard/products', icon: Package },
   { name: 'Categories', href: '/dashboard/categories', icon: FolderOpen },
+  { name: 'Order Tracking', href: '/dashboard/order-tracking', icon: Truck },
 ];
 
 export function MobileSidebar() {

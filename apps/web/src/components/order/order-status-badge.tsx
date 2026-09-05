@@ -33,6 +33,12 @@ const OrderStatusBadge = ({ status }: { status: OrderStatus }) => {
           Cancelled
         </Badge>
       );
+    case 'RETURNED':
+      return (
+        <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">
+          Returned
+        </Badge>
+      );
     default:
       return <Badge variant="secondary">{status}</Badge>;
   }

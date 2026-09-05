@@ -3,7 +3,14 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Home, Package, FolderOpen, ChevronDown, LogOut } from 'lucide-react';
+import {
+  Home,
+  Package,
+  FolderOpen,
+  Truck,
+  ChevronDown,
+  LogOut,
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +26,7 @@ const navigation = [
   { name: 'Home', href: '/dashboard', icon: Home },
   { name: 'Products', href: '/dashboard/products', icon: Package },
   { name: 'Categories', href: '/dashboard/categories', icon: FolderOpen },
+  { name: 'Order Tracking', href: '/dashboard/order-tracking', icon: Truck },
 ];
 
 const Sidebar = () => {

@@ -47,3 +47,49 @@ export const retryOrderPayment = async (
     redirectUrl: response.data?.redirectUrl as string,
   };
 };
+
+export const fetchAdminOrders = async (
+  page: number = 1,
+  limit: number = 10,
+  status?: string,
+): Promise<{
+  orders: TOrder[];
+  total: number;
+  page: number;
+  totalPages: number;
+}> => {
+  const response = await axiosInstance().get('/orders/admin', {
+    params: { page, limit, status },
+  });
+  return {
+    orders: (response.data?.orders || []) as TOrder[],
+    total: response.data?.total ?? 0,
+    page: response.data?.page ?? page,
+    totalPages: response.data?.totalPages ?? 1,
+  };
+};
+
+export const shipOrder = async (id: string): Promise<TOrder> => {
+  const response = await axiosInstance().patch(`/orders/${id}/ship`);
+  return response.data?.order as TOrder;
+};
+
+export const cancelOrder = async (id: string): Promise<TOrder> => {
+  const response = await axiosInstance().patch(`/orders/${id}/cancel`);
+  return response.data?.order as TOrder;
+};
+
+export const completeOrder = async (id: string): Promise<TOrder> => {
+  const response = await axiosInstance().patch(`/orders/${id}/complete`);
+  return response.data?.order as TOrder;
+};
+
+export const submitOrderReturn = async (
+  id: string,
+  reason: string,
+): Promise<TOrder> => {
+  const response = await axiosInstance().patch(`/orders/${id}/return`, {
+    reason,
+  });
+  return response.data?.order as TOrder;
+};
