@@ -38,6 +38,51 @@ export class OrderController {
     }
   }
 
+  async getAllAdmin(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await OrderService.getAllOrdersAdmin(req);
+      res.status(200).json({ message: 'Get orders success', ...result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async ship(req: Request, res: Response, next: NextFunction) {
+    try {
+      const order = await OrderService.shipOrder(req);
+      res.status(200).json({ message: 'Order marked as shipped', order });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async cancel(req: Request, res: Response, next: NextFunction) {
+    try {
+      const order = await OrderService.cancelOrder(req);
+      res.status(200).json({ message: 'Order cancelled', order });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async complete(req: Request, res: Response, next: NextFunction) {
+    try {
+      const order = await OrderService.completeOrder(req);
+      res.status(200).json({ message: 'Order completed', order });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async submitReturn(req: Request, res: Response, next: NextFunction) {
+    try {
+      const order = await OrderService.submitReturn(req);
+      res.status(200).json({ message: 'Return submitted', order });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async notification(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await OrderService.handleNotification(req.body);

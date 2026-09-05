@@ -31,9 +31,21 @@ const ORDER_INCLUDE = {
   },
 } satisfies Prisma.OrderInclude;
 
-type OrderWithItems = Prisma.OrderGetPayload<{ include: typeof ORDER_INCLUDE }>;
+// An admin may only force-cancel a PENDING order once Midtrans' payment window
+// has lapsed, so a buyer who is still mid-checkout never gets cut off.
+const CANCELLABLE_AFTER_MS = 24 * 60 * 60 * 1000;
 
-function sanitizeOrder(order: OrderWithItems) {
+const ADMIN_ORDER_INCLUDE = {
+  ...ORDER_INCLUDE,
+  user: { select: { id: true, name: true, email: true, username: true } },
+} satisfies Prisma.OrderInclude;
+
+type OrderWithItems = Prisma.OrderGetPayload<{ include: typeof ORDER_INCLUDE }>;
+type AdminOrderWithItems = Prisma.OrderGetPayload<{
+  include: typeof ADMIN_ORDER_INCLUDE;
+}>;
+
+function sanitizeOrder(order: OrderWithItems | AdminOrderWithItems) {
   return {
     ...order,
     OrderItems: (order.OrderItems || []).map((item) => ({
@@ -268,6 +280,140 @@ class OrderService {
     if (order.userId !== userId) throw new AppError('Unauthorized', 403);
 
     return sanitizeOrder(order);
+  }
+
+  static async getAllOrdersAdmin(req: Request) {
+    const page = Math.max(1, Number(req.query.page || 1));
+    let limit = Number(req.query.limit || 10);
+    limit = Math.min(100, Math.max(1, limit));
+    const skip = (page - 1) * limit;
+
+    const statusQuery = req.query.status;
+    const where: Prisma.OrderWhereInput = {};
+    if (
+      typeof statusQuery === 'string' &&
+      statusQuery !== 'all' &&
+      (Object.values(OrderStatus) as string[]).includes(statusQuery)
+    ) {
+      where.status = statusQuery as OrderStatus;
+    }
+
+    const [total, orders] = await prisma.$transaction([
+      prisma.order.count({ where }),
+      prisma.order.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' as Prisma.SortOrder },
+        include: ADMIN_ORDER_INCLUDE,
+      }),
+    ]);
+
+    return {
+      orders: orders.map(sanitizeOrder),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
+  }
+
+  static async shipOrder(req: Request) {
+    const id = String(req.params.id || '');
+    const order = await prisma.order.findUnique({ where: { id } });
+    if (!order) throw new AppError('Order not found', 404);
+    if (order.status !== OrderStatus.PAID)
+      throw new AppError('Only paid orders can be marked as shipped', 400);
+
+    const updated = await prisma.order.update({
+      where: { id },
+      data: { status: OrderStatus.SHIPPED },
+      include: ORDER_INCLUDE,
+    });
+
+    return sanitizeOrder(updated);
+  }
+
+  static async cancelOrder(req: Request) {
+    const id = String(req.params.id || '');
+
+    const cancelled = await prisma.$transaction(async (tx) => {
+      // Re-read inside the transaction: the Midtrans webhook may have settled
+      // this order between the request arriving and the row being locked.
+      const order = await tx.order.findUnique({
+        where: { id },
+        include: { OrderItems: true },
+      });
+      if (!order) throw new AppError('Order not found', 404);
+      if (order.status !== OrderStatus.PENDING)
+        throw new AppError('Only pending orders can be cancelled', 400);
+      if (Date.now() - order.createdAt.getTime() < CANCELLABLE_AFTER_MS)
+        throw new AppError(
+          'Order can only be cancelled 24 hours after it was created, the buyer may still be paying',
+          400,
+        );
+
+      for (const item of order.OrderItems) {
+        if (item.variantId) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { increment: item.quantity } },
+          });
+        }
+      }
+
+      return tx.order.update({
+        where: { id },
+        data: { status: OrderStatus.CANCELLED },
+        include: ORDER_INCLUDE,
+      });
+    });
+
+    return sanitizeOrder(cancelled);
+  }
+
+  static async completeOrder(req: Request) {
+    const userId = req.user?.id as string;
+    if (!userId) throw new AppError('Unauthorized', 401);
+
+    const id = String(req.params.id || '');
+    const order = await prisma.order.findUnique({ where: { id } });
+    if (!order) throw new AppError('Order not found', 404);
+    if (order.userId !== userId) throw new AppError('Unauthorized', 403);
+    if (order.status !== OrderStatus.SHIPPED)
+      throw new AppError('Only shipped orders can be completed', 400);
+
+    const updated = await prisma.order.update({
+      where: { id },
+      data: { status: OrderStatus.COMPLETED },
+      include: ORDER_INCLUDE,
+    });
+
+    return sanitizeOrder(updated);
+  }
+
+  static async submitReturn(req: Request) {
+    const userId = req.user?.id as string;
+    if (!userId) throw new AppError('Unauthorized', 401);
+
+    const id = String(req.params.id || '');
+    const order = await prisma.order.findUnique({ where: { id } });
+    if (!order) throw new AppError('Order not found', 404);
+    if (order.userId !== userId) throw new AppError('Unauthorized', 403);
+    if (order.status !== OrderStatus.SHIPPED)
+      throw new AppError('Only shipped orders can be returned', 400);
+
+    const reason = String(req.body?.reason || '').trim();
+    if (!reason) throw new AppError('Return reason is required', 400);
+    if (reason.length > 500)
+      throw new AppError('Return reason is too long', 400);
+
+    const updated = await prisma.order.update({
+      where: { id },
+      data: { status: OrderStatus.RETURNED, returnReason: reason },
+      include: ORDER_INCLUDE,
+    });
+
+    return sanitizeOrder(updated);
   }
 
   static async handleNotification(body: any) {

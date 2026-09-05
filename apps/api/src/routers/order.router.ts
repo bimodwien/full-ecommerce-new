@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validateToken } from '@/middlewares/auth.middleware';
-import { verifyUser } from '@/middlewares/role.middleware';
+import { verifyUser, verifyAdmin } from '@/middlewares/role.middleware';
 import { OrderController } from '@/controllers/order.controller';
 
 export class OrderRouter {
@@ -24,6 +24,13 @@ export class OrderRouter {
       verifyUser,
       this.controller.getAll.bind(this.controller),
     );
+    // Registered before "/:id" so Express doesn't treat "admin" as an :id param.
+    this.router.get(
+      '/admin',
+      validateToken,
+      verifyAdmin,
+      this.controller.getAllAdmin.bind(this.controller),
+    );
     this.router.get(
       '/:id',
       validateToken,
@@ -35,6 +42,30 @@ export class OrderRouter {
       validateToken,
       verifyUser,
       this.controller.retryPayment.bind(this.controller),
+    );
+    this.router.patch(
+      '/:id/ship',
+      validateToken,
+      verifyAdmin,
+      this.controller.ship.bind(this.controller),
+    );
+    this.router.patch(
+      '/:id/cancel',
+      validateToken,
+      verifyAdmin,
+      this.controller.cancel.bind(this.controller),
+    );
+    this.router.patch(
+      '/:id/complete',
+      validateToken,
+      verifyUser,
+      this.controller.complete.bind(this.controller),
+    );
+    this.router.patch(
+      '/:id/return',
+      validateToken,
+      verifyUser,
+      this.controller.submitReturn.bind(this.controller),
     );
     // PUBLIC: called server-to-server by Midtrans, authenticated via signature instead of JWT.
     this.router.post(
