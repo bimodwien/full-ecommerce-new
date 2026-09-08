@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
 import { TDecode } from '@/models/user.model';
 import { SECRET_KEY } from '@/config';
+import AppError from '@/libs/appError';
 
 export const validateToken = (
   req: Request,
@@ -10,7 +11,7 @@ export const validateToken = (
 ) => {
   const token = req.headers.authorization?.replace('Bearer ', '') || '';
   if (!token) {
-    return next(new Error('Access denied. No token provided.'));
+    return next(new AppError('Access denied. No token provided.', 401));
   }
   try {
     const decoded = verify(token, SECRET_KEY) as TDecode;
@@ -18,7 +19,7 @@ export const validateToken = (
     req.user = decoded.user;
     next();
   } catch (error) {
-    next();
+    next(new AppError('Invalid or expired token.', 401));
   }
 };
 
@@ -29,7 +30,7 @@ export const validateRefreshToken = (
 ) => {
   const token = req.headers.authorization?.replace('Bearer ', '') || '';
   if (!token) {
-    return next(new Error('Access denied. No token provided.'));
+    return next(new AppError('Access denied. No token provided.', 401));
   }
   try {
     const decoded = verify(token, SECRET_KEY) as TDecode;
@@ -37,6 +38,6 @@ export const validateRefreshToken = (
     req.user = decoded.user;
     next();
   } catch (error) {
-    next();
+    next(new AppError('Invalid or expired refresh token.', 401));
   }
 };
