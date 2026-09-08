@@ -1,332 +1,245 @@
-# Ecommerce (full-ecommerce-new)
+# 🛒 Full E-Commerce
 
-This monorepo contains a Next.js frontend (`apps/web`) and an Express + Prisma API (`apps/api`).
+A full-stack e-commerce marketplace with a **real payment gateway integration** — buyers browse and checkout through Midtrans, sellers manage products and fulfil orders through a dedicated dashboard.
 
-This README documents the recent product features and developer notes we implemented in the API: product read/listing, image rendering, and business operations (create, update, delete) with image/variant handling.
+Built as a Turborepo monorepo: **Next.js 16** frontend + **Express 5 / Prisma 7** API.
 
-## Quick plan & checklist
+<!-- TODO: isi link demo kalau sudah dideploy -->
+<!-- **🔗 [Live Demo](https://your-demo-url.com)** · **[API](https://your-api-url.com)** -->
 
-- [x] Document implemented product API endpoints (read, image render)
-- [x] Document multipart create/update/delete behavior and payloads
-- [x] Describe service split: read vs business (create/update/delete)
-- [x] Provide build/run notes and small examples for testing
+<!-- TODO: taruh screenshot/GIF di sini — paling ideal: GIF flow checkout sampai Midtrans Snap popup -->
+<!-- ![Homepage](docs/screenshots/homepage.png) -->
 
-## What we implemented
+---
 
-- Product read (listing) with pagination, filtering and sorting (price_asc, price_desc, newest).
-- Product create/update/delete supporting multiple images and product variants.
-- Image processing: uploaded images are processed with sharp (converted to PNG) and stored as Bytes in the database.
-- Image rendering endpoint streams images with caching headers (ETag, Last-Modified, Cache-Control).
-- Responses are sanitized: binary image bytes are removed and each image item includes an `imageUrl` that points to the renderer endpoint.
-- Service split:
-  - `apps/api/src/services/product.service.ts` — read-focused functions (getAll, getByCategory, renderImage/render).
-  - `apps/api/src/services/product.business.service.ts` — business operations (createProduct, updateProduct, deleteProduct).
-  - `apps/api/src/services/product.helpers.ts` — shared helpers/types (sanitizeProduct, types).
+## Why this project
 
-### Product description (Markdown -> sanitized HTML)
+Most portfolio e-commerce apps stop at a fake "Pay" button that flips a status column. This one doesn't:
 
-- `description` is the source field: it stores product descriptions as Markdown text. When creating or updating a product, send the Markdown in the `description` field (example payload below).
-- `descriptionHtml` is an automatically-generated, sanitized HTML version of `description` produced by the server using the same renderer used by the codebase. The API stores `descriptionHtml` in the database so frontends can display ready-to-render HTML without having to re-render on the client.
-- For new products and product updates the server will automatically generate and persist `descriptionHtml` from `description`. You should NOT need to send `descriptionHtml` from Postman or the frontend — send `description` (Markdown) and the server does the rest.
+- **Real Midtrans Snap integration** — orders are paid through the actual Midtrans sandbox, and payment state is settled by a **server-to-server webhook**, not by trusting the client.
+- **Manually verified webhook signatures** (SHA-512 over `order_id + status_code + gross_amount + server_key`) instead of accepting any POST that reaches the endpoint.
+- **Idempotent notification handling** — a replayed or out-of-order Midtrans callback is a no-op, because payment providers *do* retry.
+- **Stock is managed transactionally** — reserved when an order is created, restored inside a DB transaction when it's cancelled, denied, or expires.
 
-Backfill (existing products)
+The interesting code lives in [`apps/api/src/services/order.service.ts`](apps/api/src/services/order.service.ts) and [`apps/api/src/libs/midtrans.ts`](apps/api/src/libs/midtrans.ts).
 
-- Products created before this feature was added will have `descriptionHtml = null`. To populate HTML for existing products you can either update each product via the normal update API (server will generate the HTML) or run a short backfill script that renders `description` -> `descriptionHtml` for all products that have a Markdown description but no HTML value.
+---
 
-Example (create/update payload — multipart form for file uploads):
+## Features
 
-```json
-{
-  "name": "My Product",
-  "description": "# Title\n\nSome **Markdown** description.",
-  "price": 12000
-}
+### Buyer
+- Browse products with pagination, search, category filter, and price sorting
+- Product detail with image gallery and variant selection
+- Wishlist with atomic toggle (single request per click — no double-fire race)
+- Cart with server-side quantity normalisation and per-variant stock validation
+- Checkout through Midtrans Snap, with **retry payment** for unpaid orders
+- Order history and detail, with "Complete Order" and "Submit Return" actions
+- Auth via email/password with JWT
+
+### Seller
+- Product CRUD with multi-image upload and variant management
+- Category CRUD
+- Rich-text (Markdown) product descriptions via a TipTap editor
+- Order tracking dashboard — view all orders, mark as shipped, cancel stale unpaid orders
+
+---
+
+## Order lifecycle
+
+```
+                    ┌──────────────── Midtrans webhook ────────────────┐
+                    │                                                  │
+   create order     ▼                    seller                buyer   │
+  ──────────────► PENDING ──── paid ──► PAID ──── ship ──► SHIPPED ──┬──► COMPLETED
+                    │                                                │
+                    │                                                └──► RETURNED
+                    └──► CANCELLED  (expire/deny via webhook, or seller cancel after 24h)
 ```
 
-Backfill (CLI example):
+**Design note — why the 24-hour cancel gate:** while an order is `PENDING` the buyer can *always* still pay, because "Pay Now" mints a fresh Snap token on every attempt. Cancelling is therefore what actually *closes* the payment window, so it's gated to orders old enough that Midtrans' own window has lapsed. Cancellation restores stock and re-reads the order **inside** the transaction, since the webhook could be settling it concurrently.
+
+---
+
+## Tech stack
+
+**Frontend** — Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, Redux Toolkit, shadcn/ui + Radix, Formik + Yup, TipTap, Sonner, DOMPurify
+
+**Backend** — Express 5, TypeScript, Prisma 7 (PostgreSQL), JWT, bcrypt, Midtrans Client, Multer + Sharp, markdown-it + sanitize-html, Google Auth Library
+
+**Tooling** — Turborepo, ESLint, Prettier, Husky + lint-staged + commitlint, GitHub Actions (auto-deploy to Linode via PM2)
+
+---
+
+## Project structure
+
+```
+.
+├── apps
+│   ├── api                    # Express + Prisma backend
+│   │   ├── prisma/            # schema + migrations
+│   │   └── src
+│   │       ├── routers/       # route definitions + guards
+│   │       ├── controllers/   # request/response handling
+│   │       ├── services/      # business logic
+│   │       ├── middlewares/   # auth (JWT) + role (buyer/seller) guards
+│   │       └── libs/          # midtrans, multer, markdown, AppError
+│   └── web                    # Next.js frontend
+│       └── src
+│           ├── app/           # App Router pages
+│           ├── components/    # feature components + shadcn/ui
+│           ├── libraries/     # Redux store
+│           └── helpers/       # API fetchers
+└── turbo.json
+```
+
+The backend is layered **router → controller → service**; product logic is further split into `product.service` (reads), `product.business.service` (writes), and `product.helpers` (shared sanitisers).
+
+---
+
+## Getting started
+
+### Prerequisites
+- Node.js 18+
+- PostgreSQL
+- A [Midtrans sandbox account](https://dashboard.sandbox.midtrans.com/) (for the payment flow)
+
+### 1. Install
+
+```bash
+git clone <your-repo-url>
+cd full-ecommerce-new
+npm install
+```
+
+### 2. Configure environment
+
+Copy the example files and fill in your own values — each variable is documented inline:
+
+```bash
+cp apps/api/.env.example apps/api/.env.development
+cp apps/web/.env.example apps/web/.env.local
+```
+
+At minimum you'll need to set `DATABASE_URL`, `SECRET_KEY`, and your Midtrans sandbox keys. The Midtrans **client** key goes in both files; the **server** key stays in the API only.
+
+### 3. Set up the database
 
 ```bash
 cd apps/api
-# ensure prisma client up-to-date
+npx prisma migrate dev
 npx prisma generate
-# run the backfill script (if provided in this repo)
-node -r ts-node/register scripts/backfill-description-html.ts
 ```
 
-Security notes
-
-- The server sanitizes the rendered HTML before storing it to mitigate XSS risks, but defense-in-depth is recommended: still sanitize or use a safe renderer on the client (e.g. DOMPurify) before inserting HTML into the DOM.
-- If you prefer to manage rendering entirely client-side, you can keep only `description` and render on the frontend; storing `descriptionHtml` is an optimization for faster rendering and simpler frontend code.
-
-## API endpoints (important)
-
-- GET /api/products
-  - Query params: `page`, `limit`, `name`, `categoryId`, `minPrice`, `maxPrice`, `sort` (`newest|price_asc|price_desc`)
-  - Returns paginated sanitized products (no raw image bytes). Each image has `imageUrl`.
-
-- GET /api/products/category/:categoryId
-  - Convenience route for category-filtered listing (supports same query params for pagination/sort).
-
-  - Streams the image for a `ProductImage.id` (preferred) or falls back to a product's primary image when given a `Product.id`.
-  - Sets ETag, Last-Modified and Cache-Control headers. Content-Type is `image/png`.
-    GET /api/products/:id
-  - Returns a single product by `id` with full details and all images (ordered with `isPrimary` first).
-  - Use this endpoint when the frontend needs all product images (gallery view).
-  - Response is sanitized (no raw image `data`); use the included `imageUrl` to fetch each image.
-
-  - Content-Type: `multipart/form-data`
-  - Fields:
-  - Note: list endpoints (`GET /api/products` and `GET /api/products/category/:categoryId`) return only the product's primary image (small payload). Use `GET /api/products/:id` to retrieve all images for a product.
-  - `name` (string, required)
-  - `description` (string, optional)
-  - `price` (number, required)
-  - `categoryId` (string, optional)
-  - `variant` (optional) — JSON string or array of variants: [{ "variant": "S", "stock": 10 }, ...]
-  - `image` files (one or more) — form field name `image` (max 5 by default)
-  - Uploaded images are processed (PNG) and stored in DB. First uploaded image is marked `isPrimary` by default.
-
-- PATCH /api/products/:id (requires authentication + admin role)
-  - Content-Type: `multipart/form-data`
-  - Fields: same as create. Additional optional fields for updates:
-    - `removeImageIds` — JSON array of image ids to delete
-    - `variantUpdates` — JSON array of variant upserts/updates: [{ id?, variant?, stock? }]
-    - `removeVariantIds` — JSON array of variant ids to delete
-
-- DELETE /api/products/:id (requires authentication + admin role)
-  - Deletes the product and returns the sanitized deleted product payload.
-
-## Category endpoints
-
-- GET /api/categories
-  - Query params: `page`, `limit`, `name`
-  - Returns paginated categories. Public endpoint.
-
-- POST /api/categories (requires authentication + admin role)
-  - Body: JSON `{ "name": "Category Name" }`
-  - Creates a new category.
-
-- PUT /api/categories/:id (requires authentication + admin role)
-  - Body: JSON `{ "name": "New Name" }`
-  - Updates existing category by id.
-
-- DELETE /api/categories/:id (requires authentication + admin role)
-  - Deletes the category by id.
-
-Example curl for categories:
+### 4. Run
 
 ```bash
-# Get categories (paginated)
-curl "http://localhost:8000/api/categories?page=1&limit=10"
-
-# Create category (admin)
-curl -X POST "http://localhost:8000/api/categories" \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"New Category"}'
-
-# Update category (admin)
-curl -X PUT "http://localhost:8000/api/categories/<CATEGORY_ID>" \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Renamed"}'
-
-# Delete category (admin)
-curl -X DELETE "http://localhost:8000/api/categories/<CATEGORY_ID>" \
-  -H "Authorization: Bearer <TOKEN>"
+npm run dev          # runs both apps via Turborepo
 ```
 
-## Data shape (sanitized responses)
+- Web → http://localhost:3000
+- API → http://localhost:8000
 
-- Product (partial)
-  - id, name, description?, price, createdAt, updatedAt, seller { id, name }, Category?, Variants[], Images[]
+### 5. Testing the payment webhook locally
 
-## Wishlists
-
-- GET /api/wishlists (requires authentication + user role)
-  - Query params: `page`, `limit`
-  - Returns paginated wishlist items for the authenticated user. Each item includes a sanitized `Product` (only the product's primary image is included to keep payload small) and `Variant` if the wishlist was created for a specific variant.
-
-- POST /api/wishlists (requires authentication + user role)
-  - Body JSON: `{ "productId": "<PRODUCT_ID>", "variantId": "<VARIANT_ID?" }`
-  - Creates a wishlist entry and returns the created item with `id` (useful for later deletes).
-
-- POST /api/wishlists/toggle (requires authentication + user role)
-  - Body JSON: `{ "productId": "<PRODUCT_ID>", "variantId": "<VARIANT_ID?" }`
-  - Atomically toggles the wishlist entry: if an entry exists (same user/product/variant) it will be deleted, otherwise it will be created. Response shape:
-    - `{ "action": "created" | "deleted", "wishlist": { ... } }`
-  - Recommended for use on listing pages where frontend wants a single request per click and to avoid race conditions.
-
-- DELETE /api/wishlists/:id (requires authentication + user role)
-  - Deletes the wishlist item by id. Useful on the wishlist page where you have the `wishlist.id`.
-
-Example cURL for wishlists:
-
-````bash
-# Toggle (create-if-not-exists / delete-if-exists)
-curl -X POST "http://localhost:8000/api/wishlists/toggle" \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"productId":"prod_123"}'
-
-# Create wishlist (detail page)
-curl -X POST "http://localhost:8000/api/wishlists" \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"productId":"prod_123"}'
-# full-ecommerce-new
-
-Monorepo with a Next.js frontend and an Express + Prisma API. This README is aligned to the features implemented in the API (product read/create/update/delete, image rendering, Markdown -> sanitized HTML description, wishlist, cart).
-
-## TL;DR
-- For product create/update send `description` (Markdown). The server automatically renders and persists `descriptionHtml` (sanitized HTML) and the frontend can render `descriptionHtml` safely (still sanitize on client as defense-in-depth).
-- Product list endpoints intentionally do NOT include `description` or `descriptionHtml`. Use product detail to fetch them.
-- Wishlist and Cart endpoints are available and covered below. Order service is not created.
-
-## What this API implements
-- Product read (paginated list, filtering, sorting) and product detail.
-- Product create/update/delete with images and variants.
-- Image processing using `sharp` (stored as PNG bytes) and an image renderer endpoint that streams images with caching headers (ETag, Last-Modified, Cache-Control).
-- Markdown -> sanitized HTML: backend uses `markdown-it` + `sanitize-html` to produce `descriptionHtml` from `description` on create/update.
-- Responses are sanitized: raw image bytes (`ProductImage.data`) are removed and each image object includes an `imageUrl` to fetch the image.
-- Wishlist CRUD + toggle endpoint (atomic toggle semantics).
-- Cart CRUD with server-side quantity normalization and variant stock validation.
-
-## Important decision notes
-- List endpoints (GET /api/products, GET /api/products/category/:categoryId) return only minimal product data (no description, only primary image) to keep payloads small.
-- Product detail (GET /api/products/:id) returns full information, including `description` (Markdown source) and `descriptionHtml` (sanitized HTML).
-
-## Endpoints (summary)
-
-Products
-- GET /api/products?page=&limit=&name=&categoryId=&minPrice=&maxPrice=&sort=
-  - Returns paginated products (no descriptions). Primary image only.
-- GET /api/products/:id
-  - Returns full product (all images, variants, description, descriptionHtml).
-- POST /api/products (multipart/form-data) — create product (auth required)
-  - Fields: name (required), description (Markdown), price (required), categoryId, variant (JSON array/string), image files (`image` form field)
-- PATCH /api/products/:id (multipart/form-data) — update (auth required)
-  - Same fields as create. Optional: `removeImageIds`, `variantUpdates` (array), `removeVariantIds`.
-- DELETE /api/products/:id (auth required)
-
-Images
-- GET /api/products/image/:id
-  - Streams image by ProductImage.id or falls back to a product's primary image if you pass a product id. Sets ETag and Last-Modified.
-
-Wishlists
-- GET /api/wishlists?page=&limit= (auth)
-- POST /api/wishlists — create (auth)
-  - Body: { productId, variantId? }
-- POST /api/wishlists/toggle — toggle (auth)
-  - Body: { productId, variantId? } — returns { action: 'created'|'deleted', wishlist }
-- DELETE /api/wishlists/:id (auth)
-
-Carts
-- GET /api/carts?page=&limit= (auth)
-- POST /api/carts — add/increment (auth)
-  - Body: { productId, variantId?, quantity? } (quantity defaults to 1)
-- PATCH /api/carts/:id — update (auth)
-  - Body: { quantity } (absolute) or { delta } (relative)
-- DELETE /api/carts/:id (auth)
-
-Notes: Cart create/update enforces variant stock and validates integers.
-
-## How to test (Postman / curl)
-
-1) Authentication
-- Most endpoints require an authenticated user. In Postman set an environment variable `{{API_BASE}}` (e.g. `http://localhost:8000`) and `{{AUTH_TOKEN}}` for a user's JWT.
-- Add header: `Authorization: Bearer {{AUTH_TOKEN}}` to requests that require auth.
-
-2) Wishlist examples (Postman)
-- Toggle wishlist (recommended):
-  - Method: POST
-  - URL: {{API_BASE}}/api/wishlists/toggle
-  - Body: raw JSON `{ "productId": "<PRODUCT_ID>", "variantId": "<VARIANT_ID?>" }`
-
-- Create wishlist (explicit):
-  - POST {{API_BASE}}/api/wishlists
-  - Body: `{ "productId": "<PRODUCT_ID>" }`
-
-- List wishlists:
-  - GET {{API_BASE}}/api/wishlists?page=1&limit=10
-
-3) Cart examples (Postman)
-- Add to cart / increment:
-  - POST {{API_BASE}}/api/carts
-  - Body: `{ "productId": "<PRODUCT_ID>", "variantId": "<VARIANT_ID?>", "quantity": 2 }`
-
-- Update cart quantity:
-  - PATCH {{API_BASE}}/api/carts/<CART_ID>
-  - Body: `{ "quantity": 3 }` or `{ "delta": -1 }`
-
-- List carts:
-  - GET {{API_BASE}}/api/carts?page=1&limit=10
-
-Quick curl examples
-```bash
-# Toggle wishlist
-curl -X POST "${API_BASE:-http://localhost:8000}/api/wishlists/toggle" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{"productId":"prod_123"}'
-
-# Add to cart
-curl -X POST "${API_BASE:-http://localhost:8000}/api/carts" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{"productId":"prod_123","variantId":"var_1","quantity":2}'
-````
-
-## Create / Update product (notes)
-
-- Send `description` as Markdown. The server will render and sanitize HTML and persist it to `descriptionHtml`.
-- Product list endpoints intentionally do not include `description` or `descriptionHtml` — use product detail for full content.
-
-Example multipart create (curl)
+Midtrans needs a publicly reachable URL to deliver payment notifications, so local testing requires a tunnel:
 
 ```bash
-curl -X POST "http://localhost:8000/api/products" \
-  -H "Authorization: Bearer <TOKEN>" \
-  -F "name=My Product" \
-  -F "price=12000" \
-  -F "description=# Title\n\nSome markdown text" \
-  -F "variant=[{\"variant\":\"S\",\"stock\":10}]" \
-  -F "image=@./images/1.jpg"
+ngrok http 8000
 ```
 
-## Backfill existing products
+Then set **Midtrans Dashboard → Settings → Configuration → Payment Notification URL** to:
 
-If you added `descriptionHtml` later, existing products may have `descriptionHtml = null`. To populate it for all existing products you can either update products via the API or run a backfill script.
-
-Backfill (example):
-
-```bash
-cd apps/api
-npx prisma generate
-# run the backfill script (if present)
-node -r ts-node/register scripts/backfill-description-html.ts
+```
+https://<your-ngrok-domain>/api/orders/notification
 ```
 
-## Developer notes
+Without this, orders stay `PENDING` after payment — the Snap popup will succeed, but nothing tells your API about it.
 
-- Files of interest:
-  - `apps/api/src/services/product.service.ts` — read operations and image render helper
-  - `apps/api/src/services/product.business.service.ts` — create/update/delete business logic (image processing, variant handling)
-  - `apps/api/src/services/product.helpers.ts` — sanitizers used by list and detail responses
-  - `apps/api/src/libs/markdown.ts` — server-side markdown render + sanitize helper
-  - `apps/api/prisma/schema.prisma` — DB schema (includes `descriptionHtml`)
+---
 
-- TypeScript & Prisma:
-  - After changing `schema.prisma` run `npx prisma migrate dev` and `npx prisma generate` to update client types.
-  - We temporarily used casts while types were regenerating; these have been cleaned up.
+## API reference
 
-## Security
+Base URL: `http://localhost:8000/api`
 
-- The server sanitizes rendered HTML before persisting it. Still sanitize again on the client before injecting HTML (use DOMPurify) as defense-in-depth.
+Auth: `Authorization: Bearer <token>`. Routes are guarded in two tiers — `validateToken` (valid JWT) then `verifyUser` (buyer) or `verifyAdmin` (seller).
 
-## Next steps (suggested)
+### Auth
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/users/register` | Public | Register a new account |
+| `POST` | `/users/login` | Public | Log in, returns JWT |
+| `POST` | `/users/google` | Public | Google Sign-In (`{ id_token }`) — implemented, UI not yet wired |
 
-- Add a small Postman collection to the repo for quick QA (I can add it if you want).
-- Add integration tests for product create/update/delete and wishlist/cart flows (supertest + jest).
-- Consider moving images to object storage (S3) for scale.
+### Products
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/products` | Public | Paginated list — `page`, `limit`, `name`, `categoryId`, `minPrice`, `maxPrice`, `sort` (`newest\|price_asc\|price_desc`) |
+| `GET` | `/products/:id` | Public | Full detail — all images, variants, `descriptionHtml` |
+| `GET` | `/products/category/:categoryId` | Public | Category-filtered list |
+| `GET` | `/products/image/:id` | Public | Streams image bytes (ETag / Last-Modified / Cache-Control) |
+| `POST` | `/products` | Seller | Create — `multipart/form-data`, up to 5 `image` files |
+| `PATCH` | `/products/:id` | Seller | Update — also accepts `removeImageIds`, `variantUpdates`, `removeVariantIds` |
+| `DELETE` | `/products/:id` | Seller | Delete |
 
-If you'd like, I can add a Postman collection and an npm script for backfill (`backfill:descriptionHtml`). Tell me which you prefer and I'll add them.
+### Categories
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/categories` | Public | Paginated list — `page`, `limit`, `name` |
+| `GET` | `/categories/:id` | Public | Get one |
+| `POST` · `PUT` · `DELETE` | `/categories[/:id]` | Seller | Create / update / delete |
+
+### Cart & Wishlist
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/carts` | Buyer | Paginated cart items |
+| `POST` | `/carts` | Buyer | Add or increment — `{ productId, variantId?, quantity? }` |
+| `PATCH` | `/carts/:id` | Buyer | Update — `{ quantity }` (absolute) or `{ delta }` (relative) |
+| `DELETE` | `/carts/:id` | Buyer | Remove item |
+| `GET` | `/wishlists` | Buyer | Paginated wishlist |
+| `POST` | `/wishlists/toggle` | Buyer | Atomic toggle → `{ action: 'created' \| 'deleted', wishlist }` |
+| `POST` · `DELETE` | `/wishlists[/:id]` | Buyer | Explicit create / delete |
+
+### Orders
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/orders` | Buyer | Create order from selected cart items (`{ cartItemIds }`) — reserves stock, returns Snap token |
+| `GET` | `/orders` | Buyer | Own order history |
+| `GET` | `/orders/:id` | Buyer | Own order detail |
+| `POST` | `/orders/:id/retry-payment` | Buyer | Mint a fresh Snap token for an unpaid order |
+| `PATCH` | `/orders/:id/complete` | Buyer | `SHIPPED` → `COMPLETED` |
+| `PATCH` | `/orders/:id/return` | Buyer | `SHIPPED` → `RETURNED` (with reason) |
+| `GET` | `/orders/admin` | Seller | All orders, filterable by status |
+| `PATCH` | `/orders/:id/ship` | Seller | `PAID` → `SHIPPED` |
+| `PATCH` | `/orders/:id/cancel` | Seller | Cancel a stale `PENDING` order, restore stock |
+| `POST` | `/orders/notification` | **Midtrans** | Payment webhook — verified by signature, not JWT |
+
+---
+
+## Engineering notes
+
+**Payment webhook is the source of truth.** The client never tells the API that a payment succeeded — the frontend only opens the Snap popup. Order status changes exclusively through the signed webhook, so a user can't mark their own order as paid from devtools.
+
+**Markdown descriptions, sanitised server-side.** Products store `description` as Markdown; the API renders and sanitises it into `descriptionHtml` on write (`markdown-it` + `sanitize-html`), so the frontend gets ready-to-render HTML without re-parsing per request. The client still runs DOMPurify before injecting it — defense in depth.
+
+**Payload shaping.** List endpoints deliberately return only a primary image and no description, keeping catalogue responses small; the detail endpoint returns everything. Raw image bytes are always stripped from JSON — every image is exposed as an `imageUrl` pointing at the streaming endpoint, which sets proper cache headers.
+
+**Images live in Postgres as `Bytes`,** processed to PNG with Sharp on upload. This keeps the project self-contained with no external storage dependency — a deliberate trade-off that would be swapped for S3/Cloudinary before any real scale.
+
+---
+
+## Known limitations & roadmap
+
+Being upfront about what isn't done:
+
+- [ ] **Test coverage is minimal** — the payment and order lifecycle logic is the priority here
+- [ ] No cron/safety-net to auto-expire orders stuck in `PENDING` (currently a manual seller action)
+- [ ] Refresh tokens are issued but there's no refresh endpoint wired up; no logout or password reset
+- [ ] No rate limiting or `helmet` on the API
+- [ ] Images should move to object storage before production scale
+- [ ] Deploy pipeline uses SSH password auth — should be key-based
+
+---
+
+## License
+
+ISC

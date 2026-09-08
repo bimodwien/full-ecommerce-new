@@ -9,7 +9,6 @@ import express, {
 import cors from 'cors';
 import { PORT } from './config';
 import { corsOptions } from './config';
-import { SampleRouter } from './routers/sample.router';
 import { UserRouter } from './routers/user.router';
 import { CategoryRouter } from './routers/category.router';
 import { ProductRouter } from './routers/product.router';
@@ -65,7 +64,6 @@ export default class App {
   }
 
   private routes(): void {
-    const sampleRouter = new SampleRouter();
     const userRouter = new UserRouter();
     const categoryRouter = new CategoryRouter();
     const productRouter = new ProductRouter();
@@ -77,7 +75,6 @@ export default class App {
       res.send(`Hello, Welcome to TokoPakBimo API!`);
     });
 
-    this.app.use('/api/samples', sampleRouter.getRouter());
     this.app.use('/api/users', userRouter.getRouter());
     this.app.use('/api/categories', categoryRouter.getRouter());
     this.app.use('/api/products', productRouter.getRouter());
