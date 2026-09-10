@@ -31,6 +31,13 @@ export class OrderRouter {
       verifyAdmin,
       this.controller.getAllAdmin.bind(this.controller),
     );
+    // Registered before "/:id" for the same reason as "/admin" above.
+    this.router.get(
+      '/admin/stats',
+      validateToken,
+      verifyAdmin,
+      this.controller.getAdminStats.bind(this.controller),
+    );
     this.router.get(
       '/:id',
       validateToken,
