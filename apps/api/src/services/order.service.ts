@@ -35,6 +35,16 @@ const ORDER_INCLUDE = {
 // has lapsed, so a buyer who is still mid-checkout never gets cut off.
 const CANCELLABLE_AFTER_MS = 24 * 60 * 60 * 1000;
 
+function clamp(n: number, min: number, max: number) {
+  if (Number.isNaN(n)) return min;
+  return Math.min(max, Math.max(min, n));
+}
+
+// UTC calendar-day key, independent of server timezone.
+function toDateKey(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
 const ADMIN_ORDER_INCLUDE = {
   ...ORDER_INCLUDE,
   user: { select: { id: true, name: true, email: true, username: true } },
@@ -314,6 +324,117 @@ class OrderService {
       total,
       page,
       totalPages: Math.ceil(total / limit) || 1,
+    };
+  }
+
+  static async getAdminStats(req: Request) {
+    const days = clamp(Number(req.query.days || 14), 7, 30);
+    const topCancelledLimit = clamp(
+      Number(req.query.topCancelledLimit || 5),
+      1,
+      20,
+    );
+
+    const todayKey = toDateKey(new Date());
+    const todayStart = new Date(`${todayKey}T00:00:00.000Z`);
+    const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    const trendStart = new Date(
+      todayStart.getTime() - (days - 1) * 24 * 60 * 60 * 1000,
+    );
+
+    const [rangeOrders, statusGroups, cancelledItemGroups] =
+      await prisma.$transaction([
+        prisma.order.findMany({
+          where: { createdAt: { gte: trendStart, lt: tomorrowStart } },
+          select: { createdAt: true, status: true, totalAmount: true },
+        }),
+        prisma.order.groupBy({
+          by: ['status'],
+          _count: { _all: true },
+        }),
+        prisma.orderItem.groupBy({
+          by: ['productId'],
+          where: {
+            productId: { not: null },
+            order: { status: OrderStatus.CANCELLED },
+          },
+          _sum: { quantity: true },
+          orderBy: { _sum: { quantity: 'desc' } },
+          take: topCancelledLimit,
+        }),
+      ]);
+
+    // Pre-seed every day in the window so the trend chart has no gaps.
+    const buckets = new Map<string, { sales: number; orderCount: number }>();
+    for (let i = 0; i < days; i++) {
+      const d = new Date(trendStart.getTime() + i * 24 * 60 * 60 * 1000);
+      buckets.set(toDateKey(d), { sales: 0, orderCount: 0 });
+    }
+
+    let cancelledToday = 0;
+    for (const order of rangeOrders) {
+      const key = toDateKey(order.createdAt);
+      const bucket = buckets.get(key);
+      if (!bucket) continue;
+      bucket.orderCount += 1;
+      if (
+        order.status === OrderStatus.PAID ||
+        order.status === OrderStatus.COMPLETED
+      ) {
+        bucket.sales += Number(order.totalAmount);
+      }
+      if (key === todayKey && order.status === OrderStatus.CANCELLED) {
+        cancelledToday += 1;
+      }
+    }
+
+    const trend = Array.from(buckets.entries()).map(([date, v]) => ({
+      date,
+      sales: v.sales,
+      orderCount: v.orderCount,
+    }));
+
+    const todayBucket = buckets.get(todayKey) ?? { sales: 0, orderCount: 0 };
+
+    const statusCountMap = new Map(
+      statusGroups.map((g) => [g.status, g._count._all]),
+    );
+    const statusBreakdown = Object.values(OrderStatus).map((status) => ({
+      status,
+      count: statusCountMap.get(status) ?? 0,
+    }));
+
+    const cancelledProductIds = cancelledItemGroups
+      .map((g) => g.productId)
+      .filter((id): id is string => !!id);
+    const cancelledProducts = cancelledProductIds.length
+      ? await prisma.product.findMany({
+          where: { id: { in: cancelledProductIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+    const productNameById = new Map(
+      cancelledProducts.map((p) => [p.id, p.name]),
+    );
+
+    const topCancelledProducts = cancelledItemGroups
+      .filter((g): g is typeof g & { productId: string } => !!g.productId)
+      .map((g) => ({
+        productId: g.productId,
+        productName: productNameById.get(g.productId) ?? 'Unknown product',
+        cancelledQuantity: g._sum.quantity ?? 0,
+      }));
+
+    return {
+      days,
+      today: {
+        salesTotal: todayBucket.sales,
+        orderCount: todayBucket.orderCount,
+        cancelledCount: cancelledToday,
+      },
+      trend,
+      statusBreakdown,
+      topCancelledProducts,
     };
   }
 

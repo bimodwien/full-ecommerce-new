@@ -1,5 +1,6 @@
 import { axiosInstance } from '@/libraries/axios';
 import { TOrder, TCreateOrderResponse } from '@/models/order.model';
+import { TOrderStats } from '@/models/order-stats.model';
 
 export const createOrder = async (
   cartItemIds: string[],
@@ -67,6 +68,16 @@ export const fetchAdminOrders = async (
     page: response.data?.page ?? page,
     totalPages: response.data?.totalPages ?? 1,
   };
+};
+
+export const fetchOrderStats = async (
+  days: number = 14,
+  topCancelledLimit: number = 5,
+): Promise<TOrderStats> => {
+  const response = await axiosInstance().get('/orders/admin/stats', {
+    params: { days, topCancelledLimit },
+  });
+  return response.data?.stats as TOrderStats;
 };
 
 export const shipOrder = async (id: string): Promise<TOrder> => {

@@ -47,6 +47,15 @@ export class OrderController {
     }
   }
 
+  async getAdminStats(req: Request, res: Response, next: NextFunction) {
+    try {
+      const stats = await OrderService.getAdminStats(req);
+      res.status(200).json({ message: 'Get order stats success', stats });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async ship(req: Request, res: Response, next: NextFunction) {
     try {
       const order = await OrderService.shipOrder(req);
