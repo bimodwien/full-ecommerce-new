@@ -10,8 +10,10 @@ import { userRegister } from '@/libraries/redux/middlewares/auth.middleware';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useGuestOnly } from '@/hooks/use-auth-guard';
 
 function RegisterPage() {
+  const allowed = useGuestOnly();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -89,6 +91,8 @@ function RegisterPage() {
       }
     },
   });
+
+  if (!allowed) return null;
 
   return (
     <div className="min-h-screen flex text-zinc-700">

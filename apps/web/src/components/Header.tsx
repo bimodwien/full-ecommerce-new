@@ -1,6 +1,11 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import Link from 'next/link';
 import { SearchBar } from '@/components/ui/search-bar';
 import {
@@ -32,11 +37,16 @@ import { fetchCategory } from '@/helpers/fetch-category';
 import { TCategory } from '@/models/category.model';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
+const emptySubscribe = () => () => {};
+
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileQuery, setMobileQuery] = useState('');
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
 
   const auth = useAppSelector((s) => s.auth);
   const wishlistCount = useAppSelector((s) => s.wishlist.count);
@@ -75,11 +85,12 @@ const Header = () => {
   const initialName = searchParams.get('name') || '';
   const [query, setQuery] = useState(initialName);
   const [debouncedQuery] = useDebounce(query, 500);
-  useEffect(() => {
-    // Keep local state in sync when URL changes externally
+  // Keep local state in sync when the URL changes externally
+  const [prevInitialName, setPrevInitialName] = useState(initialName);
+  if (initialName !== prevInitialName) {
+    setPrevInitialName(initialName);
     setQuery(initialName);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialName]);
+  }
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     if (debouncedQuery && debouncedQuery.trim() !== '')
@@ -102,6 +113,8 @@ const Header = () => {
     dispatch(logout());
     toast.success('Logged out');
     setTimeout(() => {
+      // Full page load on purpose — see the note in login-page.tsx.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/login';
     }, 500);
   };

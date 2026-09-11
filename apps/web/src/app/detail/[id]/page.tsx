@@ -18,6 +18,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import DOMPurify from 'dompurify';
 import { Button } from '@/components/ui/button';
+import { formatIDR } from '@/lib/utils';
 import {
   ChevronUp,
   ChevronDown,
@@ -267,17 +268,7 @@ function PageDetail() {
                       {product.name}
                     </h1>
                     <div className="text-ink text-xl font-medium leading-10">
-                      {typeof product.price === 'string'
-                        ? Number(product.price).toLocaleString('id-ID', {
-                            style: 'currency',
-                            currency: 'IDR',
-                            maximumFractionDigits: 0,
-                          })
-                        : product.price.toLocaleString('id-ID', {
-                            style: 'currency',
-                            currency: 'IDR',
-                            maximumFractionDigits: 0,
-                          })}
+                      {formatIDR(Number(product.price))}
                     </div>
                     {product.Variants && product.Variants.length > 0 && (
                       <div className="space-y-2 mt-2">

@@ -48,7 +48,14 @@ export function proxy(req: NextRequest) {
       pathname === HOMEPAGE ||
       PUBLIC_PAGES.some((p) => startsWith(pathname, p))
     ) {
-      return NextResponse.next();
+      const res = NextResponse.next();
+      if (PUBLIC_AUTH_ROUTES.includes(pathname)) {
+        // Keep /login and /register out of the browser cache. Once the user
+        // logs in these pages are no longer valid for them, and a cached copy
+        // served on Back would skip this proxy entirely.
+        res.headers.set('Cache-Control', 'no-store');
+      }
+      return res;
     }
     return NextResponse.redirect(new URL('/login', req.url));
   }

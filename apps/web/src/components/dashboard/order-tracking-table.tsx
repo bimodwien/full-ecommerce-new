@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { formatIDR } from '@/lib/utils';
+import { formatIDR, formatDate } from '@/lib/utils';
 import { Button } from '../ui/button';
 import {
   Table,
@@ -41,6 +41,7 @@ const OrderTrackingTable = ({
   const [shippingId, setShippingId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [selected, setSelected] = useState<TOrder | null>(null);
+  const [now] = useState(() => Date.now());
 
   const handleShip = async (id: string) => {
     setShippingId(id);
@@ -109,7 +110,7 @@ const OrderTrackingTable = ({
                 0,
               );
               const canCancel =
-                Date.now() - new Date(order.createdAt).getTime() >=
+                now - new Date(order.createdAt).getTime() >=
                 CANCELLABLE_AFTER_MS;
 
               return (
@@ -137,11 +138,7 @@ const OrderTrackingTable = ({
                     <OrderStatusBadge status={order.status} />
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {new Date(order.createdAt).toLocaleDateString('id-ID', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
+                    {formatDate(order.createdAt)}
                   </TableCell>
                   <TableCell>
                     {order.status === 'PAID' && (

@@ -41,7 +41,11 @@ const Sidebar = () => {
       const toastId = toast.loading('Logging out...');
       setTimeout(() => {
         toast.success('Logged out successfully', { id: toastId });
-        // Navigate, then clear auth state to avoid a UI flicker
+        // Navigate, then clear auth state to avoid a UI flicker.
+        // Full page load on purpose: the seller cookie is still set at this
+        // point, and proxy.ts's role routing only runs on a real server
+        // request. See the same note in login-page.tsx.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
         window.location.href = '/';
         dispatch(logout());
       }, 600);

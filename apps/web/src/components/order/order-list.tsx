@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Pagination } from '@/components/ui/pagination';
-import { formatIDR } from '@/lib/utils';
+import { formatIDR, formatDate } from '@/lib/utils';
 import { fetchOrders } from '@/helpers/fetch-order';
 import { TOrder } from '@/models/order.model';
 import OrderStatusBadge from './order-status-badge';
@@ -97,11 +97,7 @@ const OrderList = () => {
                 <div className="flex items-center justify-between text-sm text-mute">
                   <span>{itemCount} item(s)</span>
                   <span>
-                    {new Date(order.createdAt).toLocaleDateString('id-ID', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
+                    {formatDate(order.createdAt)}
                   </span>
                 </div>
                 <div className="mt-2 flex items-center justify-between">

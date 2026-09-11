@@ -1,30 +1,16 @@
 'use client';
-import React, { Suspense, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HomepageSidebar from '@/components/homepage/homepage-sidebar';
 import CheckoutSection from '@/components/checkout/checkout-section';
-import { useAppSelector } from '@/libraries/redux/hooks';
+import { useAuthGuard } from '@/hooks/use-auth-guard';
 import { CreditCard } from 'lucide-react';
-import { toast } from 'sonner';
 
 const Checkout = () => {
-  const auth = useAppSelector((s) => s.auth);
-  const router = useRouter();
-  const [checked, setChecked] = useState(false);
+  const allowed = useAuthGuard('You must be logged in to access checkout.');
 
-  useEffect(() => {
-    if (!auth.initialized) return;
-    if (!auth.id) {
-      toast.warning('You must be logged in to access checkout.');
-      router.replace('/login');
-    } else {
-      setChecked(true);
-    }
-  }, [auth.initialized, auth.id, router]);
-
-  if (!checked) return null;
+  if (!allowed) return null;
 
   return (
     <>
