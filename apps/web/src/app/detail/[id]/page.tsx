@@ -219,6 +219,7 @@ function PageDetail() {
                         <Image
                           src={`${imageBase}/products/image/${selectedImageId}`}
                           alt={product.name}
+                          loading="eager"
                           fill
                           sizes="(min-width: 768px) 384px, 100vw"
                           className="object-contain p-2"
@@ -252,6 +253,7 @@ function PageDetail() {
                                 src={url}
                                 alt={product.name}
                                 fill
+                                loading="eager"
                                 className="object-cover"
                               />
                               {img.isPrimary}

@@ -83,6 +83,7 @@ export function ProductCard({ product }: { product: TProduct | TProductList }) {
         <Image
           src={imageUrl || 'https://placehold.co/400/fff/000'}
           alt={product.name}
+          loading="eager"
           fill
           unoptimized
           sizes="(min-width: 1280px) 246px, (min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
