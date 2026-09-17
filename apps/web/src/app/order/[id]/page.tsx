@@ -1,31 +1,18 @@
 'use client';
-import React, { Suspense, useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { Suspense } from 'react';
+import { useParams } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HomepageSidebar from '@/components/homepage/homepage-sidebar';
 import OrderDetail from '@/components/order/order-detail';
-import { useAppSelector } from '@/libraries/redux/hooks';
+import { useAuthGuard } from '@/hooks/use-auth-guard';
 import { Package } from 'lucide-react';
-import { toast } from 'sonner';
 
 const OrderDetailPage = () => {
-  const auth = useAppSelector((s) => s.auth);
-  const router = useRouter();
   const params = useParams<{ id: string }>();
-  const [checked, setChecked] = useState(false);
+  const allowed = useAuthGuard('You must be logged in to access your orders.');
 
-  useEffect(() => {
-    if (!auth.initialized) return;
-    if (!auth.id) {
-      toast.warning('You must be logged in to access your orders.');
-      router.replace('/login');
-    } else {
-      setChecked(true);
-    }
-  }, [auth.initialized, auth.id, router]);
-
-  if (!checked) return null;
+  if (!allowed) return null;
 
   return (
     <>

@@ -22,3 +22,11 @@ export function formatIDR(value: number): string {
     return `Rp ${parts}`;
   }
 }
+
+export function formatDate(date: string | Date): string {
+  return new Date(date).toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}

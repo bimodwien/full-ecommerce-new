@@ -35,6 +35,11 @@ function LoginPage() {
         toast.success('Login success', { id });
         // small delay so the toast is visible before navigating
         setTimeout(() => {
+          // Must be a full page load, not router.replace: the role-based
+          // routing lives in proxy.ts, which only runs on a real server
+          // request. Client-side nav can be served from the router cache,
+          // leaving sellers stranded on '/' instead of '/dashboard'.
+          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
           window.location.href = '/';
         }, 1000);
       } catch (error: any) {
