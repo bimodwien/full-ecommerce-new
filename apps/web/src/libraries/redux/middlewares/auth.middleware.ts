@@ -37,6 +37,35 @@ export const userLogin = ({
   };
 };
 
+export const googleLogin = (id_token: string) => {
+  return async (dispatch: Dispatch) => {
+    try {
+      await axiosInstance().post(
+        '/users/google',
+        { id_token },
+        { withCredentials: true },
+      );
+      const access_token = getCookie('access_token') || '';
+      if (typeof access_token === 'string' && access_token) {
+        const decoded = jwtDecode<{ user: TUser }>(access_token);
+        if (!decoded.user) {
+          throw new Error('Invalid token data');
+        }
+        const userData = decoded.user;
+        dispatch(login(userData));
+        return { success: true, user: userData };
+      } else {
+        throw new Error('User not found');
+      }
+    } catch (error) {
+      console.error('Google login failed: ', error);
+      deleteCookie('access_token');
+      deleteCookie('refresh_token');
+      throw error;
+    }
+  };
+};
+
 export const keepLogin = () => async (dispatch: Dispatch) => {
   try {
     const token = getCookie('access_token');

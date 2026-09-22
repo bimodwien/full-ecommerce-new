@@ -3,6 +3,7 @@ import './globals.css';
 import StoreProvider from '@/components/providers/store.provider';
 import { Toaster } from '@/components/ui/sonner';
 import { Bebas_Neue, Inter } from 'next/font/google';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const bebasNeue = Bebas_Neue({
   weight: '400',
@@ -29,7 +30,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${bebasNeue.variable} ${inter.variable}`}>
-        <StoreProvider>{children}</StoreProvider>
+        <GoogleOAuthProvider
+          clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}
+          locale="en"
+        >
+          <StoreProvider>{children}</StoreProvider>
+        </GoogleOAuthProvider>
         <Toaster />
       </body>
     </html>

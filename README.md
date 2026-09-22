@@ -62,9 +62,9 @@ The interesting code lives in [`apps/api/src/services/order.service.ts`](apps/ap
 
 ## Tech stack
 
-**Frontend** — Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, Redux Toolkit, shadcn/ui + Radix, Formik + Yup, TipTap, Sonner, DOMPurify
+**Frontend** — Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, Redux Toolkit, shadcn/ui + Radix, Formik + Yup, TipTap, Sonner, DOMPurify, @react-oauth/google
 
-**Backend** — Express 5, TypeScript, Prisma 7 (PostgreSQL), JWT, bcrypt, Midtrans Client, Multer + Sharp, markdown-it + sanitize-html, Google Auth Library
+**Backend** — Express 5, TypeScript, Prisma 7 (PostgreSQL), JWT, bcrypt, Midtrans Client, Multer + Sharp, markdown-it + sanitize-html, Google Auth Library, Helmet, express-rate-limit
 
 **Tooling** — Turborepo, ESLint, Prettier, Husky + lint-staged + commitlint, GitHub Actions (auto-deploy to Linode via PM2)
 
@@ -102,6 +102,7 @@ The backend is layered **router → controller → service**; product logic is f
 - Node.js 18+
 - PostgreSQL
 - A [Midtrans sandbox account](https://dashboard.sandbox.midtrans.com/) (for the payment flow)
+- A [Google OAuth client ID](https://console.cloud.google.com/) (optional, for Google Sign-In — the app runs fine without it, the button just won't work)
 
 ### 1. Install
 
@@ -168,7 +169,7 @@ Auth: `Authorization: Bearer <token>`. Routes are guarded in two tiers — `vali
 |---|---|---|---|
 | `POST` | `/users/register` | Public | Register a new account |
 | `POST` | `/users/login` | Public | Log in, returns JWT |
-| `POST` | `/users/google` | Public | Google Sign-In (`{ id_token }`) — implemented, UI not yet wired |
+| `POST` | `/users/google` | Public | Google Sign-In (`{ id_token }`), used by the login/register pages |
 
 ### Products
 | Method | Endpoint | Access | Description |
@@ -225,6 +226,8 @@ Auth: `Authorization: Bearer <token>`. Routes are guarded in two tiers — `vali
 
 **Images live in Postgres as `Bytes`,** processed to PNG with Sharp on upload. This keeps the project self-contained with no external storage dependency — a deliberate trade-off that would be swapped for S3/Cloudinary before any real scale.
 
+**Basic API hardening.** `helmet()` sets standard security headers (with `crossOriginResourcePolicy: 'cross-origin'`, since the frontend embeds images and Snap.js served from a different origin). A general rate limiter caps all `/api` traffic at 100 requests/15min per IP; a stricter one caps `/users/register`, `/users/login`, and `/users/google` at 10/15min to slow down brute-force attempts.
+
 ---
 
 ## Known limitations & roadmap
@@ -233,8 +236,7 @@ Being upfront about what isn't done:
 
 - [ ] **Test coverage is minimal** — the payment and order lifecycle logic is the priority here
 - [ ] No cron/safety-net to auto-expire orders stuck in `PENDING` (currently a manual seller action)
-- [ ] Refresh tokens are issued but there's no refresh endpoint wired up; no logout or password reset
-- [ ] No rate limiting or `helmet` on the API
+- [ ] No refresh-token endpoint, logout, or password reset — the access token just expires after 1 day and the user logs in again. A stateless refresh flow (no DB-backed revocation) is a natural next step
 - [ ] Images should move to object storage before production scale
 - [ ] Deploy pipeline uses SSH password auth — should be key-based
 
