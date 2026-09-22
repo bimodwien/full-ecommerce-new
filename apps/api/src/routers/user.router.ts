@@ -1,5 +1,6 @@
 import { UserController } from '@/controllers/user.controller';
 import { Router } from 'express';
+import { authLimiter } from '@/middlewares/rateLimit.middleware';
 
 export class UserRouter {
   private router: Router;
@@ -14,14 +15,17 @@ export class UserRouter {
   private initializeRoutes(): void {
     this.router.post(
       '/register',
+      authLimiter,
       this.userController.register.bind(this.userController),
     );
     this.router.post(
       '/login',
+      authLimiter,
       this.userController.login.bind(this.userController),
     );
     this.router.post(
       '/google',
+      authLimiter,
       this.userController.googleLogin.bind(this.userController),
     );
   }

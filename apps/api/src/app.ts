@@ -7,8 +7,10 @@ import express, {
   NextFunction,
 } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import { PORT } from './config';
 import { corsOptions } from './config';
+import { apiLimiter } from './middlewares/rateLimit.middleware';
 import { UserRouter } from './routers/user.router';
 import { CategoryRouter } from './routers/category.router';
 import { ProductRouter } from './routers/product.router';
@@ -28,9 +30,18 @@ export default class App {
   }
 
   private configure(): void {
+    this.app.use(
+      helmet({
+        // API is called cross-origin by the web app (different port/domain),
+        // and serves product images that get embedded via <img>/next/image.
+        // The default same-origin CORP blocks that.
+        crossOriginResourcePolicy: { policy: 'cross-origin' },
+      }),
+    );
     this.app.use(cors(corsOptions));
     this.app.use(json());
     this.app.use(urlencoded({ extended: true }));
+    this.app.use('/api', apiLimiter);
   }
 
   private handleError(): void {
