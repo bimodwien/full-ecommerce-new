@@ -6,6 +6,8 @@ export const apiLimiter = rateLimit({
   limit: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) =>
+    req.method === 'GET' && req.path.startsWith('/products/image/'),
   message: { message: 'Too many requests, please try again later.' },
 });
 

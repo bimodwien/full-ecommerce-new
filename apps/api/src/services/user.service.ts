@@ -95,13 +95,12 @@ class UserService {
           name: user.name || googleProfile.name,
         },
       });
-      return user;
     }
 
     if (!user) {
-      const baseUsername = googleProfile.email.split('@')[0];
-      // hindari bentrok unik username
-      const username = baseUsername;
+      const username = await UserService.generateUniqueUsername(
+        googleProfile.email.split('@')[0],
+      );
       user = await prisma.user.create({
         data: {
           email: googleProfile.email,
@@ -112,7 +111,20 @@ class UserService {
         },
       });
     }
-    return user;
+
+    // Never let the password hash end up inside the JWT.
+    const { password, googleId, ...safeUser } = user;
+    return safeUser;
+  }
+
+  // "budi@gmail.com" and "budi@yahoo.com" both want "budi" — add a random
+  // suffix until the username is free.
+  private static async generateUniqueUsername(base: string) {
+    let username = base;
+    while (await prisma.user.findUnique({ where: { username } })) {
+      username = `${base}${Math.floor(1000 + Math.random() * 9000)}`;
+    }
+    return username;
   }
 
   static async createJwt(user: any) {
