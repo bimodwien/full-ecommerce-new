@@ -35,6 +35,9 @@ const ORDER_INCLUDE = {
 // has lapsed, so a buyer who is still mid-checkout never gets cut off.
 const CANCELLABLE_AFTER_MS = 24 * 60 * 60 * 1000;
 
+// Snap tokens expire 24 hours after they're issued (Midtrans default).
+const SNAP_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+
 function clamp(n: number, min: number, max: number) {
   if (Number.isNaN(n)) return min;
   return Math.min(max, Math.max(min, n));
@@ -109,11 +112,18 @@ class OrderService {
           });
           if (!variant || variant.productId !== cartItem.productId)
             throw new AppError('Variant not found for product', 404);
-          if (variant.stock < cartItem.quantity)
-            throw new AppError(
-              `Insufficient stock for ${product.name}`,
-              400,
-            );
+
+          // Check and decrement in one statement. A separate read-then-update
+          // lets two concurrent checkouts both pass the check and oversell.
+          const { count } = await tx.productVariant.updateMany({
+            where: {
+              id: cartItem.variantId,
+              stock: { gte: cartItem.quantity },
+            },
+            data: { stock: { decrement: cartItem.quantity } },
+          });
+          if (count === 0)
+            throw new AppError(`Insufficient stock for ${product.name}`, 400);
         }
 
         orderItemsData.push({
@@ -145,15 +155,6 @@ class OrderService {
         },
         include: ORDER_INCLUDE,
       });
-
-      for (const item of orderItemsData) {
-        if (item.variantId) {
-          await tx.productVariant.update({
-            where: { id: item.variantId },
-            data: { stock: { decrement: item.quantity } },
-          });
-        }
-      }
 
       await tx.cart.deleteMany({
         where: { id: { in: uniqueCartItemIds }, userId },
@@ -239,12 +240,22 @@ class OrderService {
     if (order.status !== OrderStatus.PENDING)
       throw new AppError('Order is not payable', 400);
 
+    // Reopen the existing transaction instead of starting a new one. A new
+    // midtransOrderId would orphan the old one, so a buyer who already got a
+    // VA number from the first popup and pays it would never be matched.
+    // Measured from createdAt, since that's the earliest the token could
+    // have been issued.
+    if (
+      order.snapToken &&
+      order.snapRedirectUrl &&
+      Date.now() - order.createdAt.getTime() < SNAP_TOKEN_TTL_MS
+    ) {
+      return { snapToken: order.snapToken, redirectUrl: order.snapRedirectUrl };
+    }
+
     const payment = await OrderService.initiatePayment(order, userId);
     if (payment.paymentInitError)
-      throw new AppError(
-        'Failed to initialize payment, please try again',
-        502,
-      );
+      throw new AppError('Failed to initialize payment, please try again', 502);
 
     return { snapToken: payment.snapToken, redirectUrl: payment.redirectUrl };
   }
@@ -458,8 +469,6 @@ class OrderService {
     const id = String(req.params.id || '');
 
     const cancelled = await prisma.$transaction(async (tx) => {
-      // Re-read inside the transaction: the Midtrans webhook may have settled
-      // this order between the request arriving and the row being locked.
       const order = await tx.order.findUnique({
         where: { id },
         include: { OrderItems: true },
@@ -473,6 +482,16 @@ class OrderService {
           400,
         );
 
+      // The read above doesn't lock the row, so the Midtrans webhook can still
+      // settle or cancel this order right now. Flip the status only if it's
+      // still PENDING, and restore stock only if we won.
+      const { count } = await tx.order.updateMany({
+        where: { id, status: OrderStatus.PENDING },
+        data: { status: OrderStatus.CANCELLED },
+      });
+      if (count === 0)
+        throw new AppError('Only pending orders can be cancelled', 400);
+
       for (const item of order.OrderItems) {
         if (item.variantId) {
           await tx.productVariant.update({
@@ -482,9 +501,8 @@ class OrderService {
         }
       }
 
-      return tx.order.update({
+      return tx.order.findUniqueOrThrow({
         where: { id },
-        data: { status: OrderStatus.CANCELLED },
         include: ORDER_INCLUDE,
       });
     });
@@ -576,6 +594,17 @@ class OrderService {
 
     if (isCancelled) {
       await prisma.$transaction(async (tx) => {
+        const { count } = await tx.order.updateMany({
+          where: { id: order.id, status: OrderStatus.PENDING },
+          data: {
+            status: OrderStatus.CANCELLED,
+            paymentType: payment_type,
+            transactionStatus: transaction_status,
+          },
+        });
+        // An admin cancel or a retried notification got here first.
+        if (count === 0) return;
+
         for (const item of order.OrderItems) {
           if (item.variantId) {
             await tx.productVariant.update({
@@ -584,18 +613,10 @@ class OrderService {
             });
           }
         }
-        await tx.order.update({
-          where: { id: order.id },
-          data: {
-            status: OrderStatus.CANCELLED,
-            paymentType: payment_type,
-            transactionStatus: transaction_status,
-          },
-        });
       });
     } else if (isPaid) {
-      await prisma.order.update({
-        where: { id: order.id },
+      await prisma.order.updateMany({
+        where: { id: order.id, status: OrderStatus.PENDING },
         data: {
           status: OrderStatus.PAID,
           paidAt: new Date(),

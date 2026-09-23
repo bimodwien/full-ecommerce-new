@@ -36,20 +36,27 @@ export class UserController {
     }
   }
 
-  async googleLogin(req: Request, res: Response) {
+  async googleLogin(req: Request, res: Response, next: NextFunction) {
     const { id_token: google_id_token } = req.body;
     if (!google_id_token)
       return res.status(400).json({ message: 'id_token is required' });
+
+    let payload;
     try {
       // Verify token ke Google
       const ticket = await client.verifyIdToken({
         idToken: google_id_token,
         audience: process.env.GOOGLE_CLIENT_ID,
       });
-      const payload = ticket.getPayload();
-      if (!payload || !payload.email || !payload.sub) {
-        return res.status(400).json({ message: 'Invalid Google token' });
-      }
+      payload = ticket.getPayload();
+    } catch {
+      return res.status(401).json({ message: 'Google authentication failed' });
+    }
+    if (!payload || !payload.email || !payload.sub) {
+      return res.status(400).json({ message: 'Invalid Google token' });
+    }
+
+    try {
       // Cari atau buat user
       const user = await UserService.findOrCreateGoogleUser({
         email: payload.email,
@@ -68,10 +75,8 @@ export class UserController {
           access_token,
           refresh_token,
         });
-    } catch (err) {
-      return res
-        .status(401)
-        .json({ message: 'Google authentication failed', error: err });
+    } catch (error) {
+      next(error);
     }
   }
 }

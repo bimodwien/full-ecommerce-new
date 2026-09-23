@@ -127,6 +127,8 @@ class ProductBusinessService {
         where: { id: productId },
       });
       if (!existing) throw new AppError('Product not found', 404);
+      if (existing.sellerId !== req.user?.id)
+        throw new AppError('You can only edit your own products', 403);
 
       const { name, description, price, categoryId, variant, removeImageIds } =
         req.body;
@@ -191,8 +193,7 @@ class ProductBusinessService {
 
       const variantUpdatesRaw = req.body.variantUpdates;
       let variantUpdates:
-        | Array<{ id?: string; variant?: string; stock?: number }>
-        | undefined;
+        Array<{ id?: string; variant?: string; stock?: number }> | undefined;
       if (variantUpdatesRaw) {
         try {
           variantUpdates =
@@ -398,6 +399,8 @@ class ProductBusinessService {
         },
       });
       if (!product) throw new AppError('Product not found', 404);
+      if (product.sellerId !== req.user?.id)
+        throw new AppError('You can only delete your own products', 403);
 
       const sanitized = sanitizeProduct(product as PrismaProductWithRelations);
 

@@ -30,6 +30,7 @@ export default class App {
   }
 
   private configure(): void {
+    this.app.set('trust proxy', 1);
     this.app.use(
       helmet({
         // API is called cross-origin by the web app (different port/domain),
