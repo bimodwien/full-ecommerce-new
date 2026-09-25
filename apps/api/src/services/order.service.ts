@@ -29,7 +29,42 @@ const ORDER_INCLUDE = {
       Variant: true,
     },
   },
+  seller: { select: { id: true, name: true } },
+  Payment: {
+    select: {
+      id: true,
+      status: true,
+      totalAmount: true,
+      snapToken: true,
+      snapRedirectUrl: true,
+      createdAt: true,
+      _count: { select: { Orders: true } },
+    },
+  },
 } satisfies Prisma.OrderInclude;
+
+// Everything initiatePayment needs to build the Midtrans item list.
+const PAYMENT_INCLUDE = {
+  Orders: {
+    include: {
+      OrderItems: { include: { Product: { select: { name: true } } } },
+    },
+  },
+} satisfies Prisma.PaymentInclude;
+
+type PayableItem = {
+  id: string;
+  productId: string | null;
+  price: Prisma.Decimal;
+  quantity: number;
+  Product: { name: string } | null;
+};
+
+type PayablePayment = {
+  id: string;
+  totalAmount: Prisma.Decimal;
+  Orders: { OrderItems: PayableItem[] }[];
+};
 
 // An admin may only force-cancel a PENDING order once Midtrans' payment window
 // has lapsed, so a buyer who is still mid-checkout never gets cut off.
@@ -50,6 +85,16 @@ function toDateKey(d: Date) {
 
 const ADMIN_ORDER_INCLUDE = {
   ...ORDER_INCLUDE,
+  // Sellers don't need the buyer's Snap token
+  Payment: {
+    select: {
+      id: true,
+      status: true,
+      totalAmount: true,
+      createdAt: true,
+      _count: { select: { Orders: true } },
+    },
+  },
   user: { select: { id: true, name: true, email: true, username: true } },
 } satisfies Prisma.OrderInclude;
 
@@ -92,13 +137,20 @@ class OrderService {
     if (carts.length !== uniqueCartItemIds.length)
       throw new AppError('Some selected items are no longer in your cart', 400);
 
-    const order = await prisma.$transaction(async (tx) => {
-      const orderItemsData: {
+    const { payment, orders } = await prisma.$transaction(async (tx) => {
+      type OrderItemInput = {
         productId: string;
         variantId?: string;
         quantity: number;
         price: Prisma.Decimal;
-      }[] = [];
+      };
+      // One order per seller, all paid together through a single Payment.
+      const itemsBySeller = new Map<string, OrderItemInput[]>();
+      const subtotal = (items: OrderItemInput[]) =>
+        items.reduce(
+          (sum, item) => sum + Number(item.price) * item.quantity,
+          0,
+        );
 
       for (const cartItem of carts) {
         const product = await tx.product.findUnique({
@@ -126,82 +178,96 @@ class OrderService {
             throw new AppError(`Insufficient stock for ${product.name}`, 400);
         }
 
-        orderItemsData.push({
+        const sellerItems = itemsBySeller.get(product.sellerId) ?? [];
+        sellerItems.push({
           productId: cartItem.productId,
           variantId: cartItem.variantId ?? undefined,
           quantity: cartItem.quantity,
           price: product.price,
         });
+        itemsBySeller.set(product.sellerId, sellerItems);
       }
 
-      const totalAmount = orderItemsData.reduce(
-        (sum, item) => sum + Number(item.price) * item.quantity,
-        0,
-      );
-
-      const created = await tx.order.create({
+      const createdPayment = await tx.payment.create({
         data: {
           userId,
           status: OrderStatus.PENDING,
-          totalAmount,
-          OrderItems: {
-            create: orderItemsData.map((item) => ({
-              productId: item.productId,
-              variantId: item.variantId,
-              quantity: item.quantity,
-              price: item.price,
-            })),
-          },
+          totalAmount: subtotal(Array.from(itemsBySeller.values()).flat()),
         },
-        include: ORDER_INCLUDE,
       });
+
+      const createdOrders: OrderWithItems[] = [];
+      for (const [sellerId, items] of itemsBySeller) {
+        createdOrders.push(
+          await tx.order.create({
+            data: {
+              userId,
+              sellerId,
+              paymentId: createdPayment.id,
+              status: OrderStatus.PENDING,
+              totalAmount: subtotal(items),
+              OrderItems: { create: items },
+            },
+            include: ORDER_INCLUDE,
+          }),
+        );
+      }
 
       await tx.cart.deleteMany({
         where: { id: { in: uniqueCartItemIds }, userId },
       });
 
-      return created;
+      return { payment: createdPayment, orders: createdOrders };
     });
 
-    const payment = await OrderService.initiatePayment(order, userId);
+    const result = await OrderService.initiatePayment(
+      { ...payment, Orders: orders },
+      userId,
+    );
 
     return {
-      order: sanitizeOrder({ ...order, ...payment.orderUpdate }),
-      snapToken: payment.snapToken,
-      redirectUrl: payment.redirectUrl,
-      paymentInitError: payment.paymentInitError,
+      orders: orders.map(sanitizeOrder),
+      paymentId: payment.id,
+      snapToken: result.snapToken,
+      redirectUrl: result.redirectUrl,
+      paymentInitError: result.paymentInitError,
     };
   }
 
-  private static async initiatePayment(order: OrderWithItems, userId: string) {
+  private static async initiatePayment(
+    payment: PayablePayment,
+    userId: string,
+  ) {
     try {
       const user = await prisma.user.findUnique({ where: { id: userId } });
-      const midtransOrderId = `${order.id}-${Date.now()}`;
+      const midtransOrderId = `${payment.id}-${Date.now()}`;
 
       const parameter = {
         transaction_details: {
           order_id: midtransOrderId,
-          gross_amount: Number(order.totalAmount),
+          gross_amount: Number(payment.totalAmount),
         },
-        item_details: order.OrderItems.map((item) => ({
-          id: item.productId ?? item.id,
-          price: Number(item.price),
-          quantity: item.quantity,
-          name: (item.Product?.name ?? 'Product').slice(0, 50),
-        })),
+        item_details: payment.Orders.flatMap((order) => order.OrderItems).map(
+          (item) => ({
+            id: item.productId ?? item.id,
+            price: Number(item.price),
+            quantity: item.quantity,
+            name: (item.Product?.name ?? 'Product').slice(0, 50),
+          }),
+        ),
         customer_details: {
           first_name: user?.name,
           email: user?.email,
         },
         callbacks: {
-          finish: `${CLIENT_URL}/order/${order.id}`,
+          finish: `${CLIENT_URL}/order`,
         },
       };
 
       const transaction = await snap.createTransaction(parameter);
 
-      const updated = await prisma.order.update({
-        where: { id: order.id },
+      await prisma.payment.update({
+        where: { id: payment.id },
         data: {
           midtransOrderId,
           snapToken: transaction.token,
@@ -213,7 +279,6 @@ class OrderService {
         snapToken: transaction.token as string,
         redirectUrl: transaction.redirect_url as string,
         paymentInitError: false,
-        orderUpdate: updated,
       };
     } catch (error) {
       console.error('[MIDTRANS ERROR]', error);
@@ -221,7 +286,6 @@ class OrderService {
         snapToken: null as string | null,
         redirectUrl: null as string | null,
         paymentInitError: true,
-        orderUpdate: {},
       };
     }
   }
@@ -233,11 +297,15 @@ class OrderService {
     const id = String(req.params.id || '');
     const order = await prisma.order.findUnique({
       where: { id },
-      include: ORDER_INCLUDE,
+      include: { Payment: { include: PAYMENT_INCLUDE } },
     });
     if (!order) throw new AppError('Order not found', 404);
     if (order.userId !== userId) throw new AppError('Unauthorized', 403);
-    if (order.status !== OrderStatus.PENDING)
+
+    // The Snap transaction belongs to the Payment, which covers every order
+    // from the same checkout.
+    const payment = order.Payment;
+    if (payment.status !== OrderStatus.PENDING)
       throw new AppError('Order is not payable', 400);
 
     // Reopen the existing transaction instead of starting a new one. A new
@@ -246,18 +314,21 @@ class OrderService {
     // Measured from createdAt, since that's the earliest the token could
     // have been issued.
     if (
-      order.snapToken &&
-      order.snapRedirectUrl &&
-      Date.now() - order.createdAt.getTime() < SNAP_TOKEN_TTL_MS
+      payment.snapToken &&
+      payment.snapRedirectUrl &&
+      Date.now() - payment.createdAt.getTime() < SNAP_TOKEN_TTL_MS
     ) {
-      return { snapToken: order.snapToken, redirectUrl: order.snapRedirectUrl };
+      return {
+        snapToken: payment.snapToken,
+        redirectUrl: payment.snapRedirectUrl,
+      };
     }
 
-    const payment = await OrderService.initiatePayment(order, userId);
-    if (payment.paymentInitError)
+    const result = await OrderService.initiatePayment(payment, userId);
+    if (result.paymentInitError)
       throw new AppError('Failed to initialize payment, please try again', 502);
 
-    return { snapToken: payment.snapToken, redirectUrl: payment.redirectUrl };
+    return { snapToken: result.snapToken, redirectUrl: result.redirectUrl };
   }
 
   static async getAllOrders(req: Request) {
@@ -304,13 +375,16 @@ class OrderService {
   }
 
   static async getAllOrdersAdmin(req: Request) {
+    const sellerId = req.user?.id as string;
+    if (!sellerId) throw new AppError('Unauthorized', 401);
+
     const page = Math.max(1, Number(req.query.page || 1));
     let limit = Number(req.query.limit || 10);
     limit = Math.min(100, Math.max(1, limit));
     const skip = (page - 1) * limit;
 
     const statusQuery = req.query.status;
-    const where: Prisma.OrderWhereInput = {};
+    const where: Prisma.OrderWhereInput = { sellerId };
     if (
       typeof statusQuery === 'string' &&
       statusQuery !== 'all' &&
@@ -339,6 +413,9 @@ class OrderService {
   }
 
   static async getAdminStats(req: Request) {
+    const sellerId = req.user?.id as string;
+    if (!sellerId) throw new AppError('Unauthorized', 401);
+
     const days = clamp(Number(req.query.days || 14), 7, 30);
     const topCancelledLimit = clamp(
       Number(req.query.topCancelledLimit || 5),
@@ -356,18 +433,22 @@ class OrderService {
     const [rangeOrders, statusGroups, cancelledItemGroups] =
       await prisma.$transaction([
         prisma.order.findMany({
-          where: { createdAt: { gte: trendStart, lt: tomorrowStart } },
+          where: {
+            sellerId,
+            createdAt: { gte: trendStart, lt: tomorrowStart },
+          },
           select: { createdAt: true, status: true, totalAmount: true },
         }),
         prisma.order.groupBy({
           by: ['status'],
+          where: { sellerId },
           _count: { _all: true },
         }),
         prisma.orderItem.groupBy({
           by: ['productId'],
           where: {
             productId: { not: null },
-            order: { status: OrderStatus.CANCELLED },
+            order: { sellerId, status: OrderStatus.CANCELLED },
           },
           _sum: { quantity: true },
           orderBy: { _sum: { quantity: 'desc' } },
@@ -450,60 +531,90 @@ class OrderService {
   }
 
   static async shipOrder(req: Request) {
+    const sellerId = req.user?.id as string;
+    if (!sellerId) throw new AppError('Unauthorized', 401);
+
     const id = String(req.params.id || '');
     const order = await prisma.order.findUnique({ where: { id } });
     if (!order) throw new AppError('Order not found', 404);
+    if (order.sellerId !== sellerId) throw new AppError('Unauthorized', 403);
     if (order.status !== OrderStatus.PAID)
       throw new AppError('Only paid orders can be marked as shipped', 400);
 
     const updated = await prisma.order.update({
       where: { id },
       data: { status: OrderStatus.SHIPPED },
-      include: ORDER_INCLUDE,
+      include: ADMIN_ORDER_INCLUDE,
     });
 
     return sanitizeOrder(updated);
   }
 
+  // Cancels a whole Payment and every order in it, then restores stock.
+  // The Payment row is what the seller cancel and the Midtrans webhook race
+  // on, so only flip it if it's still PENDING, and only whoever wins that
+  // update touches the orders and stock. Returns false if we lost the race.
+  private static async cancelPayment(
+    tx: Prisma.TransactionClient,
+    paymentId: string,
+    data: Prisma.PaymentUpdateManyMutationInput = {},
+  ) {
+    const { count } = await tx.payment.updateMany({
+      where: { id: paymentId, status: OrderStatus.PENDING },
+      data: { ...data, status: OrderStatus.CANCELLED },
+    });
+    if (count === 0) return false;
+
+    await tx.order.updateMany({
+      where: { paymentId, status: OrderStatus.PENDING },
+      data: { status: OrderStatus.CANCELLED },
+    });
+
+    const items = await tx.orderItem.findMany({
+      where: { order: { paymentId } },
+    });
+    for (const item of items) {
+      if (item.variantId) {
+        await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: { stock: { increment: item.quantity } },
+        });
+      }
+    }
+
+    return true;
+  }
+
   static async cancelOrder(req: Request) {
+    const sellerId = req.user?.id as string;
+    if (!sellerId) throw new AppError('Unauthorized', 401);
+
     const id = String(req.params.id || '');
 
     const cancelled = await prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
         where: { id },
-        include: { OrderItems: true },
+        include: { Payment: true },
       });
       if (!order) throw new AppError('Order not found', 404);
+      if (order.sellerId !== sellerId) throw new AppError('Unauthorized', 403);
       if (order.status !== OrderStatus.PENDING)
         throw new AppError('Only pending orders can be cancelled', 400);
-      if (Date.now() - order.createdAt.getTime() < CANCELLABLE_AFTER_MS)
+      if (Date.now() - order.Payment.createdAt.getTime() < CANCELLABLE_AFTER_MS)
         throw new AppError(
           'Order can only be cancelled 24 hours after it was created, the buyer may still be paying',
           400,
         );
 
-      // The read above doesn't lock the row, so the Midtrans webhook can still
-      // settle or cancel this order right now. Flip the status only if it's
-      // still PENDING, and restore stock only if we won.
-      const { count } = await tx.order.updateMany({
-        where: { id, status: OrderStatus.PENDING },
-        data: { status: OrderStatus.CANCELLED },
-      });
-      if (count === 0)
-        throw new AppError('Only pending orders can be cancelled', 400);
-
-      for (const item of order.OrderItems) {
-        if (item.variantId) {
-          await tx.productVariant.update({
-            where: { id: item.variantId },
-            data: { stock: { increment: item.quantity } },
-          });
-        }
-      }
+      // The buyer paid for all sibling orders in one Midtrans transaction, so
+      // an unpaid order can't be cancelled on its own. The 24h gate above
+      // means that transaction is already dead anyway.
+      const won = await OrderService.cancelPayment(tx, order.paymentId);
+      if (!won) throw new AppError('Only pending orders can be cancelled', 400);
 
       return tx.order.findUniqueOrThrow({
         where: { id },
-        include: ORDER_INCLUDE,
+        include: ADMIN_ORDER_INCLUDE,
       });
     });
 
@@ -574,15 +685,14 @@ class OrderService {
     if (expectedSignature !== signature_key)
       throw new AppError('Invalid signature', 401);
 
-    const order = await prisma.order.findUnique({
+    const payment = await prisma.payment.findUnique({
       where: { midtransOrderId: order_id },
-      include: { OrderItems: true },
     });
-    if (!order) throw new AppError('Order not found', 404);
+    if (!payment) throw new AppError('Payment not found', 404);
 
-    // Idempotency guard: Midtrans retries notifications, only act once per order.
-    if (order.status !== OrderStatus.PENDING) {
-      return { message: 'Order already processed' };
+    // Idempotency guard: Midtrans retries notifications, only act once per payment.
+    if (payment.status !== OrderStatus.PENDING) {
+      return { message: 'Payment already processed' };
     }
 
     const isPaid =
@@ -593,41 +703,35 @@ class OrderService {
     );
 
     if (isCancelled) {
+      // Returns false if a seller cancel or a retried notification got here first.
+      await prisma.$transaction((tx) =>
+        OrderService.cancelPayment(tx, payment.id, {
+          paymentType: payment_type,
+          transactionStatus: transaction_status,
+        }),
+      );
+    } else if (isPaid) {
       await prisma.$transaction(async (tx) => {
-        const { count } = await tx.order.updateMany({
-          where: { id: order.id, status: OrderStatus.PENDING },
+        const { count } = await tx.payment.updateMany({
+          where: { id: payment.id, status: OrderStatus.PENDING },
           data: {
-            status: OrderStatus.CANCELLED,
+            status: OrderStatus.PAID,
+            paidAt: new Date(),
             paymentType: payment_type,
             transactionStatus: transaction_status,
           },
         });
-        // An admin cancel or a retried notification got here first.
         if (count === 0) return;
 
-        for (const item of order.OrderItems) {
-          if (item.variantId) {
-            await tx.productVariant.update({
-              where: { id: item.variantId },
-              data: { stock: { increment: item.quantity } },
-            });
-          }
-        }
-      });
-    } else if (isPaid) {
-      await prisma.order.updateMany({
-        where: { id: order.id, status: OrderStatus.PENDING },
-        data: {
-          status: OrderStatus.PAID,
-          paidAt: new Date(),
-          paymentType: payment_type,
-          transactionStatus: transaction_status,
-        },
+        await tx.order.updateMany({
+          where: { paymentId: payment.id, status: OrderStatus.PENDING },
+          data: { status: OrderStatus.PAID },
+        });
       });
     } else {
       // still pending (e.g. capture+challenge, or pending) - just record raw status
-      await prisma.order.update({
-        where: { id: order.id },
+      await prisma.payment.update({
+        where: { id: payment.id },
         data: {
           paymentType: payment_type,
           transactionStatus: transaction_status,

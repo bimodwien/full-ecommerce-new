@@ -18,10 +18,12 @@ model User {
   googleId String? @unique
   role     Role    @default(buyer)
 
-  Products Product[]  @relation("SellerProducts")
-  Wishlist Wishlist[]
-  Cart     Cart[]
-  Orders   Order[]
+  Products     Product[]  @relation("SellerProducts")
+  Wishlist     Wishlist[]
+  Cart         Cart[]
+  Orders       Order[]    @relation("BuyerOrders")
+  SellerOrders Order[]    @relation("SellerOrders")
+  Payments     Payment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -176,6 +178,38 @@ model Cart {
 model Order {
   id String @id @default(cuid())
 
+  user   User   @relation("BuyerOrders", fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // Checkout is split per seller, each seller gets their own order
+  seller   User   @relation("SellerOrders", fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId String
+
+  // One Midtrans payment can cover several orders from the same checkout
+  Payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  paymentId String
+
+  status       OrderStatus @default(PENDING)
+  totalAmount  Decimal     @db.Decimal(12, 2)
+  returnReason String?
+
+  OrderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([sellerId])
+  @@index([paymentId])
+  @@map("orders")
+}
+
+// =====================
+// PAYMENT
+// =====================
+model Payment {
+  id String @id @default(cuid())
+
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
@@ -189,16 +223,14 @@ model Order {
   paymentType       String?
   transactionStatus String?
   paidAt            DateTime?
-  returnReason      String?
 
-  OrderItems OrderItem[]
+  Orders Order[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
-  @@index([midtransOrderId])
-  @@map("orders")
+  @@map("payments")
 }
 
 // =====================

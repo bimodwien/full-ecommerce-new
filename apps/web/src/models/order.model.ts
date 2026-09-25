@@ -23,21 +23,31 @@ export type TOrderItem = {
   Variant?: TProductVariant | null;
 };
 
+// One Midtrans payment, shared by every order from the same checkout
+export type TOrderPayment = {
+  id: string;
+  status: OrderStatus;
+  totalAmount: string | number; // Prisma Decimal serialized
+  // Buyer responses only
+  snapToken?: string | null;
+  snapRedirectUrl?: string | null;
+  createdAt: string;
+  _count: { Orders: number };
+};
+
 export type TOrder = {
   id: string;
   userId: string;
+  sellerId: string;
+  paymentId: string;
   status: OrderStatus;
-  totalAmount: string | number; // Prisma Decimal serialized
-  midtransOrderId?: string | null;
-  snapToken?: string | null;
-  snapRedirectUrl?: string | null;
-  paymentType?: string | null;
-  transactionStatus?: string | null;
-  paidAt?: string | null;
+  totalAmount: string | number; // Prisma Decimal serialized, this seller's subtotal
   returnReason?: string | null;
   createdAt: string;
   updatedAt: string;
   OrderItems?: TOrderItem[];
+  seller?: { id: string; name: string } | null;
+  Payment?: TOrderPayment | null;
   // Only present on admin responses
   user?: {
     id: string;
@@ -48,7 +58,9 @@ export type TOrder = {
 };
 
 export type TCreateOrderResponse = {
-  order: TOrder;
+  // Checkout is split into one order per seller
+  orders: TOrder[];
+  paymentId: string;
   snapToken: string | null;
   redirectUrl: string | null;
   paymentInitError?: boolean;

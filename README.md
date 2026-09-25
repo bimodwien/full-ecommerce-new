@@ -32,15 +32,16 @@ The interesting code lives in [`apps/api/src/services/order.service.ts`](apps/ap
 - Product detail with image gallery and variant selection
 - Wishlist with atomic toggle (single request per click — no double-fire race)
 - Cart with server-side quantity normalisation and per-variant stock validation
-- Checkout through Midtrans Snap, with **retry payment** for unpaid orders
+- Checkout through Midtrans Snap, with **retry payment** for unpaid orders — a cart with items from several sellers is paid once and split into one order per seller
 - Order history and detail, with "Complete Order" and "Submit Return" actions
 - Auth via email/password with JWT
 
 ### Seller
+- Each seller's dashboard only shows their own products, orders, and stats
 - Product CRUD with multi-image upload and variant management
 - Category CRUD
 - Rich-text (Markdown) product descriptions via a TipTap editor
-- Order tracking dashboard — view all orders, mark as shipped, cancel stale unpaid orders
+- Order tracking dashboard — view own orders, mark as shipped, cancel stale unpaid orders
 
 ---
 
@@ -56,7 +57,9 @@ The interesting code lives in [`apps/api/src/services/order.service.ts`](apps/ap
                     └──► CANCELLED  (expire/deny via webhook, or seller cancel after 24h)
 ```
 
-**Design note — why the 24-hour cancel gate:** while an order is `PENDING` the buyer can *always* still pay, because "Pay Now" mints a fresh Snap token on every attempt. Cancelling is therefore what actually *closes* the payment window, so it's gated to orders old enough that Midtrans' own window has lapsed. Cancellation restores stock and re-reads the order **inside** the transaction, since the webhook could be settling it concurrently.
+**Design note — one payment, one order per seller:** a checkout creates a single `Payment` (which holds the Midtrans transaction) and one `Order` per seller, each with its own status, so seller A shipping doesn't mark seller B's items as shipped. The webhook settles the `Payment` and all of its orders together. Because the buyer paid for them in one transaction, cancelling an unpaid order cancels the whole `Payment`, including sibling orders from other sellers.
+
+**Design note — why the 24-hour cancel gate:** while an order is `PENDING` the buyer can *always* still pay, because "Pay Now" mints a fresh Snap token on every attempt. Cancelling is therefore what actually *closes* the payment window, so it's gated to orders old enough that Midtrans' own window has lapsed. Cancellation only proceeds if it flips the `Payment` out of `PENDING` itself, **inside** the transaction, since the webhook could be settling it concurrently; only the winner touches orders and stock.
 
 ---
 
@@ -178,9 +181,10 @@ Auth: `Authorization: Bearer <token>`. Routes are guarded in two tiers — `vali
 | `GET` | `/products/:id` | Public | Full detail — all images, variants, `descriptionHtml` |
 | `GET` | `/products/category/:categoryId` | Public | Category-filtered list |
 | `GET` | `/products/image/:id` | Public | Streams image bytes (ETag / Last-Modified / Cache-Control) |
+| `GET` | `/products/mine` | Seller | Same as `GET /products`, limited to the logged-in seller's products (dashboard) |
 | `POST` | `/products` | Seller | Create — `multipart/form-data`, up to 5 `image` files |
-| `PATCH` | `/products/:id` | Seller | Update — also accepts `removeImageIds`, `variantUpdates`, `removeVariantIds` |
-| `DELETE` | `/products/:id` | Seller | Delete |
+| `PATCH` | `/products/:id` | Seller | Update own product — also accepts `removeImageIds`, `variantUpdates`, `removeVariantIds` |
+| `DELETE` | `/products/:id` | Seller | Delete own product |
 
 ### Categories
 | Method | Endpoint | Access | Description |
@@ -203,15 +207,16 @@ Auth: `Authorization: Bearer <token>`. Routes are guarded in two tiers — `vali
 ### Orders
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
-| `POST` | `/orders` | Buyer | Create order from selected cart items (`{ cartItemIds }`) — reserves stock, returns Snap token |
+| `POST` | `/orders` | Buyer | Checkout selected cart items (`{ cartItemIds }`) — one order per seller under one payment, reserves stock, returns Snap token |
 | `GET` | `/orders` | Buyer | Own order history |
 | `GET` | `/orders/:id` | Buyer | Own order detail |
-| `POST` | `/orders/:id/retry-payment` | Buyer | Mint a fresh Snap token for an unpaid order |
+| `POST` | `/orders/:id/retry-payment` | Buyer | Reopen or mint a Snap token for the order's unpaid payment |
 | `PATCH` | `/orders/:id/complete` | Buyer | `SHIPPED` → `COMPLETED` |
 | `PATCH` | `/orders/:id/return` | Buyer | `SHIPPED` → `RETURNED` (with reason) |
-| `GET` | `/orders/admin` | Seller | All orders, filterable by status |
-| `PATCH` | `/orders/:id/ship` | Seller | `PAID` → `SHIPPED` |
-| `PATCH` | `/orders/:id/cancel` | Seller | Cancel a stale `PENDING` order, restore stock |
+| `GET` | `/orders/admin` | Seller | Own orders, filterable by status |
+| `GET` | `/orders/admin/stats` | Seller | Own sales trend, status breakdown, top cancelled products |
+| `PATCH` | `/orders/:id/ship` | Seller | Own order, `PAID` → `SHIPPED` |
+| `PATCH` | `/orders/:id/cancel` | Seller | Cancel a stale `PENDING` order and its whole payment, restore stock |
 | `POST` | `/orders/notification` | **Midtrans** | Payment webhook — verified by signature, not JWT |
 
 ---

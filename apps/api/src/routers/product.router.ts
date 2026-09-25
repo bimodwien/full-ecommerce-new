@@ -21,6 +21,14 @@ export class ProductRouter {
       this.productController.getAll.bind(this.productController),
     );
 
+    // Seller dashboard list, registered before "/:id" so "mine" isn't read as an id
+    this.router.get(
+      '/mine',
+      validateToken,
+      verifyAdmin,
+      this.productController.getMine.bind(this.productController),
+    );
+
     // convenience route: GET /api/products/category/:categoryId
     this.router.get(
       '/category/:categoryId',

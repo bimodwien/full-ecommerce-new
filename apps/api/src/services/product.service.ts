@@ -15,6 +15,7 @@ export type GetProductsOptions = {
   minPrice?: number;
   maxPrice?: number;
   sort?: 'newest' | 'price_asc' | 'price_desc' | string;
+  sellerId?: string;
 };
 
 // types are imported from product.helpers
@@ -32,6 +33,7 @@ class ProductService {
     const minPrice = opts.minPrice;
     const maxPrice = opts.maxPrice;
     const sort = opts.sort || 'newest';
+    const sellerId = opts.sellerId;
 
     const where: Prisma.ProductWhereInput = {
       AND: [
@@ -39,6 +41,7 @@ class ProductService {
         categoryId ? { categoryId } : undefined,
         minPrice !== undefined ? { price: { gte: minPrice } } : undefined,
         maxPrice !== undefined ? { price: { lte: maxPrice } } : undefined,
+        sellerId ? { sellerId } : undefined,
       ].filter(Boolean) as Prisma.ProductWhereInput[],
     };
 
@@ -97,6 +100,25 @@ class ProductService {
       minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
       maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
       sort: req.query.sort ? String(req.query.sort) : undefined,
+    };
+
+    return this.getAllProductsWithOptions(opts);
+  }
+
+  // Seller dashboard: same filters as getAllProducts, scoped to the logged-in seller
+  static async getMyProducts(req: Request) {
+    const sellerId = req.user?.id;
+    if (!sellerId) throw new AppError('Unauthorized', 401);
+
+    const opts: GetProductsOptions = {
+      page: req.query.page ? Number(req.query.page) : undefined,
+      limit: req.query.limit ? Number(req.query.limit) : undefined,
+      name: req.query.name ? String(req.query.name) : undefined,
+      categoryId: req.query.categoryId
+        ? String(req.query.categoryId)
+        : undefined,
+      sort: req.query.sort ? String(req.query.sort) : undefined,
+      sellerId,
     };
 
     return this.getAllProductsWithOptions(opts);

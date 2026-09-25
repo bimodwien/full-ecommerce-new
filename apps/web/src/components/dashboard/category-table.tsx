@@ -55,15 +55,21 @@ const CategoryTable = ({ categories, onDeleteSuccess }: CategoryTableProps) => {
     if (!selected) return;
     setPending(true);
     try {
-      await toast.promise(deleteCategory(selected.id), {
+      // toast.promise() resolves to a toast handle and never rejects, so await
+      // the request itself, otherwise a rejected delete still removes the row.
+      const request = deleteCategory(selected.id);
+      toast.promise(request, {
         loading: 'Deleting category…',
         success: () => 'Category deleted',
         error: (err) =>
           (err as any)?.response?.data?.message || 'Failed to delete category',
       });
+      await request;
       onDeleteSuccess?.(selected.id);
       setDialogOpen(false);
       setSelected(null);
+    } catch {
+      // toast.promise already surfaced the failure
     } finally {
       setPending(false);
     }
@@ -134,10 +140,13 @@ const CategoryTable = ({ categories, onDeleteSuccess }: CategoryTableProps) => {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-red-600 focus:text-red-600"
+                        disabled={(category.productCount ?? 0) > 0}
                         onClick={() => promptDelete(category.id, category.name)}
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
-                        Delete Category
+                        {(category.productCount ?? 0) > 0
+                          ? 'Delete (has products)'
+                          : 'Delete Category'}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

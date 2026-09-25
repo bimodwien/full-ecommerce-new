@@ -69,9 +69,12 @@ const CheckoutSection = () => {
     if (carts.length === 0) return;
     setPlacingOrder(true);
     try {
-      const { order, snapToken, paymentInitError } = await createOrder(
+      const { orders, snapToken, paymentInitError } = await createOrder(
         carts.map((c) => c.id),
       );
+      // Checkout is split per seller, so land on the list when there's more than one order
+      const orderUrl =
+        orders.length === 1 ? `/order/${orders[0].id}` : '/order';
       setOrderPlaced(true);
       dispatch(decrementCartCountBy(carts.length));
 
@@ -79,34 +82,34 @@ const CheckoutSection = () => {
         toast.error(
           'Order created, but payment setup failed. Retry from Order History.',
         );
-        router.push(`/order/${order.id}`);
+        router.push(orderUrl);
         return;
       }
 
       if (!window.snap) {
         toast.error('Payment is not ready yet, please try again.');
-        router.push(`/order/${order.id}`);
+        router.push(orderUrl);
         return;
       }
 
       window.snap.pay(snapToken, {
         onSuccess: () => {
           toast.success('Payment successful.');
-          router.push(`/order/${order.id}`);
+          router.push(orderUrl);
         },
         onPending: () => {
           toast.info('Payment pending.');
-          router.push(`/order/${order.id}`);
+          router.push(orderUrl);
         },
         onError: () => {
           toast.error('Payment failed.');
-          router.push(`/order/${order.id}`);
+          router.push(orderUrl);
         },
         onClose: () => {
           toast.warning(
             'Payment closed. You can finish the payment from this order.',
           );
-          router.push(`/order/${order.id}`);
+          router.push(orderUrl);
         },
       });
     } catch (err: any) {

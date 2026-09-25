@@ -189,6 +189,14 @@ const OrderTrackingTable = ({
               {selected ? ` "${selected.id}"` : ' this order'} and returns its
               stock. The buyer will no longer be able to pay for it. This action
               cannot be undone.
+              {selected && (selected.Payment?._count.Orders ?? 1) > 1 && (
+                <>
+                  {' '}
+                  The buyer checked out this order together with{' '}
+                  {(selected.Payment?._count.Orders ?? 1) - 1} order(s) from
+                  other sellers in one payment, so those will be cancelled too.
+                </>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

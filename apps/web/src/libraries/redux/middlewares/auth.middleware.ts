@@ -2,8 +2,25 @@ import { Dispatch } from 'redux';
 import { axiosInstance } from '@/libraries/axios';
 import { login, authChecked } from '../slices/auth.slice';
 import { TUser, Role } from '@/models/user.model';
-import { getCookie, deleteCookie } from 'cookies-next';
+import { getCookie, setCookie, deleteCookie } from 'cookies-next';
 import { jwtDecode } from 'jwt-decode';
+
+// Store the tokens on the web app's own domain. The API's Set-Cookie only
+// works while web and API share a host (localhost, or one domain behind a
+// reverse proxy). On separate domains the browser files that cookie under
+// the API's domain, where neither getCookie nor proxy.ts can see it.
+const saveSession = (data: {
+  access_token?: string;
+  refresh_token?: string;
+}) => {
+  if (!data?.access_token) throw new Error('No access token returned');
+  setCookie('access_token', data.access_token);
+  if (data.refresh_token) setCookie('refresh_token', data.refresh_token);
+
+  const decoded = jwtDecode<{ user: TUser }>(data.access_token);
+  if (!decoded.user) throw new Error('Invalid token data');
+  return decoded.user;
+};
 
 export const userLogin = ({
   username,
@@ -16,18 +33,9 @@ export const userLogin = ({
         { username, password },
         { withCredentials: true },
       );
-      const access_token = getCookie('access_token') || '';
-      if (typeof access_token === 'string') {
-        const decoded = jwtDecode<{ user: TUser }>(access_token);
-        if (!decoded.user) {
-          throw new Error('Invalid token data');
-        }
-        const userData = decoded.user;
-        dispatch(login(userData));
-        return { success: true, user: userData };
-      } else {
-        throw new Error('User not found');
-      }
+      const userData = saveSession(response.data);
+      dispatch(login(userData));
+      return { success: true, user: userData };
     } catch (error) {
       console.error('Login failed: ', error);
       deleteCookie('access_token');
@@ -40,23 +48,14 @@ export const userLogin = ({
 export const googleLogin = (id_token: string) => {
   return async (dispatch: Dispatch) => {
     try {
-      await axiosInstance().post(
+      const response = await axiosInstance().post(
         '/users/google',
         { id_token },
         { withCredentials: true },
       );
-      const access_token = getCookie('access_token') || '';
-      if (typeof access_token === 'string' && access_token) {
-        const decoded = jwtDecode<{ user: TUser }>(access_token);
-        if (!decoded.user) {
-          throw new Error('Invalid token data');
-        }
-        const userData = decoded.user;
-        dispatch(login(userData));
-        return { success: true, user: userData };
-      } else {
-        throw new Error('User not found');
-      }
+      const userData = saveSession(response.data);
+      dispatch(login(userData));
+      return { success: true, user: userData };
     } catch (error) {
       console.error('Google login failed: ', error);
       deleteCookie('access_token');
