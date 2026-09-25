@@ -99,7 +99,7 @@ const CategoryTable = ({ categories, onDeleteSuccess }: CategoryTableProps) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[200px]">Category Name</TableHead>
+              <TableHead className="min-w-50">Category Name</TableHead>
               <TableHead className="hidden sm:table-cell">
                 Products Count
               </TableHead>
