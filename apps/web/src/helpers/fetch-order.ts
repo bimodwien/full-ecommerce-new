@@ -7,7 +7,8 @@ export const createOrder = async (
 ): Promise<TCreateOrderResponse> => {
   const response = await axiosInstance().post('/orders', { cartItemIds });
   return {
-    order: response.data?.order as TOrder,
+    orders: (response.data?.orders || []) as TOrder[],
+    paymentId: response.data?.paymentId as string,
     snapToken: response.data?.snapToken ?? null,
     redirectUrl: response.data?.redirectUrl ?? null,
     paymentInitError: response.data?.paymentInitError ?? false,

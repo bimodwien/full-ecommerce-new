@@ -5,7 +5,7 @@ import PageHeader from '@/components/dashboard/page-header';
 import ProductFilter from '@/components/dashboard/product-filter';
 import ProductTable from '@/components/dashboard/product-table';
 import { Pagination } from '@/components/ui/pagination';
-import { fetchProduct } from '@/helpers/fetch-product';
+import { fetchMyProducts } from '@/helpers/fetch-product';
 import { fetchCategory } from '@/helpers/fetch-category';
 import { TProductList } from '@/models/product.model';
 import { TCategory } from '@/models/category.model';
@@ -25,7 +25,8 @@ export default function ProductsPage() {
   const [categoriesData, setCategoriesData] = useState<TCategory[]>([]);
 
   useEffect(() => {
-    void fetchProduct(setProducts);
+    // Filtering and pagination happen client-side, so fetch the max page size
+    void fetchMyProducts(setProducts, { limit: 100 });
     void fetchCategory(setCategoriesData);
   }, []);
 

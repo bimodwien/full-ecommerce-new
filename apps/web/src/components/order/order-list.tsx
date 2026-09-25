@@ -90,6 +90,11 @@ const OrderList = () => {
                     <div className="text-sm font-medium text-ink truncate max-w-55">
                       {order.id}
                     </div>
+                    {order.seller?.name && (
+                      <div className="text-xs text-mute mt-1">
+                        Seller: {order.seller.name}
+                      </div>
+                    )}
                   </div>
                   <OrderStatusBadge status={order.status} />
                 </div>

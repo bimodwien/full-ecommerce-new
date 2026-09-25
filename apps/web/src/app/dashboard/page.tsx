@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { fetchProduct } from '@/helpers/fetch-product';
+import { fetchMyProducts } from '@/helpers/fetch-product';
 import { fetchCategory } from '@/helpers/fetch-category';
 import { fetchOrderStats } from '@/helpers/fetch-order';
 import { TProductList } from '@/models/product.model';
@@ -24,10 +24,14 @@ const Dashboard = () => {
   useEffect(() => {
     let mounted = true;
     // fetch products and categories with unmount guard
-    void fetchProduct((data) => {
-      if (!mounted) return;
-      setProducts(data);
-    });
+    // The stock counts below are computed client-side, so fetch the max page size
+    void fetchMyProducts(
+      (data) => {
+        if (!mounted) return;
+        setProducts(data);
+      },
+      { limit: 100 },
+    );
     void fetchCategory((data) => {
       if (!mounted) return;
       setCategories(data);

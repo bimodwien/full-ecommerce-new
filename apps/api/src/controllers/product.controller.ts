@@ -12,6 +12,15 @@ export class ProductController {
     }
   }
 
+  async getMine(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await ProductService.getMyProducts(req);
+      res.status(200).json({ message: 'Get my products success', ...result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getByCategory(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await ProductService.getProductsByCategory(req);

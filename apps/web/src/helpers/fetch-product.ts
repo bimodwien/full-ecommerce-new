@@ -23,6 +23,20 @@ export const fetchProduct = async (
   }
 };
 
+// Seller dashboard: only the logged-in seller's own products
+export const fetchMyProducts = async (
+  setProducts: Dispatch<SetStateAction<TProductList[]>>,
+  params?: GetProductsQuery,
+) => {
+  try {
+    const response = await axios.get('/products/mine', { params });
+    const products = (response.data?.products || []) as TProductList[];
+    setProducts(products);
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const fetchProductDetail = async (id: string) => {
   try {
     const response = await axios.get(`/products/${id}`);

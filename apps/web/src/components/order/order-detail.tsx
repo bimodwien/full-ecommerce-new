@@ -60,7 +60,7 @@ const OrderDetail = ({ orderId }: { orderId: string }) => {
     if (!order) return;
     setPaying(true);
     try {
-      let token = order.snapToken;
+      let token = order.Payment?.snapToken;
       if (!token) {
         const result = await retryOrderPayment(order.id);
         token = result.snapToken;
@@ -135,6 +135,9 @@ const OrderDetail = ({ orderId }: { orderId: string }) => {
     typeof order.totalAmount === 'string'
       ? Number(order.totalAmount)
       : order.totalAmount;
+  // Orders from the same checkout are paid together in one Midtrans transaction
+  const siblingOrderCount = (order.Payment?._count.Orders ?? 1) - 1;
+  const paymentTotal = Number(order.Payment?.totalAmount ?? totalAmount);
 
   return (
     <div className="flex flex-col gap-4">
@@ -151,6 +154,11 @@ const OrderDetail = ({ orderId }: { orderId: string }) => {
           <div>
             <div className="text-xs text-mute">Order ID</div>
             <div className="text-sm font-medium text-ink">{order.id}</div>
+            {order.seller?.name && (
+              <div className="text-xs text-mute mt-1">
+                Seller: {order.seller.name}
+              </div>
+            )}
           </div>
           <OrderStatusBadge status={order.status} />
         </CardContent>
@@ -202,6 +210,12 @@ const OrderDetail = ({ orderId }: { orderId: string }) => {
             <span className="underline">Total</span>
             <span>{formatIDR(totalAmount)}</span>
           </div>
+          {order.status === 'PENDING' && siblingOrderCount > 0 && (
+            <p className="mt-3 text-xs text-mute">
+              This payment also covers {siblingOrderCount} other order(s) from
+              the same checkout. Total to pay: {formatIDR(paymentTotal)}
+            </p>
+          )}
           {order.status === 'PENDING' && (
             <Button
               size="pill"
