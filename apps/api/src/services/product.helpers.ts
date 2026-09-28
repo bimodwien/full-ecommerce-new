@@ -12,6 +12,39 @@ export type PrismaProductWithRelations = Prisma.ProductGetPayload<{
   };
 }>;
 
+export const PRIMARY_IMAGE_FIRST = [
+  { isPrimary: 'desc' as Prisma.SortOrder },
+  { createdAt: 'asc' as Prisma.SortOrder },
+];
+
+const SELLER_SELECT = { select: { id: true, name: true } };
+
+// List payloads: primary image only, plus variant stock for stockStatus.
+export const PRODUCT_LIST_INCLUDE = {
+  Images: { orderBy: PRIMARY_IMAGE_FIRST, take: 1 },
+  Variants: { select: { stock: true } },
+  Category: true,
+  seller: SELLER_SELECT,
+} satisfies Prisma.ProductInclude;
+
+export const PRODUCT_DETAIL_INCLUDE = {
+  Images: true,
+  Variants: true,
+  Category: true,
+  seller: SELLER_SELECT,
+} satisfies Prisma.ProductInclude;
+
+export const PRODUCT_PAGE_INCLUDE = {
+  ...PRODUCT_DETAIL_INCLUDE,
+  Images: { orderBy: PRIMARY_IMAGE_FIRST },
+} satisfies Prisma.ProductInclude;
+
+// Cart and wishlist rows share the same Product + Variant relations.
+export const USER_ITEM_INCLUDE = {
+  Product: { include: PRODUCT_LIST_INCLUDE },
+  Variant: true,
+};
+
 export type SanitizedProduct = Omit<TProduct, 'Images'> & {
   Images?: (Omit<TProductImage, 'data'> & { imageUrl: string })[];
 };

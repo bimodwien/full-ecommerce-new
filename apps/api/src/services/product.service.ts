@@ -5,6 +5,9 @@ import AppError from '@/libs/appError';
 import sanitizeProduct, {
   PrismaProductWithRelations,
   sanitizeProductForList,
+  PRIMARY_IMAGE_FIRST,
+  PRODUCT_LIST_INCLUDE,
+  PRODUCT_PAGE_INCLUDE,
 } from './product.helpers';
 
 export type GetProductsOptions = {
@@ -18,7 +21,41 @@ export type GetProductsOptions = {
   sellerId?: string;
 };
 
-// types are imported from product.helpers
+function buildProductWhere(opts: GetProductsOptions): Prisma.ProductWhereInput {
+  const name = (opts.name || '').trim();
+  const { categoryId, minPrice, maxPrice, sellerId } = opts;
+  return {
+    AND: [
+      name ? { name: { contains: name, mode: 'insensitive' } } : undefined,
+      categoryId ? { categoryId } : undefined,
+      minPrice !== undefined ? { price: { gte: minPrice } } : undefined,
+      maxPrice !== undefined ? { price: { lte: maxPrice } } : undefined,
+      sellerId ? { sellerId } : undefined,
+    ].filter(Boolean) as Prisma.ProductWhereInput[],
+  };
+}
+
+function buildProductOrderBy(
+  sort: string,
+): Prisma.ProductOrderByWithRelationInput {
+  if (sort === 'price_asc') return { price: 'asc' as Prisma.SortOrder };
+  if (sort === 'price_desc') return { price: 'desc' as Prisma.SortOrder };
+  return { createdAt: 'desc' as Prisma.SortOrder };
+}
+
+// Query-string filters shared by the public listing endpoints.
+function parseProductQuery(req: Request): GetProductsOptions {
+  const q = req.query;
+  return {
+    page: q.page ? Number(q.page) : undefined,
+    limit: q.limit ? Number(q.limit) : undefined,
+    name: q.name ? String(q.name) : undefined,
+    categoryId: q.categoryId ? String(q.categoryId) : undefined,
+    minPrice: q.minPrice ? Number(q.minPrice) : undefined,
+    maxPrice: q.maxPrice ? Number(q.maxPrice) : undefined,
+    sort: q.sort ? String(q.sort) : undefined,
+  };
+}
 
 class ProductService {
   // core implementation that accepts plain options (testable)
@@ -26,62 +63,25 @@ class ProductService {
     const page = Math.max(1, opts.page || 1);
     let limit = opts.limit ?? 10;
     limit = Math.min(100, Math.max(1, limit));
-    const skip = (page - 1) * limit;
+    const where = buildProductWhere(opts);
 
-    const name = (opts.name || '').trim();
-    const categoryId = opts.categoryId;
-    const minPrice = opts.minPrice;
-    const maxPrice = opts.maxPrice;
-    const sort = opts.sort || 'newest';
-    const sellerId = opts.sellerId;
-
-    const where: Prisma.ProductWhereInput = {
-      AND: [
-        name ? { name: { contains: name, mode: 'insensitive' } } : undefined,
-        categoryId ? { categoryId } : undefined,
-        minPrice !== undefined ? { price: { gte: minPrice } } : undefined,
-        maxPrice !== undefined ? { price: { lte: maxPrice } } : undefined,
-        sellerId ? { sellerId } : undefined,
-      ].filter(Boolean) as Prisma.ProductWhereInput[],
-    };
-
-    const orderBy: Prisma.ProductOrderByWithRelationInput =
-      sort === 'price_asc'
-        ? { price: 'asc' as Prisma.SortOrder }
-        : sort === 'price_desc'
-          ? { price: 'desc' as Prisma.SortOrder }
-          : { createdAt: 'desc' as Prisma.SortOrder };
     // get total and paginated data in a single transaction
     const [total, products] = await prisma.$transaction([
       prisma.product.count({ where }),
       prisma.product.findMany({
         where,
-        skip,
+        skip: (page - 1) * limit,
         take: limit,
-        orderBy,
-        include: {
-          Images: {
-            orderBy: [
-              { isPrimary: 'desc' as Prisma.SortOrder },
-              { createdAt: 'asc' as Prisma.SortOrder },
-            ],
-            take: 1,
-          },
-          // include variant stock to compute aggregated stock for list
-          Variants: { select: { stock: true } },
-          Category: true,
-          seller: { select: { id: true, name: true } },
-        },
+        orderBy: buildProductOrderBy(opts.sort || 'newest'),
+        include: PRODUCT_LIST_INCLUDE,
       }),
     ]);
 
     // remove large binary fields before returning to clients (list: only primary image)
-    const sanitizedProducts = products.map((p) =>
-      sanitizeProductForList(p as PrismaProductWithRelations),
-    );
-
     return {
-      products: sanitizedProducts,
+      products: products.map((p) =>
+        sanitizeProductForList(p as PrismaProductWithRelations),
+      ),
       total,
       page,
       totalPages: Math.ceil(total / limit) || 1,
@@ -90,58 +90,31 @@ class ProductService {
 
   // Request-based wrapper so controllers can forward req directly (like CategoryService)
   static async getAllProducts(req: Request) {
-    const opts: GetProductsOptions = {
-      page: req.query.page ? Number(req.query.page) : undefined,
-      limit: req.query.limit ? Number(req.query.limit) : undefined,
-      name: req.query.name ? String(req.query.name) : undefined,
-      categoryId: req.query.categoryId
-        ? String(req.query.categoryId)
-        : undefined,
-      minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
-      maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
-      sort: req.query.sort ? String(req.query.sort) : undefined,
-    };
-
-    return this.getAllProductsWithOptions(opts);
+    return this.getAllProductsWithOptions(parseProductQuery(req));
   }
 
-  // Seller dashboard: same filters as getAllProducts, scoped to the logged-in seller
+  // Seller dashboard: same filters as getAllProducts minus price, scoped to the logged-in seller
   static async getMyProducts(req: Request) {
     const sellerId = req.user?.id;
     if (!sellerId) throw new AppError('Unauthorized', 401);
 
-    const opts: GetProductsOptions = {
-      page: req.query.page ? Number(req.query.page) : undefined,
-      limit: req.query.limit ? Number(req.query.limit) : undefined,
-      name: req.query.name ? String(req.query.name) : undefined,
-      categoryId: req.query.categoryId
-        ? String(req.query.categoryId)
-        : undefined,
-      sort: req.query.sort ? String(req.query.sort) : undefined,
+    return this.getAllProductsWithOptions({
+      ...parseProductQuery(req),
+      minPrice: undefined,
+      maxPrice: undefined,
       sellerId,
-    };
-
-    return this.getAllProductsWithOptions(opts);
+    });
   }
 
   // Request-based get by category to keep controller simple and match your preference
   static async getProductsByCategory(req: Request) {
     const categoryId =
       req.params.categoryId || (req.query.categoryId as string | undefined);
-    const opts: GetProductsOptions = {
+    return this.getAllProductsWithOptions({
+      ...parseProductQuery(req),
       categoryId: categoryId ? String(categoryId) : undefined,
-      page: req.query.page ? Number(req.query.page) : undefined,
-      limit: req.query.limit ? Number(req.query.limit) : undefined,
-      sort: req.query.sort ? String(req.query.sort) : undefined,
-      name: req.query.name ? String(req.query.name) : undefined,
-      minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
-      maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
-    };
-
-    return this.getAllProductsWithOptions(opts);
+    });
   }
-
-  // create/update/delete moved to product.business.service.ts
 
   // Get single product by id (returns all images)
   static async getProductById(req: Request) {
@@ -150,17 +123,7 @@ class ProductService {
 
     const product = await prisma.product.findUnique({
       where: { id },
-      include: {
-        Images: {
-          orderBy: [
-            { isPrimary: 'desc' as Prisma.SortOrder },
-            { createdAt: 'asc' as Prisma.SortOrder },
-          ],
-        },
-        Variants: true,
-        Category: true,
-        seller: { select: { id: true, name: true } },
-      },
+      include: PRODUCT_PAGE_INCLUDE,
     });
 
     return sanitizeProduct(product as PrismaProductWithRelations);
@@ -183,10 +146,7 @@ class ProductService {
       where: { id: productId },
       include: {
         Images: {
-          orderBy: [
-            { isPrimary: 'desc' as Prisma.SortOrder },
-            { createdAt: 'asc' as Prisma.SortOrder },
-          ],
+          orderBy: PRIMARY_IMAGE_FIRST,
           select: { data: true, updatedAt: true },
           take: 1,
         },
@@ -214,8 +174,6 @@ class ProductService {
       contentType: 'image/png',
     };
   }
-
-  // sanitizeProduct moved to product.helpers.ts
 }
 
 export default ProductService;
