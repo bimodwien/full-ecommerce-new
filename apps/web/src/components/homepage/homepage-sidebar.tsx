@@ -12,11 +12,10 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
 // Dynamic categories from API
-type CategoryItem = TCategory;
 
 const HomepageSidebar = () => {
   const [showAllCategories, setShowAllCategories] = useState(false);
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [categories, setCategories] = useState<TCategory[]>([]);
   const [newest, setNewest] = useState<TProductList[]>([]);
   const searchParams = useSearchParams();
   const router = useRouter();

@@ -1,12 +1,12 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import Header from '@/components/Header';
+import Header from '@/components/layout/Header';
 import HomepageSidebar from '@/components/homepage/homepage-sidebar';
 import Heroes from '@/components/homepage/heroes';
 import ProductCardSection from '@/components/homepage/product-card-section';
 import NewsLetter from '@/components/homepage/newsletter';
-import Footer from '@/components/Footer';
+import Footer from '@/components/layout/Footer';
 
 export default function Home() {
   return (

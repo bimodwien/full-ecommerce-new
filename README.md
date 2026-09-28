@@ -81,8 +81,8 @@ The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/serv
 │   ├── api                    # Express + Prisma backend
 │   │   ├── prisma/            # schema + migrations
 │   │   └── src
-│   │       ├── routers/       # route definitions + guards
-│   │       ├── controllers/   # request/response handling
+│   │       ├── routers/       # route definitions + guards, one folder per domain
+│   │       ├── controllers/   # request/response handling, one folder per domain
 │   │       ├── services/      # business logic, one folder per domain
 │   │       ├── middlewares/   # auth (JWT) + role (buyer/seller) guards
 │   │       └── libs/          # midtrans, multer, markdown, AppError

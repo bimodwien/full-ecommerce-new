@@ -1,10 +1,7 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import type { TCartStoreState } from '@/models/cart.model';
 
-type CartState = {
-  count: number;
-};
-
-const initialState: CartState = {
+const initialState: TCartStoreState = {
   count: 0,
 };
 

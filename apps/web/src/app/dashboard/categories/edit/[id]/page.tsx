@@ -11,9 +11,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { axiosInstance } from '@/libraries/axios';
 import { toast } from 'sonner';
-
-type TCategory = { id: string; name: string };
-type GetCategoryResponse = { message: string; category: TCategory };
+import type { GetCategoryResponse } from '@/models/category.model';
 
 const EditCategories = () => {
   const router = useRouter();

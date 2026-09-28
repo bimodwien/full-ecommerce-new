@@ -1,14 +1,6 @@
-import { TUser, Role } from '@/models/user.model';
+import { TUser, Role, TAuthState } from '@/models/user.model';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { deleteCookie } from 'cookies-next';
-
-export type TAuthState = TUser & {
-  // Becomes true once AuthProvider has checked the cookie on mount, whether
-  // or not a session was found. Pages must wait for this before treating
-  // an empty `id` as "not logged in" — otherwise they redirect on the
-  // first render, before the cookie has been read.
-  initialized: boolean;
-};
 
 const initialUser: TAuthState = {
   id: '',

@@ -3,23 +3,15 @@ import prisma from '@/prisma';
 import { Prisma } from '@prisma/client';
 import AppError from '@/libs/appError';
 import sanitizeProduct, {
-  PrismaProductWithRelations,
   sanitizeProductForList,
   PRIMARY_IMAGE_FIRST,
   PRODUCT_LIST_INCLUDE,
   PRODUCT_PAGE_INCLUDE,
 } from './helpers';
-
-export type GetProductsOptions = {
-  page?: number;
-  limit?: number;
-  name?: string;
-  categoryId?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  sort?: 'newest' | 'price_asc' | 'price_desc' | string;
-  sellerId?: string;
-};
+import type {
+  GetProductsOptions,
+  PrismaProductWithRelations,
+} from '@/models/product.model';
 
 function buildProductWhere(opts: GetProductsOptions): Prisma.ProductWhereInput {
   const name = (opts.name || '').trim();

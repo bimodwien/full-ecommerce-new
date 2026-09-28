@@ -1,8 +1,8 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
-import PageHeader from '@/components/dashboard/page-header';
-import OrderTrackingFilter from '@/components/dashboard/order-tracking-filter';
-import OrderTrackingTable from '@/components/dashboard/order-tracking-table';
+import PageHeader from '@/components/dashboard/shared/page-header';
+import OrderTrackingFilter from '@/components/dashboard/orders/order-tracking-filter';
+import OrderTrackingTable from '@/components/dashboard/orders/order-tracking-table';
 import { Pagination } from '@/components/ui/pagination';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchAdminOrders } from '@/helpers/fetch-order';

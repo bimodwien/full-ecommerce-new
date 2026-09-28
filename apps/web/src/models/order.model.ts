@@ -1,12 +1,7 @@
 import type { TProduct, TProductVariant } from './product.model';
 
 export type OrderStatus =
-  | 'PENDING'
-  | 'PAID'
-  | 'SHIPPED'
-  | 'COMPLETED'
-  | 'CANCELLED'
-  | 'RETURNED';
+  'PENDING' | 'PAID' | 'SHIPPED' | 'COMPLETED' | 'CANCELLED' | 'RETURNED';
 
 export type TOrderItem = {
   id: string;

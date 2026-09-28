@@ -16,6 +16,8 @@ export type TProductVariant = {
   id: string;
   variant: string;
   stock: number;
+  // Own price when the product uses per-variant pricing; null = product price
+  price?: string | number | null;
   productId: string;
   createdAt: string;
   updatedAt: string;
@@ -47,6 +49,8 @@ export type TProduct = {
   // Derived fields provided by helpers
   stockTotal?: number;
   stockStatus?: TotalStock;
+  // Priciest effective variant price; > price means the card shows a range
+  priceMax?: number;
 };
 
 // Slim version used in list endpoints where we keep only primary image

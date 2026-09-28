@@ -1,7 +1,7 @@
 import { Dispatch } from 'redux';
 import { axiosInstance } from '@/libraries/axios';
 import { login, authChecked } from '../slices/auth.slice';
-import { TUser, Role } from '@/models/user.model';
+import { TUser, Role, TRegisterPayload } from '@/models/user.model';
 import { getCookie, setCookie, deleteCookie } from 'cookies-next';
 import { jwtDecode } from 'jwt-decode';
 
@@ -91,12 +91,6 @@ export const keepLogin = () => async (dispatch: Dispatch) => {
 };
 
 // --- Registration thunk ---
-type TRegisterPayload = Pick<
-  TUser,
-  'name' | 'username' | 'email' | 'password'
-> & {
-  role: Role;
-};
 
 export const userRegister = (payload: TRegisterPayload) => {
   return async (_dispatch: Dispatch) => {

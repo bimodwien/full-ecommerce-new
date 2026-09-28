@@ -1,8 +1,8 @@
 'use client';
 import React, { Suspense } from 'react';
 import Link from 'next/link';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
 import HomepageSidebar from '@/components/homepage/homepage-sidebar';
 import CartSection from '@/components/cart/cart-section';
 import { useAuthGuard } from '@/hooks/use-auth-guard';

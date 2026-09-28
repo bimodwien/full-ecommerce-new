@@ -1,14 +1,8 @@
-import { Prisma, Wishlist, ProductVariant } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import AppError from '@/libs/appError';
-import {
-  sanitizeProductForList,
-  PrismaProductWithRelations,
-} from '../product/helpers';
-
-type WishlistRow = Wishlist & {
-  Product?: unknown;
-  Variant?: ProductVariant | null;
-};
+import { sanitizeProductForList } from '../product/helpers';
+import type { PrismaProductWithRelations } from '@/models/product.model';
+import type { WishlistRow } from '@/models/wishlist.model';
 
 export function toWishlistDto(wishlist: WishlistRow) {
   return {

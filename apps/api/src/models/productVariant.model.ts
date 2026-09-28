@@ -15,3 +15,11 @@ export type TProductVariant = {
   Cart?: TCart[];
   OrderItem?: TOrderItem[];
 };
+
+// One entry of the variantUpdates payload on product edit.
+export type VariantUpdate = {
+  id?: string;
+  variant?: string;
+  stock?: number;
+  price?: unknown;
+};

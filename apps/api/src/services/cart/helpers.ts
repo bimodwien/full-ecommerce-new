@@ -1,11 +1,8 @@
-import { Prisma, Cart, ProductVariant } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import AppError from '@/libs/appError';
-import {
-  sanitizeProductForList,
-  PrismaProductWithRelations,
-} from '../product/helpers';
-
-type CartRow = Cart & { Product?: unknown; Variant?: ProductVariant | null };
+import { sanitizeProductForList } from '../product/helpers';
+import type { CartRow } from '@/models/cart.model';
+import type { PrismaProductWithRelations } from '@/models/product.model';
 
 export function toCartDto(cart: CartRow) {
   return {
