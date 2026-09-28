@@ -11,48 +11,56 @@ import {
 import { useVariantRows } from './use-variant-rows';
 import { useAddProductImages } from './use-add-product-images';
 import { sendProductForm, useCategories } from './submit-product';
+import {
+  productPricePayload,
+  rowPricePayload,
+  variantPriceError,
+} from './variant-pricing';
 
-function buildCreateFormData(
-  values: ProductFormValues,
-  descriptionHtml: string,
-  variants: VariantRow[],
-  files: File[],
-) {
+type CreateContext = {
+  descriptionHtml: string;
+  variants: VariantRow[];
+  perVariantPrice: boolean;
+  files: File[];
+  onDone: () => void;
+};
+
+function buildCreateFormData(values: ProductFormValues, ctx: CreateContext) {
+  const { variants, perVariantPrice } = ctx;
   const cleanVariants = variants
-    .map((v) => ({ variant: v.variant.trim(), stock: Number(v.stock) || 0 }))
+    .map((v) => ({
+      variant: v.variant.trim(),
+      stock: Number(v.stock) || 0,
+      price: rowPricePayload(v, perVariantPrice),
+    }))
     .filter((v) => v.variant.length > 0);
 
   const fd = new FormData();
   fd.append('name', values.name);
   // Prefer HTML description so backend can store it as descriptionHtml
-  fd.append('description', descriptionHtml || values.description);
-  fd.append('price', String(values.price));
+  fd.append('description', ctx.descriptionHtml || values.description);
+  fd.append(
+    'price',
+    productPricePayload(values.price, variants, perVariantPrice),
+  );
   fd.append('categoryId', values.categoryId);
   if (cleanVariants.length > 0)
     fd.append('variant', JSON.stringify(cleanVariants));
-  files.forEach((f) => fd.append('image', f));
+  ctx.files.forEach((f) => fd.append('image', f));
   return fd;
 }
-
-type CreateContext = {
-  descriptionHtml: string;
-  variants: VariantRow[];
-  files: File[];
-  onDone: () => void;
-};
 
 async function submitCreate(values: ProductFormValues, ctx: CreateContext) {
   if (ctx.files.length === 0) {
     toast.error('Please upload at least 1 product image');
     return;
   }
-  const fd = buildCreateFormData(
-    values,
-    ctx.descriptionHtml,
-    ctx.variants,
-    ctx.files,
-  );
-  const ok = await sendProductForm(fd, {
+  const priceError = variantPriceError(ctx.variants, ctx.perVariantPrice);
+  if (priceError) {
+    toast.error(priceError);
+    return;
+  }
+  const ok = await sendProductForm(buildCreateFormData(values, ctx), {
     method: 'post',
     url: '/products',
     loading: 'Creating product...',
@@ -72,11 +80,12 @@ export function useAddProductForm() {
 
   const formik = useFormik({
     initialValues: emptyProductValues,
-    validationSchema: productSchema,
+    validationSchema: productSchema(rows.perVariantPrice),
     onSubmit: (values) =>
       submitCreate(values, {
         descriptionHtml,
         variants: rows.variants,
+        perVariantPrice: rows.perVariantPrice,
         files: images.files,
         onDone: () => router.push('/dashboard/products'),
       }),

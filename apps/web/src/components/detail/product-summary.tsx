@@ -2,6 +2,7 @@ import React from 'react';
 import DOMPurify from 'dompurify';
 import { TProduct } from '@/models/product.model';
 import { formatIDR } from '@/lib/utils';
+import { effectivePrice } from '@/lib/product-display';
 import VariantPicker from './variant-picker';
 import PurchaseActions from './purchase-actions';
 import { ProductDetailState } from './use-product-detail';
@@ -31,7 +32,7 @@ export default function ProductSummary({ product, detail }: Props) {
         {product.name}
       </h1>
       <div className="text-ink text-xl font-medium leading-10">
-        {formatIDR(Number(product.price))}
+        {formatIDR(effectivePrice(product, detail.selectedVariant))}
       </div>
       {product.Variants && product.Variants.length > 0 && (
         <VariantPicker

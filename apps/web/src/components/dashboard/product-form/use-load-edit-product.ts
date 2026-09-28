@@ -9,6 +9,7 @@ type Setters = {
   setDescriptionHtml: (html: string) => void;
   setServerImages: (images: TProductImage[]) => void;
   setVariants: (rows: VariantRow[]) => void;
+  setPerVariantPrice: (on: boolean) => void;
   setInitialLoaded: (loaded: boolean) => void;
 };
 
@@ -29,8 +30,11 @@ function applyProduct(p: TProduct, s: Setters) {
       id: v.id,
       variant: v.variant,
       stock: v.stock,
+      price: v.price == null ? '' : String(v.price),
     })),
   );
+  // Turn the toggle on when the product already has per-variant prices.
+  s.setPerVariantPrice((p.Variants || []).some((v) => v.price != null));
   s.setInitialLoaded(true);
 }
 

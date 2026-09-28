@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { VariantRow, newRowKey } from './types';
 
-type RowField = 'variant' | 'stock';
+export type RowField = 'variant' | 'stock' | 'price';
 
 const patchRow = (row: VariantRow, field: RowField, value: string) => ({
   ...row,
@@ -12,11 +12,12 @@ export function useVariantRows() {
   const [variants, setVariants] = useState<VariantRow[]>([]);
   // Server-side variant ids the user removed (only used when editing).
   const [removedVariantIds, setRemovedVariantIds] = useState<string[]>([]);
+  const [perVariantPrice, setPerVariantPrice] = useState(false);
 
   const addVariant = () =>
     setVariants((prev) => [
       ...prev,
-      { key: newRowKey(), variant: '', stock: 0 },
+      { key: newRowKey(), variant: '', stock: 0, price: '' },
     ]);
 
   const updateVariant = (key: string, field: RowField, value: string) =>
@@ -35,6 +36,8 @@ export function useVariantRows() {
     variants,
     setVariants,
     removedVariantIds,
+    perVariantPrice,
+    setPerVariantPrice,
     addVariant,
     updateVariant,
     removeVariant,

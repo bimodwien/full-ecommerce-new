@@ -38,34 +38,43 @@ async function findSelectedCarts(userId: string, cartItemIds: string[]) {
   return carts;
 }
 
+// Check and decrement stock for the cart's variant, returning the variant.
+async function reserveVariantStock(
+  tx: Prisma.TransactionClient,
+  cartItem: Cart,
+  productName: string,
+) {
+  if (!cartItem.variantId) return null;
+  const variant = await tx.productVariant.findUnique({
+    where: { id: cartItem.variantId },
+  });
+  if (!variant || variant.productId !== cartItem.productId)
+    throw new AppError('Variant not found for product', 404);
+
+  // Check and decrement in one statement. A separate read-then-update
+  // lets two concurrent checkouts both pass the check and oversell.
+  const { count } = await tx.productVariant.updateMany({
+    where: { id: cartItem.variantId, stock: { gte: cartItem.quantity } },
+    data: { stock: { decrement: cartItem.quantity } },
+  });
+  if (count === 0)
+    throw new AppError(`Insufficient stock for ${productName}`, 400);
+  return variant;
+}
+
 async function reserveCartItem(tx: Prisma.TransactionClient, cartItem: Cart) {
   const product = await tx.product.findUnique({
     where: { id: cartItem.productId },
   });
   if (!product) throw new AppError('Product not found', 404);
-
-  if (cartItem.variantId) {
-    const variant = await tx.productVariant.findUnique({
-      where: { id: cartItem.variantId },
-    });
-    if (!variant || variant.productId !== cartItem.productId)
-      throw new AppError('Variant not found for product', 404);
-
-    // Check and decrement in one statement. A separate read-then-update
-    // lets two concurrent checkouts both pass the check and oversell.
-    const { count } = await tx.productVariant.updateMany({
-      where: { id: cartItem.variantId, stock: { gte: cartItem.quantity } },
-      data: { stock: { decrement: cartItem.quantity } },
-    });
-    if (count === 0)
-      throw new AppError(`Insufficient stock for ${product.name}`, 400);
-  }
+  const variant = await reserveVariantStock(tx, cartItem, product.name);
 
   const item: OrderItemInput = {
     productId: cartItem.productId,
     variantId: cartItem.variantId ?? undefined,
     quantity: cartItem.quantity,
-    price: product.price,
+    // Snapshot the price paid: the variant's own price when it has one.
+    price: variant?.price ?? product.price,
   };
   return { sellerId: product.sellerId, item };
 }

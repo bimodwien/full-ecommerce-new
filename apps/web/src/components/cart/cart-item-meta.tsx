@@ -2,10 +2,10 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TCart } from '@/models/cart.model';
-import { listImageUrl, toPrice } from '@/lib/product-display';
+import { effectivePrice, listImageUrl } from '@/lib/product-display';
 
 export const cartItemPrice = (cart: TCart) =>
-  cart.Product ? toPrice(cart.Product.price) : 0;
+  cart.Product ? effectivePrice(cart.Product, cart.Variant) : 0;
 
 export function cartTotals(carts: TCart[]) {
   return {

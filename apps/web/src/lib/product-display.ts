@@ -27,6 +27,13 @@ export function toPrice(price: string | number | null | undefined) {
   return typeof price === 'string' ? Number(price) : price;
 }
 
+type Priced = { price?: string | number | null } | null | undefined;
+
+// What a buyer actually pays: the variant's own price if it has one.
+export function effectivePrice(product: Priced, variant?: Priced) {
+  return toPrice(variant?.price ?? product?.price);
+}
+
 export function matchesProductFilter(
   product: unknown,
   name: string,

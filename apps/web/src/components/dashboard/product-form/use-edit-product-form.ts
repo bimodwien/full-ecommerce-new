@@ -15,6 +15,11 @@ import {
 } from './use-edit-product-images';
 import { useLoadEditProduct } from './use-load-edit-product';
 import { sendProductForm, useCategories } from './submit-product';
+import {
+  productPricePayload,
+  rowPricePayload,
+  variantPriceError,
+} from './variant-pricing';
 
 type UpdateContext = {
   productId: string;
@@ -26,15 +31,20 @@ type UpdateContext = {
 
 function buildUpdateFormData(values: ProductFormValues, ctx: UpdateContext) {
   const { rows, images } = ctx;
-  const variantUpdates = rows.variants.map((v) => ({
+  const { perVariantPrice, variants } = rows;
+  const variantUpdates = variants.map((v) => ({
     id: v.id,
     variant: v.variant.trim(),
     stock: Number(v.stock) || 0,
+    price: rowPricePayload(v, perVariantPrice),
   }));
   const fd = new FormData();
   fd.append('name', values.name);
   fd.append('description', ctx.descriptionHtml || values.description);
-  fd.append('price', String(values.price));
+  fd.append(
+    'price',
+    productPricePayload(values.price, variants, perVariantPrice),
+  );
   fd.append('categoryId', values.categoryId);
   if (variantUpdates.length > 0)
     fd.append('variantUpdates', JSON.stringify(variantUpdates));
@@ -49,6 +59,12 @@ function buildUpdateFormData(values: ProductFormValues, ctx: UpdateContext) {
 async function submitUpdate(values: ProductFormValues, ctx: UpdateContext) {
   if (ctx.images.totalEffectiveCount === 0) {
     toast.error('Please keep at least one product image');
+    return;
+  }
+  const { variants, perVariantPrice } = ctx.rows;
+  const priceError = variantPriceError(variants, perVariantPrice);
+  if (priceError) {
+    toast.error(priceError);
     return;
   }
   const ok = await sendProductForm(buildUpdateFormData(values, ctx), {
@@ -83,7 +99,7 @@ function useEditFormik(ctx: UpdateContext) {
   const formik = useFormik({
     initialValues: emptyProductValues,
     enableReinitialize: true,
-    validationSchema: productSchema,
+    validationSchema: productSchema(ctx.rows.perVariantPrice),
     onSubmit: (values) => submitUpdate(values, ctx),
   });
   useFirstErrorToast(formik);
@@ -110,6 +126,7 @@ export function useEditProductForm() {
     setDescriptionHtml,
     setServerImages: images.setServerImages,
     setVariants: rows.setVariants,
+    setPerVariantPrice: rows.setPerVariantPrice,
     setInitialLoaded,
   });
 

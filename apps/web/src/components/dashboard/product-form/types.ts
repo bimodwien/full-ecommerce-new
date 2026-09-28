@@ -16,6 +16,8 @@ export type VariantRow = {
   id?: string;
   variant: string;
   stock: number;
+  // Only used when "different price per variant" is on
+  price: string;
 };
 
 export const emptyProductValues: ProductFormValues = {
@@ -25,15 +27,19 @@ export const emptyProductValues: ProductFormValues = {
   categoryId: '',
 };
 
-export const productSchema = Yup.object({
-  name: Yup.string().required('Product name is required'),
-  description: Yup.string().required('Description is required'),
-  price: Yup.number()
-    .typeError('Price must be a number')
-    .required('Price is required')
-    .min(0, 'Price must be >= 0'),
-  categoryId: Yup.string().required('Category is required'),
-});
+// With per-variant pricing the product price is derived, so it isn't validated.
+export const productSchema = (perVariantPrice = false) =>
+  Yup.object({
+    name: Yup.string().required('Product name is required'),
+    description: Yup.string().required('Description is required'),
+    price: perVariantPrice
+      ? Yup.string()
+      : Yup.number()
+          .typeError('Price must be a number')
+          .required('Price is required')
+          .min(0, 'Price must be >= 0'),
+    categoryId: Yup.string().required('Category is required'),
+  });
 
 export const newRowKey = () =>
   `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

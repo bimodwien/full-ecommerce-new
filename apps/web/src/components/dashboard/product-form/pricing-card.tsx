@@ -5,8 +5,28 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ProductFormik } from './types';
 import { FieldError } from './info-cards';
+import { VariantRowsState } from './use-variant-rows';
+import { cheapestRowPrice } from './variant-pricing';
 
-export function PricingCard({ formik }: { formik: ProductFormik }) {
+function AutoPriceHint({ rows }: { rows: VariantRowsState }) {
+  const cheapest = cheapestRowPrice(rows.variants);
+  return (
+    <p className="text-sm text-zinc-500 mt-1">
+      {cheapest === undefined
+        ? 'Set variant prices to fill this in.'
+        : 'Set automatically to the cheapest variant price.'}
+    </p>
+  );
+}
+
+type PricingProps = { formik: ProductFormik; rows: VariantRowsState };
+
+export function PricingCard({ formik, rows }: PricingProps) {
+  const auto = rows.perVariantPrice;
+  const field = formik.getFieldProps('price');
+  const value = auto
+    ? String(cheapestRowPrice(rows.variants) ?? '')
+    : field.value;
   return (
     <Card>
       <CardHeader>
@@ -15,7 +35,7 @@ export function PricingCard({ formik }: { formik: ProductFormik }) {
       <CardContent className="space-y-4">
         <div>
           <Label htmlFor="price" className="text-zinc-700">
-            Price
+            {auto ? 'Starting price' : 'Price'}
           </Label>
           <div className="flex mt-1">
             <div className="px-3 py-2 bg-zinc-50 border border-zinc-200 border-r-0 rounded-l text-sm">
@@ -24,12 +44,18 @@ export function PricingCard({ formik }: { formik: ProductFormik }) {
             <Input
               id="price"
               type="number"
-              {...formik.getFieldProps('price')}
+              {...field}
+              value={value}
+              disabled={auto}
               placeholder="180000"
               className="rounded-l-none border-l-0"
             />
           </div>
-          <FieldError formik={formik} field="price" />
+          {auto ? (
+            <AutoPriceHint rows={rows} />
+          ) : (
+            <FieldError formik={formik} field="price" />
+          )}
         </div>
       </CardContent>
     </Card>

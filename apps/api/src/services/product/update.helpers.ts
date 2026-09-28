@@ -11,9 +11,15 @@ import {
   parseJsonField,
   assertCategoryExists,
 } from './input.helpers';
+import { parseVariantPrice } from './variant-price.helpers';
 
 type Tx = Prisma.TransactionClient;
-type VariantUpdate = { id?: string; variant?: string; stock?: number };
+type VariantUpdate = {
+  id?: string;
+  variant?: string;
+  stock?: number;
+  price?: unknown;
+};
 type UpdateInput = Awaited<ReturnType<typeof parseUpdateInput>>;
 
 const isNonEmptyArray = <T>(v: T[] | undefined): v is T[] =>
@@ -85,7 +91,11 @@ async function upsertVariants(
     if (v.id) {
       await tx.productVariant.update({
         where: { id: v.id },
-        data: { variant: v.variant ?? undefined, stock: v.stock ?? undefined },
+        data: {
+          variant: v.variant ?? undefined,
+          stock: v.stock ?? undefined,
+          price: parseVariantPrice(v.price),
+        },
       });
     } else {
       // creating a new variant; ensure it doesn't exist (checked in assertVariantNames)
@@ -93,6 +103,7 @@ async function upsertVariants(
         data: {
           variant: String(v.variant ?? ''),
           stock: Number(v.stock ?? 0),
+          price: parseVariantPrice(v.price) ?? null,
           productId,
         },
       });
@@ -164,26 +175,9 @@ export async function createImagesAndVariants(
       data: (variantsCreate.create as any[]).map((v) => ({
         variant: (v as any).variant,
         stock: (v as any).stock,
+        price: (v as any).price,
         productId,
       })),
     });
   }
-}
-
-// If the primary image was removed, promote the oldest remaining one.
-export async function ensurePrimaryImage(tx: Tx, productId: string) {
-  const anyPrimary = await tx.productImage.findFirst({
-    where: { productId, isPrimary: true },
-  });
-  if (anyPrimary) return;
-
-  const firstImg = await tx.productImage.findFirst({
-    where: { productId },
-    orderBy: { createdAt: 'asc' },
-  });
-  if (firstImg)
-    await tx.productImage.update({
-      where: { id: firstImg.id },
-      data: { isPrimary: true },
-    });
 }

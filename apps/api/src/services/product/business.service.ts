@@ -21,8 +21,8 @@ import {
   applyRemovalsAndVariantUpdates,
   buildProductUpdateData,
   createImagesAndVariants,
-  ensurePrimaryImage,
 } from './update.helpers';
+import { cheapestPrice, syncProductPrice } from './variant-price.helpers';
 
 type CreateInput = {
   name: string;
@@ -34,12 +34,16 @@ type CreateInput = {
   variantsCreate: VariantsCreate;
 };
 
+const variantPrices = (variantsCreate: VariantsCreate) =>
+  ((variantsCreate?.create as any[]) ?? []).map((v) => v.price);
+
 function buildCreateData(input: CreateInput): Prisma.ProductCreateInput {
   const { name, description, priceNum, sellerId, categoryId } = input;
   const createData: Prisma.ProductCreateInput = {
     name,
     description: description ?? undefined,
-    price: priceNum,
+    // With per-variant prices, the product price is the cheapest variant.
+    price: cheapestPrice(variantPrices(input.variantsCreate)) ?? priceNum,
     seller: { connect: { id: sellerId } },
     Category: categoryId ? { connect: { id: String(categoryId) } } : undefined,
     Images: {
@@ -56,6 +60,27 @@ function buildCreateData(input: CreateInput): Prisma.ProductCreateInput {
   if (description)
     createData.descriptionHtml = renderMarkdownToHtml(String(description));
   return createData;
+}
+
+// If the primary image was removed, promote the oldest remaining one.
+async function ensurePrimaryImage(
+  tx: Prisma.TransactionClient,
+  productId: string,
+) {
+  const anyPrimary = await tx.productImage.findFirst({
+    where: { productId, isPrimary: true },
+  });
+  if (anyPrimary) return;
+
+  const firstImg = await tx.productImage.findFirst({
+    where: { productId },
+    orderBy: { createdAt: 'asc' },
+  });
+  if (firstImg)
+    await tx.productImage.update({
+      where: { id: firstImg.id },
+      data: { isPrimary: true },
+    });
 }
 
 class ProductBusinessService {
@@ -117,6 +142,7 @@ class ProductBusinessService {
         input.imagesCreate,
         input.variantsCreate,
       );
+      await syncProductPrice(tx, productId);
       await ensurePrimaryImage(tx, productId);
 
       const product = await tx.product.findUnique({

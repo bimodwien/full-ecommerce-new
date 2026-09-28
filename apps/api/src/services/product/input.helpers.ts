@@ -2,6 +2,10 @@ import { Request } from 'express';
 import sharp from 'sharp';
 import { Prisma } from '@prisma/client';
 import AppError from '@/libs/appError';
+import {
+  assertAllOrNonePriced,
+  parseVariantPrice,
+} from './variant-price.helpers';
 
 export type ImageInput = { data: Buffer; isPrimary?: boolean };
 export type VariantsCreate = Prisma.ProductCreateInput['Variants'] | undefined;
@@ -48,10 +52,12 @@ export function parseVariantsCreate(variant: unknown): VariantsCreate {
           create: parsed.map((v: any) => ({
             variant: String(v.variant ?? v.name ?? ''),
             stock: Number(v.stock ?? 0),
+            price: parseVariantPrice(v.price) ?? null,
           })),
         };
       }
     } catch (err) {
+      if (err instanceof AppError) throw err;
       throw new AppError('Invalid variant format; expected JSON array', 400);
     }
   }
@@ -64,6 +70,7 @@ export function parseVariantsCreate(variant: unknown): VariantsCreate {
     const dup = names.find((n, i) => names.indexOf(n) !== i);
     if (dup)
       throw new AppError(`Duplicate variant name in payload: ${dup}`, 400);
+    assertAllOrNonePriced((variantsCreate.create as any[]).map((x) => x.price));
   }
   return variantsCreate;
 }

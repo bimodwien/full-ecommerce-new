@@ -36,7 +36,7 @@ export default function EditProduct() {
       right={
         <>
           <EditImagesCard images={form.images} />
-          <PricingCard formik={formik} />
+          <PricingCard formik={formik} rows={form.rows} />
           <FormActions
             submitLabel="Save Changes"
             onCancel={() => form.router.back()}

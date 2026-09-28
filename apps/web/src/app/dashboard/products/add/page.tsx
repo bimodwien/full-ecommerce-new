@@ -36,7 +36,7 @@ function AddProduct() {
       right={
         <>
           <AddImagesCard images={form.images} />
-          <PricingCard formik={formik} />
+          <PricingCard formik={formik} rows={form.rows} />
           <FormActions
             submitLabel="Add Product"
             onCancel={() => form.router.back()}

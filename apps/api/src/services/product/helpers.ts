@@ -22,7 +22,7 @@ const SELLER_SELECT = { select: { id: true, name: true } };
 // List payloads: primary image only, plus variant stock for stockStatus.
 export const PRODUCT_LIST_INCLUDE = {
   Images: { orderBy: PRIMARY_IMAGE_FIRST, take: 1 },
-  Variants: { select: { stock: true } },
+  Variants: { select: { stock: true, price: true } },
   Category: true,
   seller: SELLER_SELECT,
 } satisfies Prisma.ProductInclude;
@@ -49,6 +49,27 @@ export type SanitizedProduct = Omit<TProduct, 'Images'> & {
   Images?: (Omit<TProductImage, 'data'> & { imageUrl: string })[];
 };
 
+function stockStatusOf(total: number) {
+  if (total <= 0) return TotalStock.OUT_OF_STOCK;
+  if (total < 5) return TotalStock.LOW_STOCK;
+  return TotalStock.IN_STOCK;
+}
+
+// Stock totals from variants, plus priceMax (the priciest effective variant
+// price) so list cards can show a "Rp X – Rp Y" range.
+function derivedFields(product: PrismaProductWithRelations) {
+  const variants = Array.isArray(product.Variants) ? product.Variants : null;
+  const total = variants
+    ? variants.reduce((s, v) => s + (v.stock ?? 0), 0)
+    : undefined;
+  const prices = (variants ?? []).map((v) => Number(v.price ?? product.price));
+  return {
+    stockTotal: total,
+    stockStatus: stockStatusOf(total ?? 0),
+    priceMax: prices.length > 0 ? Math.max(...prices) : Number(product.price),
+  };
+}
+
 export function sanitizeProduct(
   product: PrismaProductWithRelations | null,
 ): SanitizedProduct | null {
@@ -67,17 +88,7 @@ export function sanitizeProduct(
     description: product.description ?? undefined,
     descriptionHtml: (product as any).descriptionHtml ?? undefined,
     Images: images,
-    stockTotal: Array.isArray(product.Variants)
-      ? product.Variants.reduce((s, v) => s + (v.stock ?? 0), 0)
-      : undefined,
-    stockStatus: (() => {
-      const total = Array.isArray(product.Variants)
-        ? product.Variants.reduce((s, v) => s + (v.stock ?? 0), 0)
-        : 0;
-      if (total <= 0) return TotalStock.OUT_OF_STOCK;
-      if (total < 5) return TotalStock.LOW_STOCK;
-      return TotalStock.IN_STOCK;
-    })(),
+    ...derivedFields(product),
   };
 
   return sanitized as unknown as SanitizedProduct;
@@ -120,17 +131,7 @@ export function sanitizeProductForList(
       return rest;
     })(),
     Images: images,
-    stockTotal: Array.isArray(product.Variants)
-      ? product.Variants.reduce((s, v) => s + (v.stock ?? 0), 0)
-      : undefined,
-    stockStatus: (() => {
-      const total = Array.isArray(product.Variants)
-        ? product.Variants.reduce((s, v) => s + (v.stock ?? 0), 0)
-        : 0;
-      if (total <= 0) return TotalStock.OUT_OF_STOCK;
-      if (total < 5) return TotalStock.LOW_STOCK;
-      return TotalStock.IN_STOCK;
-    })(),
+    ...derivedFields(product),
   };
 
   return sanitized as unknown as SanitizedProduct;

@@ -5,7 +5,7 @@ import { ShoppingCart, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatIDR } from '@/lib/utils';
-import { listImageUrl, toPrice } from '@/lib/product-display';
+import { effectivePrice, listImageUrl } from '@/lib/product-display';
 import { TWishlist } from '@/models/wishlist.model';
 import { WishlistState } from './use-wishlist';
 
@@ -65,7 +65,7 @@ export default function WishlistItem({ wishlist, state }: Props) {
           <span className="text-mute">{product?.seller?.name || ''}</span>
         </div>
         <div className="text-base font-medium text-ink">
-          {formatIDR(product ? toPrice(product.price) : 0)}
+          {formatIDR(product ? effectivePrice(product, wishlist.Variant) : 0)}
         </div>
         {wishlist.Variant && (
           <div className="text-xs text-mute bg-soft-cloud px-2 py-0.5 w-fit">
