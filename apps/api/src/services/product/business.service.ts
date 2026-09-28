@@ -4,10 +4,10 @@ import { Prisma } from '@prisma/client';
 import sanitizeProduct, {
   PrismaProductWithRelations,
   PRODUCT_DETAIL_INCLUDE,
-} from './product.helpers';
+} from './helpers';
 import { renderMarkdownToHtml } from '@/libs/markdown';
 import AppError from '@/libs/appError';
-import { requireId } from './common.helpers';
+import { requireId } from '../common.helpers';
 import {
   ImageInput,
   VariantsCreate,
@@ -15,14 +15,14 @@ import {
   processImages,
   parseVariantsCreate,
   assertCategoryExists,
-} from './product.input.helpers';
+} from './input.helpers';
 import {
   parseUpdateInput,
   applyRemovalsAndVariantUpdates,
   buildProductUpdateData,
   createImagesAndVariants,
   ensurePrimaryImage,
-} from './product.update.helpers';
+} from './update.helpers';
 
 type CreateInput = {
   name: string;

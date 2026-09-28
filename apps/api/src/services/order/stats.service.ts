@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import prisma from '@/prisma';
 import { OrderStatus } from '@prisma/client';
-import { requireUserId } from './common.helpers';
+import { requireUserId } from '../common.helpers';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

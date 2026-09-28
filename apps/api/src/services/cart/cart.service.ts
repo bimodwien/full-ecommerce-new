@@ -2,19 +2,19 @@ import { Request } from 'express';
 import prisma from '@/prisma';
 import { Prisma, Cart } from '@prisma/client';
 import AppError from '@/libs/appError';
-import { USER_ITEM_INCLUDE } from './product.helpers';
+import { USER_ITEM_INCLUDE } from '../product/helpers';
 import {
   requireUserId,
   requireId,
   parsePagination,
   pageMeta,
-} from './common.helpers';
+} from '../common.helpers';
 import {
   toCartDto,
   assertVariantQuantity,
   assertWithinStock,
   resolveQuantity,
-} from './cart.helpers';
+} from './helpers';
 
 async function incrementCartItem(
   tx: Prisma.TransactionClient,

@@ -7,9 +7,9 @@ import {
   ADMIN_ORDER_INCLUDE,
   CANCELLABLE_AFTER_MS,
   sanitizeOrder,
-} from './order.helpers';
-import { requireUserId } from './common.helpers';
-import { cancelPayment } from './order.payment.helpers';
+} from './helpers';
+import { requireUserId } from '../common.helpers';
+import { cancelPayment } from './payment.helpers';
 
 class OrderStatusService {
   static async shipOrder(req: Request) {

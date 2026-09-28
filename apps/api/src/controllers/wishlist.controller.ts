@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import WishlistService from '@/services/wishlist.service';
+import WishlistService from '@/services/wishlist/wishlist.service';
 
 export class WishlistController {
   async getAll(req: Request, res: Response, next: NextFunction) {

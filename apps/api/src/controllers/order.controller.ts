@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import OrderCheckoutService from '@/services/order.checkout.service';
-import OrderQueryService from '@/services/order.query.service';
-import OrderPaymentService from '@/services/order.payment.service';
-import OrderStatsService from '@/services/order.stats.service';
-import OrderStatusService from '@/services/order.status.service';
+import OrderCheckoutService from '@/services/order/checkout.service';
+import OrderQueryService from '@/services/order/query.service';
+import OrderPaymentService from '@/services/order/payment.service';
+import OrderStatsService from '@/services/order/stats.service';
+import OrderStatusService from '@/services/order/status.service';
 
 export class OrderController {
   async create(req: Request, res: Response, next: NextFunction) {

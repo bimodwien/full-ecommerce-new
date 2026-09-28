@@ -2,9 +2,9 @@ import { Request } from 'express';
 import prisma from '@/prisma';
 import { Prisma, OrderStatus, Cart } from '@prisma/client';
 import AppError from '@/libs/appError';
-import { ORDER_INCLUDE, OrderWithItems, sanitizeOrder } from './order.helpers';
-import { requireUserId } from './common.helpers';
-import { initiatePayment } from './order.payment.helpers';
+import { ORDER_INCLUDE, OrderWithItems, sanitizeOrder } from './helpers';
+import { requireUserId } from '../common.helpers';
+import { initiatePayment } from './payment.helpers';
 
 type OrderItemInput = {
   productId: string;

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import UserService from '@/services/user.service';
+import UserService from '@/services/user/user.service';
 import { OAuth2Client } from 'google-auth-library';
 import { createToken } from '@/libs/jwt';
 

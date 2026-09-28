@@ -2,12 +2,8 @@ import { Request } from 'express';
 import prisma from '@/prisma';
 import { Prisma, OrderStatus } from '@prisma/client';
 import AppError from '@/libs/appError';
-import {
-  ORDER_INCLUDE,
-  ADMIN_ORDER_INCLUDE,
-  sanitizeOrder,
-} from './order.helpers';
-import { requireUserId, parsePagination, pageMeta } from './common.helpers';
+import { ORDER_INCLUDE, ADMIN_ORDER_INCLUDE, sanitizeOrder } from './helpers';
+import { requireUserId, parsePagination, pageMeta } from '../common.helpers';
 
 function parseStatusFilter(req: Request, sellerId: string) {
   const statusQuery = req.query.status;

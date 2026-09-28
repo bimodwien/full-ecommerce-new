@@ -21,7 +21,7 @@ Most portfolio e-commerce apps stop at a fake "Pay" button that flips a status c
 - **Idempotent notification handling** — a replayed or out-of-order Midtrans callback is a no-op, because payment providers *do* retry.
 - **Stock is managed transactionally** — reserved when an order is created, restored inside a DB transaction when it's cancelled, denied, or expires.
 
-The interesting code lives in [`apps/api/src/services/order.service.ts`](apps/api/src/services/order.service.ts) and [`apps/api/src/libs/midtrans.ts`](apps/api/src/libs/midtrans.ts).
+The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/services/order/) (start with `checkout.service.ts` and `payment.service.ts`) and [`apps/api/src/libs/midtrans.ts`](apps/api/src/libs/midtrans.ts).
 
 ---
 
@@ -83,7 +83,7 @@ The interesting code lives in [`apps/api/src/services/order.service.ts`](apps/ap
 │   │   └── src
 │   │       ├── routers/       # route definitions + guards
 │   │       ├── controllers/   # request/response handling
-│   │       ├── services/      # business logic
+│   │       ├── services/      # business logic, one folder per domain
 │   │       ├── middlewares/   # auth (JWT) + role (buyer/seller) guards
 │   │       └── libs/          # midtrans, multer, markdown, AppError
 │   └── web                    # Next.js frontend
@@ -95,7 +95,7 @@ The interesting code lives in [`apps/api/src/services/order.service.ts`](apps/ap
 └── turbo.json
 ```
 
-The backend is layered **router → controller → service**; product logic is further split into `product.service` (reads), `product.business.service` (writes), and `product.helpers` (shared sanitisers).
+The backend is layered **router → controller → service**. Services are grouped by domain (`order/`, `product/`, `cart/`, `wishlist/`, `user/`, `category/`), and each domain is split by responsibility. For example, `order/` has `checkout`, `payment`, `query`, `status`, and `stats` services, and `product/` splits `product.service` (reads) from `business.service` (writes). Files stay under 200 lines and functions under 40.
 
 ---
 

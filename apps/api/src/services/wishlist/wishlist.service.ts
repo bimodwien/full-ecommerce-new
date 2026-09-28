@@ -2,18 +2,18 @@ import { Request } from 'express';
 import prisma from '@/prisma';
 import { Prisma } from '@prisma/client';
 import AppError from '@/libs/appError';
-import { USER_ITEM_INCLUDE } from './product.helpers';
+import { USER_ITEM_INCLUDE } from '../product/helpers';
 import {
   requireUserId,
   requireId,
   parsePagination,
   pageMeta,
-} from './common.helpers';
+} from '../common.helpers';
 import {
   toWishlistDto,
   assertProductAndVariant,
   wishlistCreateData,
-} from './wishlist.helpers';
+} from './helpers';
 
 function parseWishlistBody(req: Request) {
   const { productId, variantId } = req.body;
