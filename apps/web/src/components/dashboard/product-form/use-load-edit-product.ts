@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { fetchProductDetail } from '@/helpers/fetch-product';
 import { TProduct, TProductImage } from '@/models/product.model';
-import { ProductFormik, VariantRow } from './types';
+import type { ProductFormik, VariantRow } from '@/models/product-form.model';
 
 type Setters = {
   formik: ProductFormik;

@@ -1,19 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtDecode } from 'jwt-decode';
-
-// Basic shape of user inside JWT (adjust if backend changes)
-interface JwtUser {
-  id: string;
-  role: 'buyer' | 'seller' | string;
-  username?: string;
-  email?: string;
-}
-interface AccessTokenPayload {
-  user?: JwtUser;
-  type?: string;
-  exp?: number;
-  iat?: number;
-}
+import type { JwtUser, AccessTokenPayload } from '@/models/auth.model';
 
 // Routes classification
 const PUBLIC_AUTH_ROUTES = ['/login', '/register'];

@@ -12,3 +12,7 @@ export type TCart = {
   Product?: TProduct;
   Variant?: TProductVariant | null;
 };
+
+export type TCartStoreState = {
+  count: number;
+};

@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useFormik } from 'formik';
 import { toast } from 'sonner';
-import {
+import type {
   ProductFormik,
   ProductFormValues,
-  emptyProductValues,
-  productSchema,
-} from './types';
+} from '@/models/product-form.model';
+import { emptyProductValues, productSchema } from './form-helpers';
 import { VariantRowsState, useVariantRows } from './use-variant-rows';
 import {
   EditProductImages,

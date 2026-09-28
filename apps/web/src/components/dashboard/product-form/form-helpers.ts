@@ -1,24 +1,5 @@
-import type { FormikProps } from 'formik';
+import type { ProductFormValues } from '@/models/product-form.model';
 import * as Yup from 'yup';
-
-export type ProductFormValues = {
-  name: string;
-  description: string;
-  price: string;
-  categoryId: string;
-};
-
-export type ProductFormik = FormikProps<ProductFormValues>;
-
-// `id` is set for variants that already exist on the server (edit page).
-export type VariantRow = {
-  key: string;
-  id?: string;
-  variant: string;
-  stock: number;
-  // Only used when "different price per variant" is on
-  price: string;
-};
 
 export const emptyProductValues: ProductFormValues = {
   name: '',

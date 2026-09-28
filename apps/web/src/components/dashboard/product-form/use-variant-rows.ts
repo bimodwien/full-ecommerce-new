@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { VariantRow, newRowKey } from './types';
-
-export type RowField = 'variant' | 'stock' | 'price';
+import type { RowField, VariantRow } from '@/models/product-form.model';
+import { newRowKey } from './form-helpers';
 
 const patchRow = (row: VariantRow, field: RowField, value: string) => ({
   ...row,

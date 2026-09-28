@@ -13,7 +13,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TCategory } from '@/models/category.model';
-import { ProductFormik, ProductFormValues } from './types';
+import type {
+  ProductFormik,
+  ProductFormValues,
+} from '@/models/product-form.model';
 
 const RichTextEditor = dynamic(
   () => import('@/components/editor/rich-text-editor'),

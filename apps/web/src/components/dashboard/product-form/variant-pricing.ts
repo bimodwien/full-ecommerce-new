@@ -1,4 +1,4 @@
-import { VariantRow } from './types';
+import type { VariantRow } from '@/models/product-form.model';
 
 // Rows the form actually submits (blank names are dropped on create).
 const namedRows = (rows: VariantRow[]) =>

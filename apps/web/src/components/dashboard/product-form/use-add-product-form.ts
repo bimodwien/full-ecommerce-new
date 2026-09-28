@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFormik } from 'formik';
 import { toast } from 'sonner';
-import {
+import type {
   ProductFormValues,
   VariantRow,
-  emptyProductValues,
-  productSchema,
-} from './types';
+} from '@/models/product-form.model';
+import { emptyProductValues, productSchema } from './form-helpers';
 import { useVariantRows } from './use-variant-rows';
 import { useAddProductImages } from './use-add-product-images';
 import { sendProductForm, useCategories } from './submit-product';

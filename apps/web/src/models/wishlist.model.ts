@@ -11,3 +11,16 @@ export type TWishlist = {
   Product?: TProduct;
   Variant?: TProductVariant | null;
 };
+
+// Lightweight wishlist entry kept in the Redux store.
+export type WishlistEntry = {
+  id: string; // wishlist row id
+  productId: string;
+  variantId: string | null;
+};
+
+export type TWishlistStoreState = {
+  items: WishlistEntry[]; // most-recent first
+  productIds: string[]; // derived from items, kept for convenient lookups
+  count: number;
+};

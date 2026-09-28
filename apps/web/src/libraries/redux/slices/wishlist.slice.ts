@@ -1,18 +1,10 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import type {
+  WishlistEntry,
+  TWishlistStoreState,
+} from '@/models/wishlist.model';
 
-export type WishlistEntry = {
-  id: string; // wishlist row id
-  productId: string;
-  variantId: string | null;
-};
-
-type WishlistState = {
-  items: WishlistEntry[]; // most-recent first
-  productIds: string[]; // derived from items, kept for convenient lookups
-  count: number;
-};
-
-const initialState: WishlistState = {
+const initialState: TWishlistStoreState = {
   items: [],
   productIds: [],
   count: 0,
@@ -58,10 +50,7 @@ export const wishlistSlice = createSlice({
       state.productIds = deriveProductIds(state.items);
       state.count = state.items.length;
     },
-    removeWishlistEntriesForProduct: (
-      state,
-      action: PayloadAction<string>,
-    ) => {
+    removeWishlistEntriesForProduct: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((i) => i.productId !== action.payload);
       state.productIds = deriveProductIds(state.items);
       state.count = state.items.length;
