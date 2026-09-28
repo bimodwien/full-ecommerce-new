@@ -14,6 +14,19 @@ import { deleteProduct } from '@/helpers/fetch-product';
 
 type Target = { id: string; name: string };
 
+// toast.promise() resolves to a toast handle and never rejects, so return
+// the request itself; awaiting the toast would remove the row on a failed delete.
+function deleteWithToast(id: string) {
+  const request = deleteProduct(id);
+  toast.promise(request, {
+    loading: 'Deleting product…',
+    success: () => 'Product deleted',
+    error: (err) =>
+      (err as any)?.response?.data?.message || 'Failed to delete product',
+  });
+  return request;
+}
+
 export function useDeleteProduct(onDeleteSuccess?: (id: string) => void) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -28,15 +41,12 @@ export function useDeleteProduct(onDeleteSuccess?: (id: string) => void) {
     if (!selected) return;
     setPending(true);
     try {
-      await toast.promise(deleteProduct(selected.id), {
-        loading: 'Deleting product…',
-        success: () => 'Product deleted',
-        error: (err) =>
-          (err as any)?.response?.data?.message || 'Failed to delete product',
-      });
+      await deleteWithToast(selected.id);
       onDeleteSuccess?.(selected.id);
       setDialogOpen(false);
       setSelected(null);
+    } catch {
+      // toast.promise already surfaced the failure
     } finally {
       setPending(false);
     }
