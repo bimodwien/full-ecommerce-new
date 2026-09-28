@@ -19,17 +19,12 @@ export const PRIMARY_IMAGE_FIRST = [
 
 const SELLER_SELECT = { select: { id: true, name: true } };
 
-// List payloads: primary image only. Without Variants, stockStatus is always
-// OUT_OF_STOCK, some cart/wishlist endpoints still use this one.
-export const PRODUCT_LIST_INCLUDE_NO_STOCK = {
+// List payloads: primary image only, plus variant stock for stockStatus.
+export const PRODUCT_LIST_INCLUDE = {
   Images: { orderBy: PRIMARY_IMAGE_FIRST, take: 1 },
+  Variants: { select: { stock: true } },
   Category: true,
   seller: SELLER_SELECT,
-} satisfies Prisma.ProductInclude;
-
-export const PRODUCT_LIST_INCLUDE = {
-  ...PRODUCT_LIST_INCLUDE_NO_STOCK,
-  Variants: { select: { stock: true } },
 } satisfies Prisma.ProductInclude;
 
 export const PRODUCT_DETAIL_INCLUDE = {
@@ -47,11 +42,6 @@ export const PRODUCT_PAGE_INCLUDE = {
 // Cart and wishlist rows share the same Product + Variant relations.
 export const USER_ITEM_INCLUDE = {
   Product: { include: PRODUCT_LIST_INCLUDE },
-  Variant: true,
-};
-
-export const USER_ITEM_INCLUDE_NO_STOCK = {
-  Product: { include: PRODUCT_LIST_INCLUDE_NO_STOCK },
   Variant: true,
 };
 

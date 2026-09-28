@@ -2,11 +2,7 @@ import { Request } from 'express';
 import prisma from '@/prisma';
 import { Prisma, Cart } from '@prisma/client';
 import AppError from '@/libs/appError';
-import {
-  PRODUCT_LIST_INCLUDE_NO_STOCK,
-  USER_ITEM_INCLUDE,
-  USER_ITEM_INCLUDE_NO_STOCK,
-} from './product.helpers';
+import { USER_ITEM_INCLUDE } from './product.helpers';
 import {
   requireUserId,
   requireId,
@@ -32,7 +28,7 @@ async function incrementCartItem(
   const updated = await tx.cart.update({
     where: { id: existing.id },
     data: { quantity: newQty },
-    include: { Product: { include: PRODUCT_LIST_INCLUDE_NO_STOCK } },
+    include: USER_ITEM_INCLUDE,
   });
   return toCartDto(updated);
 }
@@ -130,7 +126,7 @@ class CartService {
     return prisma.$transaction(async (tx) => {
       const existing = await tx.cart.findUnique({
         where: { id },
-        include: USER_ITEM_INCLUDE_NO_STOCK,
+        include: USER_ITEM_INCLUDE,
       });
       if (!existing) throw new AppError('Cart item not found', 404);
       if (existing.userId !== userId) throw new AppError('Unauthorized', 403);

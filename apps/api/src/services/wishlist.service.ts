@@ -2,10 +2,7 @@ import { Request } from 'express';
 import prisma from '@/prisma';
 import { Prisma } from '@prisma/client';
 import AppError from '@/libs/appError';
-import {
-  USER_ITEM_INCLUDE,
-  USER_ITEM_INCLUDE_NO_STOCK,
-} from './product.helpers';
+import { USER_ITEM_INCLUDE } from './product.helpers';
 import {
   requireUserId,
   requireId,
@@ -95,7 +92,7 @@ class WishlistService {
       // try to find existing entry first
       const existing = await tx.wishlist.findFirst({
         where: { userId, productId, variantId },
-        include: USER_ITEM_INCLUDE_NO_STOCK,
+        include: USER_ITEM_INCLUDE,
       });
       if (existing) {
         await tx.wishlist.delete({ where: { id: existing.id } });
@@ -105,7 +102,7 @@ class WishlistService {
       await assertProductAndVariant(tx, productId, variantId);
       const created = await tx.wishlist.create({
         data: wishlistCreateData(userId, productId, variantId),
-        include: USER_ITEM_INCLUDE_NO_STOCK,
+        include: USER_ITEM_INCLUDE,
       });
       return { action: 'created', wishlist: toWishlistDto(created) };
     });

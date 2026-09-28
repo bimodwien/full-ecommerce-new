@@ -1,6 +1,7 @@
 import { Prisma, Wishlist, ProductVariant } from '@prisma/client';
 import AppError from '@/libs/appError';
-import sanitizeProductForList, {
+import {
+  sanitizeProductForList,
   PrismaProductWithRelations,
 } from './product.helpers';
 

@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
-import sanitizeProductForList, {
+import {
+  sanitizeProductForList,
   PRODUCT_LIST_INCLUDE,
   PrismaProductWithRelations,
 } from './product.helpers';
