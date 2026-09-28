@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import Sidebar from '@/components/sidebar';
-import { MobileSidebar } from '@/components/mobile-sidebar';
-import { SellerGate } from '@/components/dashboard/seller-gate';
+import Sidebar from '@/components/layout/sidebar';
+import { MobileSidebar } from '@/components/layout/mobile-sidebar';
+import { SellerGate } from '@/components/dashboard/shared/seller-gate';
 
 export const metadata: Metadata = {
   title: 'Dashboard',

@@ -43,9 +43,7 @@ function TrendTooltip({
   const point = payload[0].payload;
   return (
     <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-3 text-sm">
-      <p className="font-medium text-zinc-700 mb-1">
-        {formatDateLabel(label)}
-      </p>
+      <p className="font-medium text-zinc-700 mb-1">{formatDateLabel(label)}</p>
       <p className="text-emerald-600">Sales: {formatIDR(point.sales)}</p>
       <p className="text-blue-600">Orders: {point.orderCount}</p>
     </div>

@@ -16,7 +16,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/libraries/redux/hooks';
 import { logout } from '@/libraries/redux/slices/auth.slice';

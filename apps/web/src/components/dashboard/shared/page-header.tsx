@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { Plus } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Button } from '@/components/ui/button';
 
 interface PageHeaderProps {
   title: string;
@@ -19,7 +19,9 @@ const PageHeader = ({
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
       <div>
-        <h1 className="text-xl sm:text-2xl font-semibold text-zinc-800">{title}</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold text-zinc-800">
+          {title}
+        </h1>
         {description && (
           <p className="text-zinc-700 text-sm sm:text-base">{description}</p>
         )}

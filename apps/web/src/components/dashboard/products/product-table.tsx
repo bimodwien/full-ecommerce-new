@@ -2,13 +2,13 @@
 import React from 'react';
 import { formatIDR } from '@/lib/utils';
 import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu';
 import {
   Table,
   TableBody,
@@ -16,8 +16,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../ui/table';
-import { Badge } from '../ui/badge';
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -116,8 +116,7 @@ const ProductTable = ({ products, onDeleteSuccess }: ProductTableProps) => {
                 'http://localhost:8000/api'
               ).replace(/\/$/, '');
               const rawImage = (product as any).Images?.[0]?.imageUrl as
-                | string
-                | undefined;
+                string | undefined;
               const apiOrigin = apiBase.replace(/\/api\/?$/, '');
               const imageUrl = rawImage
                 ? rawImage.startsWith('http')

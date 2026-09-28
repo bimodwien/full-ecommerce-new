@@ -1,9 +1,9 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import PageHeader from '@/components/dashboard/page-header';
+import PageHeader from '@/components/dashboard/shared/page-header';
 import { SearchBar } from '@/components/ui/search-bar';
-import CategoryTable from '@/components/dashboard/category-table';
+import CategoryTable from '@/components/dashboard/categories/category-table';
 import { Pagination } from '@/components/ui/pagination';
 import { fetchCategory } from '@/helpers/fetch-category';
 import { TCategory } from '@/models/category.model';

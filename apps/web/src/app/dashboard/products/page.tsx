@@ -1,9 +1,9 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import PageHeader from '@/components/dashboard/page-header';
-import ProductFilter from '@/components/dashboard/product-filter';
-import ProductTable from '@/components/dashboard/product-table';
+import PageHeader from '@/components/dashboard/shared/page-header';
+import ProductFilter from '@/components/dashboard/products/product-filter';
+import ProductTable from '@/components/dashboard/products/product-table';
 import { Pagination } from '@/components/ui/pagination';
 import { fetchMyProducts } from '@/helpers/fetch-product';
 import { fetchCategory } from '@/helpers/fetch-category';

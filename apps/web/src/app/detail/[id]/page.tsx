@@ -2,8 +2,8 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
 import HomepageSidebar from '@/components/homepage/homepage-sidebar';
 import ProductGallery from '@/components/detail/product-gallery';
 import ProductSummary from '@/components/detail/product-summary';

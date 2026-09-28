@@ -7,10 +7,10 @@ import { fetchOrderStats } from '@/helpers/fetch-order';
 import { TProductList } from '@/models/product.model';
 import { TCategory } from '@/models/category.model';
 import { TOrderStats } from '@/models/order-stats.model';
-import DashboardStatsCards from '@/components/dashboard/dashboard-stats-cards';
-import SalesTrendChart from '@/components/dashboard/sales-trend-chart';
-import OrderStatusChart from '@/components/dashboard/order-status-chart';
-import CancelledProductsChart from '@/components/dashboard/cancelled-products-chart';
+import DashboardStatsCards from '@/components/dashboard/stats/dashboard-stats-cards';
+import SalesTrendChart from '@/components/dashboard/stats/sales-trend-chart';
+import OrderStatusChart from '@/components/dashboard/stats/order-status-chart';
+import CancelledProductsChart from '@/components/dashboard/stats/cancelled-products-chart';
 
 const TREND_DAYS = 14;
 const TOP_CANCELLED_LIMIT = 5;
@@ -129,9 +129,7 @@ const Dashboard = () => {
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow-sm border border-zinc-100">
-            <h3 className="text-lg font-medium text-zinc-700 mb-2">
-              In Stock
-            </h3>
+            <h3 className="text-lg font-medium text-zinc-700 mb-2">In Stock</h3>
             <p className="text-3xl font-bold text-emerald-600">
               {inStockProduct}
             </p>

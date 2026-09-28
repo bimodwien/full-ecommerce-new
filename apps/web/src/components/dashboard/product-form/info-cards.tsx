@@ -15,9 +15,12 @@ import {
 import { TCategory } from '@/models/category.model';
 import { ProductFormik, ProductFormValues } from './types';
 
-const RichTextEditor = dynamic(() => import('@/components/rich-text-editor'), {
-  ssr: false,
-});
+const RichTextEditor = dynamic(
+  () => import('@/components/editor/rich-text-editor'),
+  {
+    ssr: false,
+  },
+);
 
 type FieldErrorProps = {
   formik: ProductFormik;

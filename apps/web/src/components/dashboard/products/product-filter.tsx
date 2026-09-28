@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { SearchBar } from '../ui/search-bar';
+import { SearchBar } from '@/components/ui/search-bar';
 
 interface ProductFiltersProps {
   searchTerm: string;
