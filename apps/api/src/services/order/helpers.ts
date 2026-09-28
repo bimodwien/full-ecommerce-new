@@ -3,7 +3,7 @@ import {
   sanitizeProductForList,
   PRODUCT_LIST_INCLUDE,
   PrismaProductWithRelations,
-} from './product.helpers';
+} from '../product/helpers';
 
 export const ORDER_INCLUDE = {
   OrderItems: {

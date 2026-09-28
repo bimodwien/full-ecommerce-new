@@ -8,7 +8,7 @@ import sanitizeProduct, {
   PRIMARY_IMAGE_FIRST,
   PRODUCT_LIST_INCLUDE,
   PRODUCT_PAGE_INCLUDE,
-} from './product.helpers';
+} from './helpers';
 
 export type GetProductsOptions = {
   page?: number;

@@ -4,13 +4,13 @@ import prisma from '@/prisma';
 import { OrderStatus } from '@prisma/client';
 import AppError from '@/libs/appError';
 import { MIDTRANS_SERVER_KEY } from '@/config';
-import { requireUserId } from './common.helpers';
+import { requireUserId } from '../common.helpers';
 import {
   PAYMENT_INCLUDE,
   SNAP_TOKEN_TTL_MS,
   cancelPayment,
   initiatePayment,
-} from './order.payment.helpers';
+} from './payment.helpers';
 
 function verifySignature(body: any) {
   const { order_id, status_code, gross_amount, signature_key } = body;

@@ -3,7 +3,7 @@ import AppError from '@/libs/appError';
 import {
   sanitizeProductForList,
   PrismaProductWithRelations,
-} from './product.helpers';
+} from '../product/helpers';
 
 type WishlistRow = Wishlist & {
   Product?: unknown;

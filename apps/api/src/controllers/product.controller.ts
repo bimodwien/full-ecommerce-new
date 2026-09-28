@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import ProductService from '@/services/product.service';
-import ProductBusinessService from '@/services/product.business.service';
+import ProductService from '@/services/product/product.service';
+import ProductBusinessService from '@/services/product/business.service';
 
 export class ProductController {
   async getAll(req: Request, res: Response, next: NextFunction) {

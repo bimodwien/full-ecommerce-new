@@ -10,7 +10,7 @@ import {
   parseVariantsCreate,
   parseJsonField,
   assertCategoryExists,
-} from './product.input.helpers';
+} from './input.helpers';
 
 type Tx = Prisma.TransactionClient;
 type VariantUpdate = { id?: string; variant?: string; stock?: number };
