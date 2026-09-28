@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { validateToken } from '@/middlewares/auth.middleware';
 import { verifyUser } from '@/middlewares/role.middleware';
-import { CartController } from '@/controllers/cart.controller';
+import { CartController } from '@/controllers/cart/cart.controller';
 
 export class CartRouter {
   private router = Router();

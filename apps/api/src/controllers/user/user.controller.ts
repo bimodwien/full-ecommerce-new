@@ -5,19 +5,24 @@ import { createToken } from '@/libs/jwt';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+function sendTokens(
+  res: Response,
+  message: string,
+  access_token: string,
+  refresh_token: string,
+) {
+  res
+    .status(200)
+    .cookie('access_token', access_token)
+    .cookie('refresh_token', refresh_token)
+    .json({ message, access_token, refresh_token });
+}
+
 export class UserController {
   async login(req: Request, res: Response, next: NextFunction) {
     try {
       const { access_token, refresh_token } = await UserService.login(req);
-      res
-        .status(200)
-        .cookie('access_token', access_token)
-        .cookie('refresh_token', refresh_token)
-        .json({
-          message: 'Login success',
-          access_token,
-          refresh_token,
-        });
+      sendTokens(res, 'Login success', access_token, refresh_token);
     } catch (error) {
       next(error);
     }
@@ -66,15 +71,7 @@ export class UserController {
       // Buat JWT mirip login biasa
       const access_token = createToken({ user, type: 'access_token' }, '1d');
       const refresh_token = createToken({ user, type: 'refresh_token' }, '7d');
-      res
-        .status(200)
-        .cookie('access_token', access_token)
-        .cookie('refresh_token', refresh_token)
-        .json({
-          message: 'Login with Google success',
-          access_token,
-          refresh_token,
-        });
+      sendTokens(res, 'Login with Google success', access_token, refresh_token);
     } catch (error) {
       next(error);
     }

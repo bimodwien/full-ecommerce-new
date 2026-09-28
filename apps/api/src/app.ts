@@ -11,12 +11,12 @@ import helmet from 'helmet';
 import { PORT } from './config';
 import { corsOptions } from './config';
 import { apiLimiter } from './middlewares/rateLimit.middleware';
-import { UserRouter } from './routers/user.router';
-import { CategoryRouter } from './routers/category.router';
-import { ProductRouter } from './routers/product.router';
-import { WishlistRouter } from './routers/wishlist.router';
-import { CartRouter } from './routers/cart.router';
-import { OrderRouter } from './routers/order.router';
+import { UserRouter } from './routers/user/user.router';
+import { CategoryRouter } from './routers/category/category.router';
+import { ProductRouter } from './routers/product/product.router';
+import { WishlistRouter } from './routers/wishlist/wishlist.router';
+import { CartRouter } from './routers/cart/cart.router';
+import { OrderRouter } from './routers/order/order.router';
 import AppError from './libs/appError';
 
 export default class App {

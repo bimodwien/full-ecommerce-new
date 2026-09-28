@@ -1,4 +1,4 @@
-import { CategoryController } from '@/controllers/category.controller';
+import { CategoryController } from '@/controllers/category/category.controller';
 import { Router } from 'express';
 import { validateToken } from '@/middlewares/auth.middleware';
 import { verifyAdmin } from '@/middlewares/role.middleware';

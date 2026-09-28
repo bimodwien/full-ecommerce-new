@@ -1,4 +1,4 @@
-import { WishlistController } from '@/controllers/wishlist.controller';
+import { WishlistController } from '@/controllers/wishlist/wishlist.controller';
 import { Router } from 'express';
 import { validateToken } from '@/middlewares/auth.middleware';
 import { verifyUser } from '@/middlewares/role.middleware';
