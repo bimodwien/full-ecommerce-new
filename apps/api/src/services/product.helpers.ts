@@ -12,6 +12,49 @@ export type PrismaProductWithRelations = Prisma.ProductGetPayload<{
   };
 }>;
 
+export const PRIMARY_IMAGE_FIRST = [
+  { isPrimary: 'desc' as Prisma.SortOrder },
+  { createdAt: 'asc' as Prisma.SortOrder },
+];
+
+const SELLER_SELECT = { select: { id: true, name: true } };
+
+// List payloads: primary image only. Without Variants, stockStatus is always
+// OUT_OF_STOCK, some cart/wishlist endpoints still use this one.
+export const PRODUCT_LIST_INCLUDE_NO_STOCK = {
+  Images: { orderBy: PRIMARY_IMAGE_FIRST, take: 1 },
+  Category: true,
+  seller: SELLER_SELECT,
+} satisfies Prisma.ProductInclude;
+
+export const PRODUCT_LIST_INCLUDE = {
+  ...PRODUCT_LIST_INCLUDE_NO_STOCK,
+  Variants: { select: { stock: true } },
+} satisfies Prisma.ProductInclude;
+
+export const PRODUCT_DETAIL_INCLUDE = {
+  Images: true,
+  Variants: true,
+  Category: true,
+  seller: SELLER_SELECT,
+} satisfies Prisma.ProductInclude;
+
+export const PRODUCT_PAGE_INCLUDE = {
+  ...PRODUCT_DETAIL_INCLUDE,
+  Images: { orderBy: PRIMARY_IMAGE_FIRST },
+} satisfies Prisma.ProductInclude;
+
+// Cart and wishlist rows share the same Product + Variant relations.
+export const USER_ITEM_INCLUDE = {
+  Product: { include: PRODUCT_LIST_INCLUDE },
+  Variant: true,
+};
+
+export const USER_ITEM_INCLUDE_NO_STOCK = {
+  Product: { include: PRODUCT_LIST_INCLUDE_NO_STOCK },
+  Variant: true,
+};
+
 export type SanitizedProduct = Omit<TProduct, 'Images'> & {
   Images?: (Omit<TProductImage, 'data'> & { imageUrl: string })[];
 };
