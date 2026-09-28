@@ -1,16 +1,9 @@
 import { Prisma, TotalStock } from '@prisma/client';
-import { TProduct } from '@/models/product.model';
 import { TProductImage } from '@/models/productImage.model';
-
-// Prisma product type including relations we include in queries
-export type PrismaProductWithRelations = Prisma.ProductGetPayload<{
-  include: {
-    Images: true;
-    Variants: true;
-    Category: true;
-    seller: { select: { id: true; name: true } };
-  };
-}>;
+import type {
+  PrismaProductWithRelations,
+  SanitizedProduct,
+} from '@/models/product.model';
 
 export const PRIMARY_IMAGE_FIRST = [
   { isPrimary: 'desc' as Prisma.SortOrder },
@@ -43,10 +36,6 @@ export const PRODUCT_PAGE_INCLUDE = {
 export const USER_ITEM_INCLUDE = {
   Product: { include: PRODUCT_LIST_INCLUDE },
   Variant: true,
-};
-
-export type SanitizedProduct = Omit<TProduct, 'Images'> & {
-  Images?: (Omit<TProductImage, 'data'> & { imageUrl: string })[];
 };
 
 function stockStatusOf(total: number) {

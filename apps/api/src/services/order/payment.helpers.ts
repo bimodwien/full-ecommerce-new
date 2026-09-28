@@ -2,6 +2,7 @@ import prisma from '@/prisma';
 import { Prisma, OrderStatus, User } from '@prisma/client';
 import { snap } from '@/libs/midtrans';
 import { CLIENT_URL } from '@/config';
+import type { PayablePayment } from '@/models/payment.model';
 
 // Everything initiatePayment needs to build the Midtrans item list.
 export const PAYMENT_INCLUDE = {
@@ -11,20 +12,6 @@ export const PAYMENT_INCLUDE = {
     },
   },
 } satisfies Prisma.PaymentInclude;
-
-type PayableItem = {
-  id: string;
-  productId: string | null;
-  price: Prisma.Decimal;
-  quantity: number;
-  Product: { name: string } | null;
-};
-
-export type PayablePayment = {
-  id: string;
-  totalAmount: Prisma.Decimal;
-  Orders: { OrderItems: PayableItem[] }[];
-};
 
 // Snap tokens expire 24 hours after they're issued (Midtrans default).
 export const SNAP_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;

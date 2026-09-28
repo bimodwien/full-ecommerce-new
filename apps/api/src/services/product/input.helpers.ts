@@ -6,9 +6,7 @@ import {
   assertAllOrNonePriced,
   parseVariantPrice,
 } from './variant-price.helpers';
-
-export type ImageInput = { data: Buffer; isPrimary?: boolean };
-export type VariantsCreate = Prisma.ProductCreateInput['Variants'] | undefined;
+import type { ImageInput, VariantsCreate } from '@/models/product.model';
 
 export function getUploadedFiles(req: Request) {
   return (

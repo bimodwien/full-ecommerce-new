@@ -1,16 +1,11 @@
 import { Request } from 'express';
 import prisma from '@/prisma';
 import { Prisma } from '@prisma/client';
-import sanitizeProduct, {
-  PrismaProductWithRelations,
-  PRODUCT_DETAIL_INCLUDE,
-} from './helpers';
+import sanitizeProduct, { PRODUCT_DETAIL_INCLUDE } from './helpers';
 import { renderMarkdownToHtml } from '@/libs/markdown';
 import AppError from '@/libs/appError';
 import { requireId } from '../common.helpers';
 import {
-  ImageInput,
-  VariantsCreate,
   getUploadedFiles,
   processImages,
   parseVariantsCreate,
@@ -23,21 +18,16 @@ import {
   createImagesAndVariants,
 } from './update.helpers';
 import { cheapestPrice, syncProductPrice } from './variant-price.helpers';
-
-type CreateInput = {
-  name: string;
-  description?: string;
-  priceNum: number;
-  sellerId: string;
-  categoryId?: string;
-  imagesCreate: ImageInput[];
-  variantsCreate: VariantsCreate;
-};
+import type {
+  PrismaProductWithRelations,
+  ProductCreateData,
+  VariantsCreate,
+} from '@/models/product.model';
 
 const variantPrices = (variantsCreate: VariantsCreate) =>
   ((variantsCreate?.create as any[]) ?? []).map((v) => v.price);
 
-function buildCreateData(input: CreateInput): Prisma.ProductCreateInput {
+function buildCreateData(input: ProductCreateData): Prisma.ProductCreateInput {
   const { name, description, priceNum, sellerId, categoryId } = input;
   const createData: Prisma.ProductCreateInput = {
     name,

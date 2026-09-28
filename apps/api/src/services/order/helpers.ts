@@ -2,8 +2,8 @@ import { Prisma } from '@prisma/client';
 import {
   sanitizeProductForList,
   PRODUCT_LIST_INCLUDE,
-  PrismaProductWithRelations,
 } from '../product/helpers';
+import type { PrismaProductWithRelations } from '@/models/product.model';
 
 export const ORDER_INCLUDE = {
   OrderItems: {

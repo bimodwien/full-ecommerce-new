@@ -5,13 +5,7 @@ import AppError from '@/libs/appError';
 import { ORDER_INCLUDE, OrderWithItems, sanitizeOrder } from './helpers';
 import { requireUserId } from '../common.helpers';
 import { initiatePayment } from './payment.helpers';
-
-type OrderItemInput = {
-  productId: string;
-  variantId?: string;
-  quantity: number;
-  price: Prisma.Decimal;
-};
+import type { OrderItemInput } from '@/models/orderItem.model';
 
 const subtotal = (items: OrderItemInput[]) =>
   items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);

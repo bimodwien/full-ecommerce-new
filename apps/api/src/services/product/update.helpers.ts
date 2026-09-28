@@ -3,8 +3,6 @@ import { Prisma } from '@prisma/client';
 import AppError from '@/libs/appError';
 import { renderMarkdownToHtml } from '@/libs/markdown';
 import {
-  ImageInput,
-  VariantsCreate,
   getUploadedFiles,
   processImages,
   parseVariantsCreate,
@@ -12,14 +10,10 @@ import {
   assertCategoryExists,
 } from './input.helpers';
 import { parseVariantPrice } from './variant-price.helpers';
+import type { ImageInput, VariantsCreate } from '@/models/product.model';
+import type { VariantUpdate } from '@/models/productVariant.model';
 
 type Tx = Prisma.TransactionClient;
-type VariantUpdate = {
-  id?: string;
-  variant?: string;
-  stock?: number;
-  price?: unknown;
-};
 type UpdateInput = Awaited<ReturnType<typeof parseUpdateInput>>;
 
 const isNonEmptyArray = <T>(v: T[] | undefined): v is T[] =>

@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { TOrder } from './order.model';
 import { TProduct } from './product.model';
 import { TProductVariant } from './productVariant.model';
@@ -14,4 +15,12 @@ export type TOrderItem = {
   order?: TOrder;
   Product?: TProduct;
   Variant?: TProductVariant;
+};
+
+// Order line built from a cart row at checkout.
+export type OrderItemInput = {
+  productId: string;
+  variantId?: string;
+  quantity: number;
+  price: Prisma.Decimal;
 };
