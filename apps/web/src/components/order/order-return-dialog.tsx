@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,9 +11,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
-import { submitOrderReturn } from '@/helpers/fetch-order';
 import { TOrder } from '@/models/order.model';
+import { useOrderReturn } from './use-order-return';
 
 interface OrderReturnDialogProps {
   orderId: string;
@@ -22,47 +21,12 @@ interface OrderReturnDialogProps {
   onSuccess: (order: TOrder) => void;
 }
 
-const OrderReturnDialog = ({
-  orderId,
-  open,
-  onOpenChange,
-  onSuccess,
-}: OrderReturnDialogProps) => {
-  const [reason, setReason] = useState('');
-  const [pending, setPending] = useState(false);
-
-  const handleSubmit = async () => {
-    const trimmed = reason.trim();
-    if (!trimmed) {
-      toast.error('Please provide a reason for the return.');
-      return;
-    }
-    setPending(true);
-    try {
-      // toast.promise() resolves to a toast handle, not the request's value,
-      // so keep the request itself to get the updated order back.
-      const request = submitOrderReturn(orderId, trimmed);
-      toast.promise(request, {
-        loading: 'Submitting return…',
-        success: 'Return submitted',
-        error: (err) =>
-          err?.response?.data?.message || 'Failed to submit return',
-      });
-      onSuccess(await request);
-      setReason('');
-      onOpenChange(false);
-    } catch {
-      // toast.promise already surfaced the failure
-    } finally {
-      setPending(false);
-    }
-  };
+const OrderReturnDialog = (props: OrderReturnDialogProps) => {
+  const { open, onOpenChange } = props;
+  const { reason, setReason, pending, handleSubmit } = useOrderReturn(props);
 
   return (
-    <AlertDialog
-      open={open}
-      onOpenChange={(o) => !pending && onOpenChange(o)}
-    >
+    <AlertDialog open={open} onOpenChange={(o) => !pending && onOpenChange(o)}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Submit return</AlertDialogTitle>
