@@ -34,11 +34,11 @@ The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/serv
 - Cart with server-side quantity normalisation and per-variant stock validation
 - Checkout through Midtrans Snap, with **retry payment** for unpaid orders — a cart with items from several sellers is paid once and split into one order per seller
 - Order history and detail, with "Complete Order" and "Submit Return" actions
-- Auth via email/password with JWT
+- Auth via email/password or Google Sign-In, with JWT
 
 ### Seller
 - Each seller's dashboard only shows their own products, orders, and stats
-- Product CRUD with multi-image upload and variant management
+- Product CRUD with multi-image upload and variant management, including optional per-variant pricing
 - Category CRUD
 - Rich-text (Markdown) product descriptions via a TipTap editor
 - Order tracking dashboard — view own orders, mark as shipped, cancel stale unpaid orders
@@ -69,7 +69,7 @@ The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/serv
 
 **Backend** — Express 5, TypeScript, Prisma 7 (PostgreSQL), JWT, bcrypt, Midtrans Client, Multer + Sharp, markdown-it + sanitize-html, Google Auth Library, Helmet, express-rate-limit
 
-**Tooling** — Turborepo, ESLint, Prettier, Husky + lint-staged + commitlint, GitHub Actions (auto-deploy to Linode via PM2)
+**Tooling** — Turborepo, ESLint, Prettier, Husky + lint-staged + commitlint
 
 ---
 
@@ -84,14 +84,17 @@ The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/serv
 │   │       ├── routers/       # route definitions + guards, one folder per domain
 │   │       ├── controllers/   # request/response handling, one folder per domain
 │   │       ├── services/      # business logic, one folder per domain
-│   │       ├── middlewares/   # auth (JWT) + role (buyer/seller) guards
+│   │       ├── middlewares/   # auth (JWT), role (buyer/seller) guards, rate limiters
+│   │       ├── models/        # shared TypeScript types
 │   │       └── libs/          # midtrans, multer, markdown, AppError
 │   └── web                    # Next.js frontend
 │       └── src
 │           ├── app/           # App Router pages
-│           ├── components/    # feature components + shadcn/ui
-│           ├── libraries/     # Redux store
-│           └── helpers/       # API fetchers
+│           ├── components/    # one folder per feature + shadcn/ui
+│           ├── models/        # shared TypeScript types
+│           ├── libraries/     # Redux store, axios instance
+│           ├── helpers/       # API fetchers
+│           └── proxy.ts       # role-based route guard (buyer / seller)
 └── turbo.json
 ```
 
@@ -102,7 +105,7 @@ The backend is layered **router → controller → service**. Services are group
 ## Getting started
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 20.19+ (required by Next.js 16 and Prisma 7)
 - PostgreSQL
 - A [Midtrans sandbox account](https://dashboard.sandbox.midtrans.com/) (for the payment flow)
 - A [Google OAuth client ID](https://console.cloud.google.com/) (optional, for Google Sign-In — the app runs fine without it, the button just won't work)
@@ -231,7 +234,7 @@ Auth: `Authorization: Bearer <token>`. Routes are guarded in two tiers — `vali
 
 **Images live in Postgres as `Bytes`,** processed to PNG with Sharp on upload. This keeps the project self-contained with no external storage dependency — a deliberate trade-off that would be swapped for S3/Cloudinary before any real scale.
 
-**Basic API hardening.** `helmet()` sets standard security headers (with `crossOriginResourcePolicy: 'cross-origin'`, since the frontend embeds images and Snap.js served from a different origin). A general rate limiter caps all `/api` traffic at 100 requests/15min per IP; a stricter one caps `/users/register`, `/users/login`, and `/users/google` at 10/15min to slow down brute-force attempts.
+**Basic API hardening.** `helmet()` sets standard security headers (with `crossOriginResourcePolicy: 'cross-origin'`, since the frontend embeds images and Snap.js served from a different origin). A general rate limiter caps all `/api` traffic at 1000 requests/15min per IP; a stricter one caps `/users/register`, `/users/login`, and `/users/google` at 10/15min to slow down brute-force attempts. Both are skipped when `NODE_ENV=development`, where hot reloads and StrictMode double-fetches would exhaust them within minutes.
 
 ---
 
@@ -243,7 +246,7 @@ Being upfront about what isn't done:
 - [ ] No cron/safety-net to auto-expire orders stuck in `PENDING` (currently a manual seller action)
 - [ ] No refresh-token endpoint, logout, or password reset — the access token just expires after 1 day and the user logs in again. A stateless refresh flow (no DB-backed revocation) is a natural next step
 - [ ] Images should move to object storage before production scale
-- [ ] Deploy pipeline uses SSH password auth — should be key-based
+- [ ] Not deployed yet — the GitHub Actions workflow in `.github/` is leftover boilerplate (Node 18, password-based SSH) and needs rewriting, including `prisma migrate deploy`
 
 ---
 
