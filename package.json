@@ -17,12 +17,12 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "prettier": "^3.9.9",
-    "tsc-alias": "^1.9.5",
+    "tsc-alias": "^1.9.7",
     "tsconfig": "*",
-    "turbo": "^2.11.5"
+    "turbo": "^2.11.6"
   },
   "name": "finpro-nextjs-express-prisma",
-  "packageManager": "npm@12.1.0",
+  "packageManager": "npm@12.2.0",
   "workspaces": [
     "apps/*",
     "packages/*"
