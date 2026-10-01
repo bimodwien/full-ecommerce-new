@@ -16,7 +16,7 @@ function CardPrice({ product }: { product: CardProduct }) {
   const min = toPrice(product.price);
   const max = product.priceMax ?? min;
   return (
-    <div className="text-base sm:text-lg font-medium text-ink">
+    <div className="text-base sm:text-sm font-medium text-ink">
       {max > min ? `${formatIDR(min)} – ${formatIDR(max)}` : formatIDR(min)}
     </div>
   );
@@ -110,7 +110,7 @@ export function ProductCard({ product }: { product: CardProduct }) {
           loading="eager"
           fill
           unoptimized
-          sizes="(min-width: 1280px) 246px, (min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+          sizes="(min-width: 1200px) 240px, (min-width: 1024px) 20vw, (min-width: 600px) 33vw, 100vw"
           className="object-cover"
         />
       </div>

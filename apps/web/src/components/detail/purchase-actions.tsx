@@ -6,7 +6,6 @@ import {
   Heart,
   Shuffle,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { ProductDetailState } from './use-product-detail';
 
 const iconButton =
@@ -42,6 +41,24 @@ function QtyStepper({ detail }: { detail: ProductDetailState }) {
   );
 }
 
+// Icon-only at rest; the label slides out on hover (same as the wishlist card).
+function AddToCartButton({ detail }: { detail: ProductDetailState }) {
+  return (
+    <button
+      type="button"
+      onClick={detail.handleAddToCart}
+      disabled={detail.cartLoading}
+      aria-label="Add to cart"
+      className="group/cart flex h-12 items-center rounded-full bg-ink px-3.5 text-canvas hover:bg-ink/90 disabled:opacity-60 hover:cursor-pointer"
+    >
+      <ShoppingCart className="h-5 w-5 shrink-0" strokeWidth={1.5} />
+      <span className="max-w-0 overflow-hidden whitespace-nowrap text-sm transition-all duration-200 group-hover/cart:ml-2 group-hover/cart:max-w-24">
+        Add to cart
+      </span>
+    </button>
+  );
+}
+
 function WishlistButton({ detail }: { detail: ProductDetailState }) {
   const { wishlisted } = detail;
   return (
@@ -53,6 +70,7 @@ function WishlistButton({ detail }: { detail: ProductDetailState }) {
       aria-label={wishlisted ? 'Hapus dari wishlist' : 'Tambah ke wishlist'}
     >
       <Heart
+        strokeWidth={1.5}
         className={`h-5 w-5 transition-colors ${
           wishlisted ? 'fill-ink text-ink' : 'text-mute'
         }`}
@@ -69,15 +87,7 @@ export default function PurchaseActions({
   return (
     <div className="flex items-center gap-3 pt-5">
       <QtyStepper detail={detail} />
-      <Button
-        size="pill"
-        onClick={detail.handleAddToCart}
-        disabled={detail.cartLoading}
-        className="font-medium tracking-wide flex items-center gap-1 disabled:opacity-60"
-      >
-        <ShoppingCart className="h-5 w-5" />
-        Add to cart
-      </Button>
+      <AddToCartButton detail={detail} />
       <WishlistButton detail={detail} />
       <button
         type="button"

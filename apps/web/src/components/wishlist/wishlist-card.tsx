@@ -8,7 +8,7 @@ import WishlistItem from './wishlist-item';
 import { useWishlist } from './use-wishlist';
 
 const GRID =
-  'flex-1 grid grid-cols-1 tablet-narrow:grid-cols-2 desktop-small:grid-cols-3 gap-2';
+  'flex-1 grid grid-cols-1 mobile-landscape:grid-cols-3 desktop-small:grid-cols-4 desktop:grid-cols-5 gap-3';
 
 function EmptyWishlist() {
   return (
@@ -34,7 +34,7 @@ const WishlistCard = () => {
   if (state.loading) {
     return (
       <div className={GRID}>
-        {Array.from({ length: 6 }).map((_, i) => (
+        {Array.from({ length: 10 }).map((_, i) => (
           <Skeleton key={i} className="aspect-square" />
         ))}
       </div>

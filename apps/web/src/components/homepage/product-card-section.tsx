@@ -43,7 +43,7 @@ const ProductCardSection = () => {
     };
   }, [searchParams]);
 
-  const itemsPerPage = 8;
+  const itemsPerPage = 10;
   const [showAll, setShowAll] = useState(false);
   const hasMore = products.length > itemsPerPage;
   const visibleProducts = showAll ? products : products.slice(0, itemsPerPage);
@@ -52,11 +52,11 @@ const ProductCardSection = () => {
     <section>
       <div
         id="product-grid"
-        className="grid grid-cols-1 mobile-landscape:grid-cols-2 tablet:grid-cols-3 desktop-small:grid-cols-4 gap-4"
+        className="grid grid-cols-1 mobile-landscape:grid-cols-3 desktop-small:grid-cols-4 desktop:grid-cols-5 gap-3"
       >
         {loading && (
           <>
-            {Array.from({ length: 8 }).map((_, i) => (
+            {Array.from({ length: 10 }).map((_, i) => (
               <div key={`skeleton-${i}`} className="overflow-hidden">
                 <div className="aspect-square w-full animate-pulse bg-soft-cloud" />
                 <div className="pt-3 space-y-2">
