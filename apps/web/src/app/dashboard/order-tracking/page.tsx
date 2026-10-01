@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import PageHeader from '@/components/dashboard/shared/page-header';
 import OrderTrackingFilter from '@/components/dashboard/orders/order-tracking-filter';
 import OrderTrackingTable from '@/components/dashboard/orders/order-tracking-table';
@@ -20,23 +20,26 @@ export default function OrderTrackingPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  const loadOrders = useCallback(async (page: number, status: string) => {
-    try {
-      setLoading(true);
-      const data = await fetchAdminOrders(page, ITEMS_PER_PAGE, status);
-      setOrders(data.orders);
-      setTotal(data.total);
-      setTotalPages(data.totalPages);
-    } catch {
-      toast.error('Failed to load orders.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    loadOrders(currentPage, statusFilter);
-  }, [loadOrders, currentPage, statusFilter]);
+    const load = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchAdminOrders(
+          currentPage,
+          ITEMS_PER_PAGE,
+          statusFilter,
+        );
+        setOrders(data.orders);
+        setTotal(data.total);
+        setTotalPages(data.totalPages);
+      } catch {
+        toast.error('Failed to load orders.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [currentPage, statusFilter]);
 
   const handleStatusChange = (value: string) => {
     setCurrentPage(1);

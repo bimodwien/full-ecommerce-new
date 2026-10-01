@@ -36,19 +36,22 @@ async function openPayment(order: TOrder, reload: () => void) {
 function useOrder(orderId: string) {
   const [order, setOrder] = useState<TOrder | null>(null);
   const [loading, setLoading] = useState(true);
-  const loadOrder = useCallback(async () => {
-    try {
-      setLoading(true);
-      setOrder(await fetchOrderById(orderId));
-    } catch {
-      toast.error('Failed to load order.');
-    } finally {
-      setLoading(false);
-    }
-  }, [orderId]);
+  // Bumped by loadOrder to re-run the fetch effect.
+  const [reloadKey, setReloadKey] = useState(0);
   useEffect(() => {
-    loadOrder();
-  }, [loadOrder]);
+    const load = async () => {
+      try {
+        setLoading(true);
+        setOrder(await fetchOrderById(orderId));
+      } catch {
+        toast.error('Failed to load order.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [orderId, reloadKey]);
+  const loadOrder = useCallback(() => setReloadKey((key) => key + 1), []);
   return { order, setOrder, loading, loadOrder };
 }
 
