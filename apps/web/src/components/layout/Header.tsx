@@ -69,7 +69,11 @@ const Header = () => {
         <BottomBar search={search} isHome={isHome} />
       </div>
       {mobileMenuOpen && (
-        <MobileMenu auth={auth} onClose={() => setMobileMenuOpen(false)} />
+        <MobileMenu
+          auth={auth}
+          search={search}
+          onClose={() => setMobileMenuOpen(false)}
+        />
       )}
     </header>
   );

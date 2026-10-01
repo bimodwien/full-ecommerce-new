@@ -2,7 +2,6 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCart, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatIDR } from '@/lib/utils';
 import { effectivePrice, listImageUrl } from '@/lib/product-display';
@@ -13,23 +12,25 @@ type Props = { wishlist: TWishlist; state: WishlistState };
 
 function ItemActions({ wishlist, state }: Props) {
   return (
-    <div className="flex gap-2 pt-1">
-      <Button
-        size="sm"
-        variant="secondary"
-        className="flex-1"
+    <div className="flex justify-end gap-2 pt-1">
+      <button
+        type="button"
         onClick={() => state.handleMoveToCart(wishlist)}
         disabled={state.cartLoadingId === wishlist.id}
+        aria-label="Add to cart"
+        className="group/cart flex h-9 items-center rounded-full bg-ink px-2.75 text-canvas hover:bg-ink/90 disabled:opacity-60 hover:cursor-pointer"
       >
-        <ShoppingCart className="h-3.5 w-3.5 mr-1" />
-        Add to Cart
-      </Button>
+        <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
+        <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium transition-all duration-200 group-hover/cart:ml-1.5 group-hover/cart:max-w-24">
+          Add to Cart
+        </span>
+      </button>
       <button
         type="button"
         onClick={() => state.handleDelete(wishlist)}
         disabled={state.deletingId === wishlist.id}
         aria-label="Remove from wishlist"
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-soft-cloud text-ink hover:bg-hairline-soft disabled:opacity-60"
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-soft-cloud text-ink hover:bg-hairline-soft disabled:opacity-60 hover:cursor-pointer"
       >
         <Trash2 className="h-3.5 w-3.5" />
       </button>
@@ -47,6 +48,7 @@ export default function WishlistItem({ wishlist, state }: Props) {
           alt={product?.name || 'Product'}
           fill
           unoptimized
+          loading="eager"
           className="object-cover"
         />
       </div>
@@ -64,7 +66,7 @@ export default function WishlistItem({ wishlist, state }: Props) {
           <span className="text-mute">By </span>
           <span className="text-mute">{product?.seller?.name || ''}</span>
         </div>
-        <div className="text-base font-medium text-ink">
+        <div className="text-base sm:text-sm font-medium text-ink">
           {formatIDR(product ? effectivePrice(product, wishlist.Variant) : 0)}
         </div>
         {wishlist.Variant && (

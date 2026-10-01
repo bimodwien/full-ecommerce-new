@@ -45,7 +45,7 @@ const HomepageSidebar = () => {
       <Card className="gap-2">
         <CardHeader>
           <div>
-            <CardTitle className="text-xl text-ink font-semibold">
+            <CardTitle className="text-lg text-ink font-semibold">
               Categories
             </CardTitle>
             <div className="mt-2 h-0.5 w-16 bg-hairline" />
@@ -78,7 +78,7 @@ const HomepageSidebar = () => {
                         : 'text-ink hover:bg-soft-cloud'
                     }`}
                   >
-                    <span className="truncate">{item.name}</span>
+                    <span className="truncate text-sm">{item.name}</span>
                     <Badge
                       variant="secondary"
                       aria-label={`${item.productCount ?? 0} items`}
@@ -112,7 +112,7 @@ const HomepageSidebar = () => {
       <Card className="mt-6 gap-2">
         <CardHeader>
           <div>
-            <CardTitle className="text-xl text-ink font-semibold">
+            <CardTitle className="text-lg text-ink font-semibold">
               New products
             </CardTitle>
             <div className="mt-2 h-0.5 w-16 bg-hairline" />
@@ -152,8 +152,10 @@ const HomepageSidebar = () => {
                   })()}
                   {/* Info */}
                   <div className="min-w-0">
-                    <div className="truncate font-md text-ink">{p.name}</div>
-                    <div className="text-ink text-sm">
+                    <div className="truncate font-md text-sm text-ink">
+                      {p.name}
+                    </div>
+                    <div className="text-ink text-xs sm:text-sm font-medium">
                       {formatIDR(
                         typeof p.price === 'string' ? Number(p.price) : p.price,
                       )}

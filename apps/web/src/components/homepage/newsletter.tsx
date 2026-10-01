@@ -5,10 +5,10 @@ const NewsLetter = () => {
   return (
     <section className="relative w-full rounded-none bg-ink px-6 py-10 sm:px-10 sm:py-14 lg:px-16 lg:py-16 overflow-hidden">
       <div className="max-w-2xl text-canvas">
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium leading-snug sm:leading-tight lg:leading-11">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium leading-snug sm:leading-tight">
           Stay home &amp; get your fashion needs from our shop
         </h2>
-        <p className="mt-3 sm:mt-4 text-canvas/70 text-base sm:text-lg leading-normal">
+        <p className="mt-4 sm:mt-6 text-canvas/70 text-base sm:text-xl leading-normal">
           Start Your Fashion &amp; Tech Shopping with TokoPakBimo
         </p>
 
