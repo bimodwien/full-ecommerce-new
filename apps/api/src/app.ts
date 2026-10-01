@@ -17,6 +17,7 @@ import { ProductRouter } from './routers/product/product.router';
 import { WishlistRouter } from './routers/wishlist/wishlist.router';
 import { CartRouter } from './routers/cart/cart.router';
 import { OrderRouter } from './routers/order/order.router';
+import { NewsletterRouter } from './routers/newsletter/newsletter.router';
 import AppError from './libs/appError';
 
 export default class App {
@@ -82,6 +83,7 @@ export default class App {
     const wishlistRouter = new WishlistRouter();
     const cartRouter = new CartRouter();
     const orderRouter = new OrderRouter();
+    const newsletterRouter = new NewsletterRouter();
 
     this.app.get('/api', (req: Request, res: Response) => {
       res.send(`Hello, Welcome to TokoPakBimo API!`);
@@ -93,6 +95,7 @@ export default class App {
     this.app.use('/api/wishlists', wishlistRouter.getRouter());
     this.app.use('/api/carts', cartRouter.getRouter());
     this.app.use('/api/orders', orderRouter.getRouter());
+    this.app.use('/api/newsletter', newsletterRouter.getRouter());
   }
 
   public start(): void {

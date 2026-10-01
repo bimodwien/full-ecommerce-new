@@ -25,3 +25,14 @@ export const authLimiter = rateLimit({
   skip: () => isDev,
   message: { message: 'Too many attempts, please try again later.' },
 });
+
+// The subscribe form is public and sends a real email to whatever address is
+// typed in, so keep it tight to stop it being used to spam other people.
+export const newsletterLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => isDev,
+  message: { message: 'Too many attempts, please try again later.' },
+});
