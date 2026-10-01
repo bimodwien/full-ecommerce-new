@@ -1,13 +1,18 @@
 import { rateLimit } from 'express-rate-limit';
+import { NODE_ENV } from '@/config';
+
+// Dev reloads and StrictMode double-fetches burn through the limit in minutes,
+// so the limiters only apply outside development.
+const isDev = NODE_ENV === 'development';
 
 // General limiter for all API traffic.
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 100,
+  limit: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) =>
-    req.method === 'GET' && req.path.startsWith('/products/image/'),
+    isDev || (req.method === 'GET' && req.path.startsWith('/products/image/')),
   message: { message: 'Too many requests, please try again later.' },
 });
 
@@ -17,5 +22,6 @@ export const authLimiter = rateLimit({
   limit: 10,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => isDev,
   message: { message: 'Too many attempts, please try again later.' },
 });
