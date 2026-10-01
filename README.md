@@ -35,6 +35,7 @@ The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/serv
 - Checkout through Midtrans Snap, with **retry payment** for unpaid orders — a cart with items from several sellers is paid once and split into one order per seller
 - Order history and detail, with "Complete Order" and "Submit Return" actions
 - Auth via email/password or Google Sign-In, with JWT
+- Newsletter sign-up forms on the homepage that send a real reply email (Gmail via Nodemailer) — a demo only: the reply explains this is a portfolio project, and no address is stored
 
 ### Seller
 - Each seller's dashboard only shows their own products, orders, and stats
@@ -67,7 +68,7 @@ The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/serv
 
 **Frontend** — Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, Redux Toolkit, shadcn/ui + Radix, Formik + Yup, TipTap, Sonner, DOMPurify, @react-oauth/google
 
-**Backend** — Express 5, TypeScript, Prisma 7 (PostgreSQL), JWT, bcrypt, Midtrans Client, Multer + Sharp, markdown-it + sanitize-html, Google Auth Library, Helmet, express-rate-limit
+**Backend** — Express 5, TypeScript, Prisma 7 (PostgreSQL), JWT, bcrypt, Midtrans Client, Multer + Sharp, markdown-it + sanitize-html, Google Auth Library, Nodemailer, Helmet, express-rate-limit
 
 **Tooling** — Turborepo, ESLint, Prettier, Husky + lint-staged + commitlint
 
@@ -86,7 +87,7 @@ The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/serv
 │   │       ├── services/      # business logic, one folder per domain
 │   │       ├── middlewares/   # auth (JWT), role (buyer/seller) guards, rate limiters
 │   │       ├── models/        # shared TypeScript types
-│   │       └── libs/          # midtrans, multer, markdown, AppError
+│   │       └── libs/          # midtrans, mailer, multer, markdown, AppError
 │   └── web                    # Next.js frontend
 │       └── src
 │           ├── app/           # App Router pages
@@ -98,7 +99,7 @@ The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/serv
 └── turbo.json
 ```
 
-The backend is layered **router → controller → service**. Services are grouped by domain (`order/`, `product/`, `cart/`, `wishlist/`, `user/`, `category/`), and each domain is split by responsibility. For example, `order/` has `checkout`, `payment`, `query`, `status`, and `stats` services, and `product/` splits `product.service` (reads) from `business.service` (writes). Files stay under 200 lines and functions under 40.
+The backend is layered **router → controller → service**. Services are grouped by domain (`order/`, `product/`, `cart/`, `wishlist/`, `user/`, `category/`, `newsletter/`), and each domain is split by responsibility. For example, `order/` has `checkout`, `payment`, `query`, `status`, and `stats` services, and `product/` splits `product.service` (reads) from `business.service` (writes). Files stay under 200 lines and functions under 40.
 
 ---
 
@@ -109,6 +110,7 @@ The backend is layered **router → controller → service**. Services are group
 - PostgreSQL
 - A [Midtrans sandbox account](https://dashboard.sandbox.midtrans.com/) (for the payment flow)
 - A [Google OAuth client ID](https://console.cloud.google.com/) (optional, for Google Sign-In — the app runs fine without it, the button just won't work)
+- A Gmail account with an [App Password](https://myaccount.google.com/apppasswords) (optional, for the newsletter reply email — requires 2-Step Verification; without it the subscribe forms just show an error)
 
 ### 1. Install
 
@@ -128,6 +130,8 @@ cp apps/web/.env.example apps/web/.env.local
 ```
 
 At minimum you'll need to set `DATABASE_URL`, `SECRET_KEY`, and your Midtrans sandbox keys. The Midtrans **client** key goes in both files; the **server** key stays in the API only.
+
+`SMTP_USER` and `SMTP_PASS` are optional and only power the newsletter reply email. `SMTP_PASS` must be a Google App Password — Gmail rejects the normal account password over SMTP.
 
 ### 3. Set up the database
 
@@ -222,6 +226,11 @@ Auth: `Authorization: Bearer <token>`. Routes are guarded in two tiers — `vali
 | `PATCH` | `/orders/:id/cancel` | Seller | Cancel a stale `PENDING` order and its whole payment, restore stock |
 | `POST` | `/orders/notification` | **Midtrans** | Payment webhook — verified by signature, not JWT |
 
+### Newsletter
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/newsletter/subscribe` | Public | Sends the reply email to `{ email }` — nothing is stored. `503` if SMTP isn't configured |
+
 ---
 
 ## Engineering notes
@@ -234,7 +243,7 @@ Auth: `Authorization: Bearer <token>`. Routes are guarded in two tiers — `vali
 
 **Images live in Postgres as `Bytes`,** processed to PNG with Sharp on upload. This keeps the project self-contained with no external storage dependency — a deliberate trade-off that would be swapped for S3/Cloudinary before any real scale.
 
-**Basic API hardening.** `helmet()` sets standard security headers (with `crossOriginResourcePolicy: 'cross-origin'`, since the frontend embeds images and Snap.js served from a different origin). A general rate limiter caps all `/api` traffic at 1000 requests/15min per IP; a stricter one caps `/users/register`, `/users/login`, and `/users/google` at 10/15min to slow down brute-force attempts. Both are skipped when `NODE_ENV=development`, where hot reloads and StrictMode double-fetches would exhaust them within minutes.
+**Basic API hardening.** `helmet()` sets standard security headers (with `crossOriginResourcePolicy: 'cross-origin'`, since the frontend embeds images and Snap.js served from a different origin). A general rate limiter caps all `/api` traffic at 1000 requests/15min per IP; a stricter one caps `/users/register`, `/users/login`, and `/users/google` at 10/15min to slow down brute-force attempts. `/newsletter/subscribe` gets the tightest one, 5/hour, because it is public and emails whatever address is typed in — without a cap it could be used to spam other people from the project's Gmail account. All three are skipped when `NODE_ENV=development`, where hot reloads and StrictMode double-fetches would exhaust them within minutes.
 
 ---
 

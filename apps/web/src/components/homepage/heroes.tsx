@@ -1,7 +1,10 @@
 import React from 'react';
 import { Mail } from 'lucide-react';
+import { useNewsletterForm } from './use-newsletter-form';
 
 const Heroes = () => {
+  const { email, setEmail, loading, handleSubmit } = useNewsletterForm();
+
   return (
     <section className="relative w-full rounded-none bg-soft-cloud px-6 py-10 sm:px-10 sm:py-14 lg:px-16 lg:py-16 overflow-hidden">
       <div className="max-w-3xl">
@@ -17,21 +20,26 @@ const Heroes = () => {
 
         <form
           className="relative mt-6 w-full max-w-110"
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={handleSubmit}
         >
           <div className="relative h-12 rounded-3xl bg-canvas border-2 border-transparent pl-12 pr-36 sm:pr-44 focus-within:border-ink focus-within:ring-4 focus-within:ring-soft-cloud transition-colors">
             <Mail className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-mute" />
             <input
               type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              aria-label="Your email address"
               placeholder="Your email address"
               className="h-full w-full rounded-3xl bg-transparent pr-2 text-sm sm:text-base text-ink placeholder-mute outline-none"
             />
             <button
               type="submit"
+              disabled={loading}
               aria-label="Subscribe to newsletter"
-              className="absolute -right-2 sm:-right-3 top-1/2 -translate-y-1/2 inline-flex h-12 items-center justify-center rounded-full bg-ink px-5 sm:px-6 text-sm sm:text-base font-medium text-canvas active:scale-95 active:opacity-80 hover:bg-ink/90"
+              className="absolute -right-2 sm:-right-3 top-1/2 -translate-y-1/2 inline-flex h-12 items-center justify-center rounded-full bg-ink px-5 sm:px-6 text-sm sm:text-base font-medium text-canvas active:scale-95 active:opacity-80 hover:bg-ink/90 disabled:opacity-60 disabled:pointer-events-none"
             >
-              Subscribe
+              {loading ? 'Sending...' : 'Subscribe'}
             </button>
           </div>
         </form>

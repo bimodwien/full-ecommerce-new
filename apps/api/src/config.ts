@@ -22,6 +22,11 @@ export const MIDTRANS_CLIENT_KEY = process.env.MIDTRANS_CLIENT_KEY || '';
 export const MIDTRANS_IS_PRODUCTION =
   process.env.MIDTRANS_IS_PRODUCTION === 'true';
 
+// config for nodemailer (Gmail). Google shows the app password in groups of
+// four separated by spaces, so strip them in case it was pasted as-is.
+export const SMTP_USER = process.env.SMTP_USER || '';
+export const SMTP_PASS = (process.env.SMTP_PASS || '').replace(/\s+/g, '');
+
 // config for cors
 export const corsOptions: CorsOptions = {
   origin: process.env.CLIENT_URL,
