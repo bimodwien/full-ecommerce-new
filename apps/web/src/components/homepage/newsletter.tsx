@@ -1,7 +1,10 @@
 import React from 'react';
 import { Mail } from 'lucide-react';
+import { useNewsletterForm } from './use-newsletter-form';
 
 const NewsLetter = () => {
+  const { email, setEmail, loading, handleSubmit } = useNewsletterForm();
+
   return (
     <section className="relative w-full rounded-none bg-ink px-6 py-10 sm:px-10 sm:py-14 lg:px-16 lg:py-16 overflow-hidden">
       <div className="max-w-2xl text-canvas">
@@ -15,15 +18,15 @@ const NewsLetter = () => {
         {/* Email form */}
         <form
           className="relative mt-5 w-full max-w-130"
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
+          onSubmit={handleSubmit}
         >
           <div className="relative h-12 rounded-3xl bg-canvas pl-12 pr-36 sm:pr-44">
             <Mail className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-mute" />
             <input
               type="email"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               aria-label="Your email address"
               placeholder="Your email address"
               className="h-full w-full rounded-3xl bg-transparent pr-2 text-sm sm:text-base text-ink placeholder:text-mute focus:outline-none"
@@ -31,9 +34,10 @@ const NewsLetter = () => {
             {/* Subscribe button overlapping on the right */}
             <button
               type="submit"
-              className="absolute -right-2 sm:-right-3 top-1/2 -translate-y-1/2 inline-flex h-12 items-center justify-center rounded-full bg-soft-cloud px-5 sm:px-6 text-sm sm:text-base font-medium text-ink active:scale-95 active:opacity-80 hover:bg-hairline-soft focus:outline-none z-10"
+              disabled={loading}
+              className="absolute -right-2 sm:-right-3 top-1/2 -translate-y-1/2 inline-flex h-12 items-center justify-center rounded-full bg-soft-cloud px-5 sm:px-6 text-sm sm:text-base font-medium text-ink active:scale-95 active:opacity-80 hover:bg-hairline-soft focus:outline-none z-10 disabled:opacity-60 disabled:pointer-events-none"
             >
-              Subscribe
+              {loading ? 'Sending...' : 'Subscribe'}
             </button>
           </div>
         </form>
