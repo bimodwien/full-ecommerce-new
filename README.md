@@ -80,7 +80,7 @@ The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/serv
 .
 ├── apps
 │   ├── api                    # Express + Prisma backend
-│   │   ├── prisma/            # schema + migrations
+│   │   ├── prisma/            # schema + migrations + seed (demo products)
 │   │   └── src
 │   │       ├── routers/       # route definitions + guards, one folder per domain
 │   │       ├── controllers/   # request/response handling, one folder per domain
@@ -122,7 +122,7 @@ npm install
 
 ### 2. Configure environment
 
-Copy the example files and fill in your own values — each variable is documented inline:
+Copy the example files and fill in your own values:
 
 ```bash
 cp apps/api/.env.example apps/api/.env.development
@@ -133,6 +133,8 @@ At minimum you'll need to set `DATABASE_URL`, `SECRET_KEY`, and your Midtrans sa
 
 `SMTP_USER` and `SMTP_PASS` are optional and only power the newsletter reply email. `SMTP_PASS` must be a Google App Password — Gmail rejects the normal account password over SMTP.
 
+`API_BASE_URL` is this API's own origin, used to build product image URLs. Leave off the `/api` suffix, unlike the web app's `NEXT_PUBLIC_BASE_API_URL`.
+
 ### 3. Set up the database
 
 ```bash
@@ -141,7 +143,27 @@ npx prisma migrate dev
 npx prisma generate
 ```
 
-### 4. Run
+### 4. Seed demo data (optional)
+
+Adds a seller account, 5 categories, and 20 demo products so the store isn't empty. Product images are generated gray placeholders.
+
+Add the seller's login to `apps/api/.env`. The seed reads `.env` only, not `.env.development`:
+
+```
+SEED_SELLER_EMAIL="seller@example.com"
+SEED_SELLER_PASSWORD="choose-a-password"
+```
+
+Then run:
+
+```bash
+cd apps/api
+npx prisma db seed
+```
+
+Safe to run more than once: the seller, categories, and products that already exist (matched by email or name) are skipped. Edit the product list in `apps/api/prisma/seed/data/`.
+
+### 5. Run
 
 ```bash
 npm run dev          # runs both apps via Turborepo
@@ -150,7 +172,7 @@ npm run dev          # runs both apps via Turborepo
 - Web → http://localhost:3000
 - API → http://localhost:8000
 
-### 5. Testing the payment webhook locally
+### 6. Testing the payment webhook locally
 
 Midtrans needs a publicly reachable URL to deliver payment notifications, so local testing requires a tunnel:
 
