@@ -1,0 +1,181 @@
+[
+  {
+    "name": "BT-5 Wireless Earbuds",
+    "category": "Electronics",
+    "price": 249000,
+    "description": "Bluetooth 5.3 earbuds that pair in seconds and reconnect on their own when you take them out of the case. They sit light in the ear, so they stay comfortable on a long commute or a full workday of calls.\n\nThe charging case tops the earbuds up on the go, and the built-in microphone keeps your voice clear on calls and meetings.\n\n**Highlights**\n\n- Up to 24 hours of battery with the charging case\n- Built-in microphone for calls\n- Splash resistant for workouts and light rain\n- Touch controls for music and calls\n\n**In the box**\n\nEarbuds, charging case, USB-C charging cable, and two extra ear tip sizes.",
+    "variants": [
+      { "variant": "Black", "stock": 40, "price": null },
+      { "variant": "White", "stock": 25, "price": null }
+    ]
+  },
+  {
+    "name": "10000 mAh Power Bank",
+    "category": "Electronics",
+    "price": 189000,
+    "description": "A slim power bank that slips into a jacket pocket or a small bag. It has enough capacity to recharge most phones about two times, which covers a full day away from a wall socket.\n\nTwo output ports let you charge a phone and a pair of earbuds at the same time.\n\n**Highlights**\n\n- 10000 mAh capacity\n- USB-C and USB-A output\n- USB-C input for recharging the power bank itself\n- LED indicator shows the remaining battery\n\n**Good to know**\n\nCharging speed depends on your phone and cable. Use the cable that came with your device for the best result.",
+    "variants": []
+  },
+  {
+    "name": "Compact Mechanical Keyboard",
+    "category": "Electronics",
+    "price": 459000,
+    "description": "A 75% mechanical keyboard that keeps the arrow keys and function row but drops the number pad, so it leaves more desk space for your mouse. The typing feel is firm and consistent, whether you are writing code, answering email, or playing games.\n\nThe switches are hot-swappable, which means you can change them later without any soldering.\n\n**Highlights**\n\n- Hot-swappable switches\n- Detachable USB-C cable\n- PBT keycaps that resist shine and wear\n- Compact 75% layout\n\n**Choosing a switch**\n\n- Blue: clicky and tactile, with an audible click\n- Red: smooth and light, quiet to type on\n- Brown: tactile bump without the loud click",
+    "variants": [
+      { "variant": "Blue Switch", "stock": 15, "price": 459000 },
+      { "variant": "Red Switch", "stock": 20, "price": 479000 },
+      { "variant": "Brown Switch", "stock": 12, "price": 479000 }
+    ]
+  },
+  {
+    "name": "Plain Cotton T-Shirt",
+    "category": "Fashion",
+    "price": 79000,
+    "description": "A plain tee made from combed 30s cotton, a fabric that feels soft on the skin and breathes well in warm weather. The collar and body are cut to hold their shape wash after wash, so it keeps looking neat.\n\nIt works on its own, under a jacket, or as a base layer.\n\n**Highlights**\n\n- Combed 30s cotton\n- Regular fit\n- Chain-stitched shoulders for extra durability\n- Machine washable\n\n**Care**\n\nWash cold with similar colors and dry in the shade to keep the fabric from shrinking.",
+    "variants": [
+      { "variant": "S", "stock": 30, "price": null },
+      { "variant": "M", "stock": 50, "price": null },
+      { "variant": "L", "stock": 45, "price": null },
+      { "variant": "XL", "stock": 20, "price": null }
+    ]
+  },
+  {
+    "name": "Fleece Hoodie Jacket",
+    "category": "Fashion",
+    "price": 235000,
+    "description": "A thick fleece hoodie for cool evenings, air-conditioned offices, and mountain trips. The inner lining is brushed soft, so it feels warm the moment you put it on.\n\nThe kangaroo pocket holds a phone or keeps your hands warm, and the hood adjusts with a drawstring.\n\n**Highlights**\n\n- Thick fleece fabric with a soft inner lining\n- Front kangaroo pocket\n- Adjustable hood with metal-tipped drawstrings\n- Ribbed cuffs and hem that hold in the warmth\n\n**Fit**\n\nCut with a relaxed fit. If you like it snug, pick one size down.",
+    "variants": [
+      { "variant": "M", "stock": 18, "price": null },
+      { "variant": "L", "stock": 22, "price": null },
+      { "variant": "XL", "stock": 10, "price": null }
+    ]
+  },
+  {
+    "name": "Waterproof Backpack",
+    "category": "Fashion",
+    "price": 275000,
+    "description": "A 20 liter backpack made from water-resistant fabric, so your laptop and documents stay dry when the rain catches you on the way to work. It is sized for daily use: big enough for the essentials, small enough not to feel bulky.\n\nThe padded shoulder straps and back panel keep the weight comfortable over long walks.\n\n**Highlights**\n\n- 20 liter capacity\n- Padded laptop sleeve that fits up to 15 inches\n- USB charging port on the side for a power bank inside\n- Water-resistant fabric and zippers\n\n**Good to know**\n\nWater resistant means it handles rain and splashes. Do not leave it submerged.",
+    "variants": []
+  },
+  {
+    "name": "1.8 Liter Rice Cooker",
+    "category": "Home & Kitchen",
+    "price": 349000,
+    "description": "A digital rice cooker that handles the whole job: cook, then switch to keep-warm on its own, so the rice is still ready when dinner is late. The 1.8 liter pot feeds a family of four to six people.\n\nThe non-stick inner pot wipes clean in seconds, and the same pot works for steaming and cooking porridge.\n\n**Highlights**\n\n- 1.8 liter capacity\n- Automatic keep-warm after cooking\n- Non-stick inner pot\n- Digital panel with simple one-touch modes\n\n**In the box**\n\nRice cooker, inner pot, rice spoon, measuring cup, and power cord.",
+    "variants": []
+  },
+  {
+    "name": "5-Piece Kitchen Knife Set",
+    "category": "Home & Kitchen",
+    "price": 169000,
+    "description": "Five stainless steel knives that cover most of what happens on a cutting board, from slicing bread to peeling a small piece of fruit. They come in a wooden block, which keeps the blades protected and the counter tidy.\n\nThe handles are shaped for a comfortable grip, so the knives stay steady during longer prep sessions.\n\n**What is included**\n\n- Chef knife for general chopping\n- Bread knife with a serrated edge\n- Santoku knife for thin slices\n- Utility knife for smaller tasks\n- Paring knife for peeling and detail work\n\n**Care**\n\nHand wash and dry right away. Skip the dishwasher to keep the edges sharp.",
+    "variants": []
+  },
+  {
+    "name": "Foldable LED Desk Lamp",
+    "category": "Home & Kitchen",
+    "price": 129000,
+    "description": "A study lamp with three brightness levels, so you can read at full light and then dim it down for the evening. The arm folds and rotates, which lets you aim the light exactly where you need it.\n\nIt folds flat when you are done, so it fits on a crowded desk or in a bag.\n\n**Highlights**\n\n- Three brightness levels\n- Foldable, rotating arm\n- Low power use\n- Powered through a USB cable\n\n**Good to know**\n\nYou can plug it into a laptop, a power bank, or a standard phone charger.",
+    "variants": [
+      { "variant": "White", "stock": 35, "price": null },
+      { "variant": "Black", "stock": 28, "price": null }
+    ]
+  },
+  {
+    "name": "Non-Slip Yoga Mat",
+    "category": "Sports",
+    "price": 145000,
+    "description": "A 6 mm TPE mat with enough cushion to protect your knees and wrists, and enough firmness to keep you stable in standing poses. The surface grips on both sides, so your hands and feet do not slide when you start to sweat.\n\nIt is light and rolls up tight, and the strap in the box makes it easy to carry to class.\n\n**Highlights**\n\n- 6 mm thickness\n- Non-slip surface on both sides\n- Light and easy to roll up\n- Comes with a carry strap\n\n**Care**\n\nWipe with a damp cloth after use and let it air dry before rolling it up.",
+    "variants": [
+      { "variant": "Purple", "stock": 20, "price": null },
+      { "variant": "Green", "stock": 20, "price": null },
+      { "variant": "Gray", "stock": 15, "price": null }
+    ]
+  },
+  {
+    "name": "Adjustable Dumbbell 10 Kg",
+    "category": "Sports",
+    "price": 320000,
+    "description": "A pair of dumbbells that you can adjust as you get stronger, so one set replaces several fixed weights. It is a good fit for home workouts where storage space is limited.\n\nThe rubber grip stays secure in sweaty hands, and the twist-lock collar keeps the plates in place during the set.\n\n**Highlights**\n\n- Up to 10 kg of total weight\n- Non-slip rubber grip\n- Twist-lock safety collar\n- Compact enough to store under a bed or in a corner\n\n**Before you start**\n\nCheck that the collars are tight before every set, and add weight in small steps.",
+    "variants": []
+  },
+  {
+    "name": "1 Liter Water Bottle",
+    "category": "Sports",
+    "price": 85000,
+    "description": "A 1 liter bottle made from BPA-free Tritan, a tough plastic that does not hold onto smells or tastes. The lid seals tight, so it travels in a bag without leaking.\n\nThe volume markings on the side help you track how much you drink through the day.\n\n**Highlights**\n\n- 1 liter capacity\n- BPA-free Tritan\n- Leak-proof lid\n- Volume markings on the body\n- Fits standard bike bottle cages\n\n**Care**\n\nRinse after each use and wash with warm soapy water. Do not pour in boiling water.",
+    "variants": [
+      { "variant": "Blue", "stock": 60, "price": null },
+      { "variant": "Black", "stock": 55, "price": null }
+    ]
+  },
+  {
+    "name": "Gayo Arabica Coffee 250 g",
+    "category": "Food & Drink",
+    "price": 98000,
+    "description": "Arabica beans from the Gayo highlands in Aceh, roasted to a medium level that keeps the sweetness and avoids bitterness. In the cup you get notes of chocolate and caramel with a clean, mild finish.\n\nThe beans are packed in a bag with a one-way valve, which lets gas out and keeps air out so the coffee stays fresh.\n\n**Highlights**\n\n- Single-origin Gayo arabica\n- Medium roast\n- Chocolate and caramel notes\n- Works for manual brew, French press, and espresso\n\n**Brewing tip**\n\nUse water just off the boil and grind right before brewing. Choose Whole Beans if you have a grinder, or Fine Ground for an espresso machine or moka pot.",
+    "variants": [
+      { "variant": "Whole Beans", "stock": 40, "price": 98000 },
+      { "variant": "Fine Ground", "stock": 30, "price": 98000 }
+    ]
+  },
+  {
+    "name": "Pure Forest Honey 500 ml",
+    "category": "Food & Drink",
+    "price": 110000,
+    "description": "Honey collected from forest flowers, with no sugar or syrup added. It has a rich, slightly floral taste and a thick texture that spreads well on bread and stirs easily into tea.\n\nIt is strained but never heated, so the honey stays close to how it came from the hive.\n\n**Highlights**\n\n- 500 ml glass bottle\n- No added sugar or syrup\n- Strained, not heated\n\n**Good to know**\n\nHoney may thicken or form crystals over time. This is natural. Place the bottle in a bowl of warm water to loosen it. Store it in a cool, dry place with the lid closed.",
+    "variants": []
+  },
+  {
+    "name": "Spicy Cassava Chips",
+    "category": "Food & Drink",
+    "price": 24000,
+    "description": "Thin cassava slices fried until crisp and tossed in a sweet and spicy seasoning. They are made for snacking: easy to share during a movie night or to keep in a drawer at the office.\n\nThe chips are fried without preservatives, so they taste best when eaten within a few weeks.\n\n**Highlights**\n\n- 200 g net weight\n- Fried without preservatives\n- Sweet and spicy seasoning\n- Two spice levels to choose from\n\n**Storage**\n\nSeal the bag tightly after opening to keep the chips crunchy.",
+    "variants": [
+      { "variant": "Medium Spicy", "stock": 100, "price": null },
+      { "variant": "Extra Spicy", "stock": 80, "price": null }
+    ]
+  },
+  {
+    "name": "Wireless Optical Mouse",
+    "category": "Electronics",
+    "price": 119000,
+    "description": "A wireless mouse with quiet buttons, a good pick for shared offices, libraries, and late-night work. It connects through a small USB receiver, so there is no pairing to set up.\n\nThe shape suits right-handed users and keeps the wrist in a relaxed position over long sessions.\n\n**Highlights**\n\n- 2.4 GHz wireless connection\n- Three DPI levels for slow precise work or fast movement\n- Quiet click buttons\n- Runs on one AA battery\n\n**In the box**\n\nMouse, USB receiver (stored inside the battery compartment), and one AA battery.",
+    "variants": [
+      { "variant": "Black", "stock": 45, "price": null },
+      { "variant": "Gray", "stock": 30, "price": null }
+    ]
+  },
+  {
+    "name": "Slim Fit Chino Pants",
+    "category": "Fashion",
+    "price": 199000,
+    "description": "Chinos made from stretch cotton, smart enough for the office and relaxed enough for the weekend. The slim cut follows the leg without feeling tight, and the stretch lets you sit, walk, and climb stairs comfortably.\n\nThe fabric resists wrinkles, so the pants still look neat after a day at a desk.\n\n**Highlights**\n\n- Stretch cotton fabric\n- Slim fit\n- Two front pockets and two back pockets\n- Wrinkle resistant\n\n**Sizing**\n\nSizes are waist measurements in inches. If you are between sizes, go up for a looser fit.",
+    "variants": [
+      { "variant": "30", "stock": 15, "price": null },
+      { "variant": "32", "stock": 25, "price": null },
+      { "variant": "34", "stock": 20, "price": null }
+    ]
+  },
+  {
+    "name": "Ceramic Coffee Mug Set",
+    "category": "Home & Kitchen",
+    "price": 135000,
+    "description": "A set of four ceramic mugs, each holding 300 ml, enough for a large coffee or a full cup of tea. The glazed finish feels smooth, resists stains, and keeps the drink warm for a while.\n\nThe handle is wide enough for two fingers, so the mug feels balanced even when it is full.\n\n**Highlights**\n\n- Four mugs per set, 300 ml each\n- Glazed ceramic finish\n- Microwave and dishwasher safe\n- Comfortable, wide handle\n\n**Care**\n\nAvoid sudden temperature changes, such as pouring boiling water into a cold mug, to prevent cracks.",
+    "variants": []
+  },
+  {
+    "name": "Jump Rope with Counter",
+    "category": "Sports",
+    "price": 65000,
+    "description": "A speed rope with a digital counter in the handle, so you can see your jumps without counting out loud. It suits warm-ups, cardio sessions, and short workouts at home.\n\nThe ball-bearing handles keep the rope spinning smoothly, and the length adjusts to fit your height.\n\n**Highlights**\n\n- Digital jump counter\n- Ball-bearing handles for a smooth spin\n- Adjustable length up to 3 meters\n- Foam grips that stay comfortable and dry\n\n**Setting the length**\n\nStep on the middle of the rope. The handles should reach about your armpits. Trim the extra length and tighten the end.",
+    "variants": []
+  },
+  {
+    "name": "Green Tea Bags 25 Pcs",
+    "category": "Food & Drink",
+    "price": 38000,
+    "description": "Green tea in individual sachets, made in the Japanese style with a clean, slightly grassy taste. It is easy to brew at home, at the office, or on a trip.\n\nThere is no added flavoring, so the tea tastes like tea. Drink it plain, or add a slice of lemon.\n\n**Highlights**\n\n- 25 tea bags per box\n- No added flavoring\n- Individually wrapped to keep the aroma fresh\n\n**How to brew**\n\nPour water at about 80 degrees Celsius over one tea bag and steep for 2 to 3 minutes. Water that is too hot can make the tea taste bitter.",
+    "variants": []
+  }
+]
