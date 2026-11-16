@@ -18,7 +18,7 @@ Most portfolio e-commerce apps stop at a fake "Pay" button that flips a status c
 
 - **Real Midtrans Snap integration** — orders are paid through the actual Midtrans sandbox, and payment state is settled by a **server-to-server webhook**, not by trusting the client.
 - **Manually verified webhook signatures** (SHA-512 over `order_id + status_code + gross_amount + server_key`) instead of accepting any POST that reaches the endpoint.
-- **Idempotent notification handling** — a replayed or out-of-order Midtrans callback is a no-op, because payment providers *do* retry.
+- **Idempotent notification handling** — a replayed or out-of-order Midtrans callback is a no-op, because payment providers _do_ retry.
 - **Stock is managed transactionally** — reserved when an order is created, restored inside a DB transaction when it's cancelled, denied, or expires.
 
 The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/services/order/) (start with `checkout.service.ts` and `payment.service.ts`) and [`apps/api/src/libs/midtrans.ts`](apps/api/src/libs/midtrans.ts).
@@ -28,6 +28,7 @@ The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/serv
 ## Features
 
 ### Buyer
+
 - Browse products with pagination, search, category filter, and price sorting
 - Product detail with image gallery and variant selection
 - Wishlist with atomic toggle (single request per click — no double-fire race)
@@ -38,6 +39,7 @@ The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/serv
 - Newsletter sign-up forms on the homepage that send a real reply email (Gmail via Nodemailer) — a demo only: the reply explains this is a portfolio project, and no address is stored
 
 ### Seller
+
 - Each seller's dashboard only shows their own products, orders, and stats
 - Product CRUD with multi-image upload and variant management, including optional per-variant pricing
 - Category CRUD
@@ -60,7 +62,7 @@ The interesting code lives in [`apps/api/src/services/order/`](apps/api/src/serv
 
 **Design note — one payment, one order per seller:** a checkout creates a single `Payment` (which holds the Midtrans transaction) and one `Order` per seller, each with its own status, so seller A shipping doesn't mark seller B's items as shipped. The webhook settles the `Payment` and all of its orders together. Because the buyer paid for them in one transaction, cancelling an unpaid order cancels the whole `Payment`, including sibling orders from other sellers.
 
-**Design note — why the 24-hour cancel gate:** while an order is `PENDING` the buyer can *always* still pay, because "Pay Now" mints a fresh Snap token on every attempt. Cancelling is therefore what actually *closes* the payment window, so it's gated to orders old enough that Midtrans' own window has lapsed. Cancellation only proceeds if it flips the `Payment` out of `PENDING` itself, **inside** the transaction, since the webhook could be settling it concurrently; only the winner touches orders and stock.
+**Design note — why the 24-hour cancel gate:** while an order is `PENDING` the buyer can _always_ still pay, because "Pay Now" mints a fresh Snap token on every attempt. Cancelling is therefore what actually _closes_ the payment window, so it's gated to orders old enough that Midtrans' own window has lapsed. Cancellation only proceeds if it flips the `Payment` out of `PENDING` itself, **inside** the transaction, since the webhook could be settling it concurrently; only the winner touches orders and stock.
 
 ---
 
@@ -106,6 +108,7 @@ The backend is layered **router → controller → service**. Services are group
 ## Getting started
 
 ### Prerequisites
+
 - Node.js 20.19+ (required by Next.js 16 and Prisma 7)
 - PostgreSQL
 - A [Midtrans sandbox account](https://dashboard.sandbox.midtrans.com/) (for the payment flow)
@@ -213,60 +216,66 @@ Base URL: `http://localhost:8000/api`
 Auth: `Authorization: Bearer <token>`. Routes are guarded in two tiers — `validateToken` (valid JWT) then `verifyUser` (buyer) or `verifyAdmin` (seller).
 
 ### Auth
-| Method | Endpoint | Access | Description |
-|---|---|---|---|
-| `POST` | `/users/register` | Public | Register a new account |
-| `POST` | `/users/login` | Public | Log in, returns JWT |
-| `POST` | `/users/google` | Public | Google Sign-In (`{ id_token }`), used by the login/register pages |
+
+| Method | Endpoint          | Access | Description                                                       |
+| ------ | ----------------- | ------ | ----------------------------------------------------------------- |
+| `POST` | `/users/register` | Public | Register a new account                                            |
+| `POST` | `/users/login`    | Public | Log in, returns JWT                                               |
+| `POST` | `/users/google`   | Public | Google Sign-In (`{ id_token }`), used by the login/register pages |
 
 ### Products
-| Method | Endpoint | Access | Description |
-|---|---|---|---|
-| `GET` | `/products` | Public | Paginated list — `page`, `limit`, `name`, `categoryId`, `minPrice`, `maxPrice`, `sort` (`newest\|price_asc\|price_desc`) |
-| `GET` | `/products/:id` | Public | Full detail — all images, variants, `descriptionHtml` |
-| `GET` | `/products/category/:categoryId` | Public | Category-filtered list |
-| `GET` | `/products/image/:id` | Public | Streams image bytes (ETag / Last-Modified / Cache-Control) |
-| `GET` | `/products/mine` | Seller | Same as `GET /products`, limited to the logged-in seller's products (dashboard) |
-| `POST` | `/products` | Seller | Create — `multipart/form-data`, up to 5 `image` files |
-| `PATCH` | `/products/:id` | Seller | Update own product — also accepts `removeImageIds`, `variantUpdates`, `removeVariantIds` |
-| `DELETE` | `/products/:id` | Seller | Delete own product |
+
+| Method   | Endpoint                         | Access | Description                                                                                                              |
+| -------- | -------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------ |
+| `GET`    | `/products`                      | Public | Paginated list — `page`, `limit`, `name`, `categoryId`, `minPrice`, `maxPrice`, `sort` (`newest\|price_asc\|price_desc`) |
+| `GET`    | `/products/:id`                  | Public | Full detail — all images, variants, `descriptionHtml`                                                                    |
+| `GET`    | `/products/category/:categoryId` | Public | Category-filtered list                                                                                                   |
+| `GET`    | `/products/image/:id`            | Public | Streams image bytes (ETag / Last-Modified / Cache-Control)                                                               |
+| `GET`    | `/products/mine`                 | Seller | Same as `GET /products`, limited to the logged-in seller's products (dashboard)                                          |
+| `POST`   | `/products`                      | Seller | Create — `multipart/form-data`, up to 5 `image` files                                                                    |
+| `PATCH`  | `/products/:id`                  | Seller | Update own product — also accepts `removeImageIds`, `variantUpdates`, `removeVariantIds`                                 |
+| `DELETE` | `/products/:id`                  | Seller | Delete own product                                                                                                       |
 
 ### Categories
-| Method | Endpoint | Access | Description |
-|---|---|---|---|
-| `GET` | `/categories` | Public | Paginated list — `page`, `limit`, `name` |
-| `GET` | `/categories/:id` | Public | Get one |
-| `POST` · `PUT` · `DELETE` | `/categories[/:id]` | Seller | Create / update / delete |
+
+| Method                    | Endpoint            | Access | Description                              |
+| ------------------------- | ------------------- | ------ | ---------------------------------------- |
+| `GET`                     | `/categories`       | Public | Paginated list — `page`, `limit`, `name` |
+| `GET`                     | `/categories/:id`   | Public | Get one                                  |
+| `POST` · `PUT` · `DELETE` | `/categories[/:id]` | Seller | Create / update / delete                 |
 
 ### Cart & Wishlist
-| Method | Endpoint | Access | Description |
-|---|---|---|---|
-| `GET` | `/carts` | Buyer | Paginated cart items |
-| `POST` | `/carts` | Buyer | Add or increment — `{ productId, variantId?, quantity? }` |
-| `PATCH` | `/carts/:id` | Buyer | Update — `{ quantity }` (absolute) or `{ delta }` (relative) |
-| `DELETE` | `/carts/:id` | Buyer | Remove item |
-| `GET` | `/wishlists` | Buyer | Paginated wishlist |
-| `POST` | `/wishlists/toggle` | Buyer | Atomic toggle → `{ action: 'created' \| 'deleted', wishlist }` |
-| `POST` · `DELETE` | `/wishlists[/:id]` | Buyer | Explicit create / delete |
+
+| Method            | Endpoint            | Access | Description                                                    |
+| ----------------- | ------------------- | ------ | -------------------------------------------------------------- |
+| `GET`             | `/carts`            | Buyer  | Paginated cart items                                           |
+| `POST`            | `/carts`            | Buyer  | Add or increment — `{ productId, variantId?, quantity? }`      |
+| `PATCH`           | `/carts/:id`        | Buyer  | Update — `{ quantity }` (absolute) or `{ delta }` (relative)   |
+| `DELETE`          | `/carts/:id`        | Buyer  | Remove item                                                    |
+| `GET`             | `/wishlists`        | Buyer  | Paginated wishlist                                             |
+| `POST`            | `/wishlists/toggle` | Buyer  | Atomic toggle → `{ action: 'created' \| 'deleted', wishlist }` |
+| `POST` · `DELETE` | `/wishlists[/:id]`  | Buyer  | Explicit create / delete                                       |
 
 ### Orders
-| Method | Endpoint | Access | Description |
-|---|---|---|---|
-| `POST` | `/orders` | Buyer | Checkout selected cart items (`{ cartItemIds }`) — one order per seller under one payment, reserves stock, returns Snap token |
-| `GET` | `/orders` | Buyer | Own order history |
-| `GET` | `/orders/:id` | Buyer | Own order detail |
-| `POST` | `/orders/:id/retry-payment` | Buyer | Reopen or mint a Snap token for the order's unpaid payment |
-| `PATCH` | `/orders/:id/complete` | Buyer | `SHIPPED` → `COMPLETED` |
-| `PATCH` | `/orders/:id/return` | Buyer | `SHIPPED` → `RETURNED` (with reason) |
-| `GET` | `/orders/admin` | Seller | Own orders, filterable by status |
-| `GET` | `/orders/admin/stats` | Seller | Own sales trend, status breakdown, top cancelled products |
-| `PATCH` | `/orders/:id/ship` | Seller | Own order, `PAID` → `SHIPPED` |
-| `PATCH` | `/orders/:id/cancel` | Seller | Cancel a stale `PENDING` order and its whole payment, restore stock |
-| `POST` | `/orders/notification` | **Midtrans** | Payment webhook — verified by signature, not JWT |
+
+| Method  | Endpoint                    | Access       | Description                                                                                                                   |
+| ------- | --------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `POST`  | `/orders`                   | Buyer        | Checkout selected cart items (`{ cartItemIds }`) — one order per seller under one payment, reserves stock, returns Snap token |
+| `GET`   | `/orders`                   | Buyer        | Own order history                                                                                                             |
+| `GET`   | `/orders/:id`               | Buyer        | Own order detail                                                                                                              |
+| `POST`  | `/orders/:id/retry-payment` | Buyer        | Reopen or mint a Snap token for the order's unpaid payment                                                                    |
+| `PATCH` | `/orders/:id/complete`      | Buyer        | `SHIPPED` → `COMPLETED`                                                                                                       |
+| `PATCH` | `/orders/:id/return`        | Buyer        | `SHIPPED` → `RETURNED` (with reason)                                                                                          |
+| `GET`   | `/orders/admin`             | Seller       | Own orders, filterable by status                                                                                              |
+| `GET`   | `/orders/admin/stats`       | Seller       | Own sales trend, status breakdown, top cancelled products                                                                     |
+| `PATCH` | `/orders/:id/ship`          | Seller       | Own order, `PAID` → `SHIPPED`                                                                                                 |
+| `PATCH` | `/orders/:id/cancel`        | Seller       | Cancel a stale `PENDING` order and its whole payment, restore stock                                                           |
+| `POST`  | `/orders/notification`      | **Midtrans** | Payment webhook — verified by signature, not JWT                                                                              |
 
 ### Newsletter
-| Method | Endpoint | Access | Description |
-|---|---|---|---|
+
+| Method | Endpoint                | Access | Description                                                                              |
+| ------ | ----------------------- | ------ | ---------------------------------------------------------------------------------------- |
 | `POST` | `/newsletter/subscribe` | Public | Sends the reply email to `{ email }` — nothing is stored. `503` if SMTP isn't configured |
 
 ---
