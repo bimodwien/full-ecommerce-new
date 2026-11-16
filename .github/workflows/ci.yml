@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      # Cypress is only for component tests, which CI doesn't run yet.
+      CYPRESS_INSTALL_BINARY: 0
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      # Match the npm that wrote package-lock.json, so allowScripts is enforced like in Docker.
+      - run: npm install -g npm@12.2.2
+      - run: npm ci
+      - run: npx prettier --check .
+      - run: npm run lint
+      # The API build needs the generated client; generate never connects to the database.
+      - run: npx prisma generate
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql://ci@localhost/ci
+      - run: npm run build
+
+  deploy:
+    needs: [check]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, tokopakbimo]
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    defaults:
+      run:
+        shell: bash
+        working-directory: /home/bimodwien/deploy/tokopakbimo
+    env:
+      BACKUP_DIR: /home/bimodwien/backups/tokopakbimo
+    steps:
+      - name: Update code to the tested commit
+        run: |
+          git fetch --prune origin
+          git reset --hard "$GITHUB_SHA"
+
+      - name: Back up the database
+        run: |
+          mkdir -p "$BACKUP_DIR"
+          url=$(grep '^DATABASE_URL=' .env | cut -d= -f2-)
+          pg_dump --format=custom \
+            --file="$BACKUP_DIR/$(date +%Y%m%d-%H%M%S)-${GITHUB_SHA::7}.dump" "$url"
+          ls -1t "$BACKUP_DIR"/*.dump | tail -n +15 | xargs -r rm --
+
+      - name: Build and restart containers
+        run: |
+          docker compose up -d --build
+          docker image prune -f
+
+      - name: Smoke test
+        run: |
+          for i in $(seq 1 30); do
+            web=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3003/ || true)
+            api=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8001/api/products || true)
+            echo "try $i: web=$web api=$api"
+            if [ "$web" = 200 ] && [ "$api" = 200 ]; then exit 0; fi
+            sleep 2
+          done
+          exit 1
