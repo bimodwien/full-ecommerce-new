@@ -5,6 +5,9 @@ import { useAppDispatch } from '@/libraries/redux/hooks';
 import { userLogin } from '@/libraries/redux/middlewares/auth.middleware';
 
 function loginErrorMessage(error: any) {
+  // Cloudflare's rate-limit block answers 429 with an HTML page, not JSON.
+  if (error?.response?.status === 429)
+    return 'Too many attempts, please try again later.';
   if (error?.response?.data?.message) return error.response.data.message;
   if (error?.response?.data?.error) return error.response.data.error;
   if (error?.message) return error.message;

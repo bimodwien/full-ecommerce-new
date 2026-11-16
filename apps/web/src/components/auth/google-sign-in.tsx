@@ -53,7 +53,10 @@ async function signInWithGoogle(
       window.location.href = '/';
     }, 1000);
   } catch (error: any) {
+    // Cloudflare's rate-limit block answers 429 with an HTML page, not JSON.
     const errorMessage =
+      (error?.response?.status === 429 &&
+        'Too many attempts, please try again later.') ||
       error?.response?.data?.message ||
       error?.response?.data?.error ||
       error?.message ||
