@@ -11,7 +11,9 @@ config({ path: resolve(__dirname, `../${envFile}.local`), override: true });
 
 // Load all environment variables from .env file
 
-export const PORT = process.env.PORT || 8000;
+export const PORT = Number(process.env.PORT) || 8000;
+// Bind to loopback by default; the server is only reached through the tunnel.
+export const HOST = process.env.HOST || '127.0.0.1';
 export const DATABASE_URL = process.env.DATABASE_URL || '';
 export const SECRET_KEY = process.env.SECRET_KEY || '';
 export const CLIENT_URL = process.env.CLIENT_URL || '';

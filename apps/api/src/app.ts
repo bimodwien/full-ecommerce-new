@@ -8,7 +8,7 @@ import express, {
 } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { PORT } from './config';
+import { HOST, PORT } from './config';
 import { corsOptions } from './config';
 import { apiLimiter } from './middlewares/rateLimit.middleware';
 import { UserRouter } from './routers/user/user.router';
@@ -99,8 +99,8 @@ export default class App {
   }
 
   public start(): void {
-    this.app.listen(PORT, () => {
-      console.log(`  ➜  [API] Local:   http://localhost:${PORT}/`);
+    this.app.listen(PORT, HOST, () => {
+      console.log(`  ➜  [API] Local:   http://${HOST}:${PORT}/`);
     });
   }
 }

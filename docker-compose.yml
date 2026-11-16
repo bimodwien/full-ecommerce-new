@@ -1,0 +1,45 @@
+# Production stack for tokopakbimo.bimodwien.id.
+# Secrets come from a .env file next to this one (copy .env.production.example).
+name: tokopakbimo
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: tokopakbimo-api
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      HOST: 127.0.0.1
+      PORT: 8001
+      CLIENT_URL: https://tokopakbimo.bimodwien.id
+      API_BASE_URL: https://tokopakbimo.bimodwien.id
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL in .env}
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?set GOOGLE_CLIENT_ID in .env}
+      MIDTRANS_SERVER_KEY: ${MIDTRANS_SERVER_KEY:?set MIDTRANS_SERVER_KEY in .env}
+      MIDTRANS_CLIENT_KEY: ${MIDTRANS_CLIENT_KEY:?set MIDTRANS_CLIENT_KEY in .env}
+      MIDTRANS_IS_PRODUCTION: ${MIDTRANS_IS_PRODUCTION:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SEED_SELLER_EMAIL: ${SEED_SELLER_EMAIL:-}
+      SEED_SELLER_PASSWORD: ${SEED_SELLER_PASSWORD:-}
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_BASE_API_URL: https://tokopakbimo.bimodwien.id/api
+        NEXT_PUBLIC_MIDTRANS_CLIENT_KEY: ${MIDTRANS_CLIENT_KEY:?set MIDTRANS_CLIENT_KEY in .env}
+        NEXT_PUBLIC_MIDTRANS_SNAP_URL: ${MIDTRANS_SNAP_URL:-https://app.sandbox.midtrans.com/snap/snap.js}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?set GOOGLE_CLIENT_ID in .env}
+    image: tokopakbimo-web
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      # Set explicitly: Docker would otherwise fill HOSTNAME with the machine name.
+      HOSTNAME: 127.0.0.1
+      PORT: 3003
+    depends_on: [api]

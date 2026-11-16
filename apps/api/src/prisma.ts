@@ -7,7 +7,11 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({
     adapter,
-    log: ['query', 'info', 'warn', 'error'],
+    // Query logs are useful in dev but would flood the production logs.
+    log:
+        process.env.NODE_ENV === 'production'
+            ? ['warn', 'error']
+            : ['query', 'info', 'warn', 'error'],
 });
 
 export default prisma;

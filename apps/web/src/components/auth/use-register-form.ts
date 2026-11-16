@@ -10,6 +10,9 @@ import type { AppDispatch } from '@/libraries/redux/store';
 
 // Backend error message(s), including a { field: message } map.
 function registerErrorMessage(error: any) {
+  // Cloudflare's rate-limit block answers 429 with an HTML page, not JSON.
+  if (error?.response?.status === 429)
+    return 'Too many attempts, please try again later.';
   const data = error?.response?.data;
   if (typeof data?.message === 'string') return data.message as string;
   if (typeof data?.error === 'string') return data.error as string;

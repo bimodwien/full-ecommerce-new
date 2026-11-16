@@ -188,6 +188,22 @@ https://<your-ngrok-domain>/api/orders/notification
 
 Without this, orders stay `PENDING` after payment — the Snap popup will succeed, but nothing tells your API about it.
 
+### 7. Deployment
+
+Production runs with Docker Compose on a self-hosted server behind a Cloudflare Tunnel: `https://tokopakbimo.bimodwien.id/api` goes to the API (port 8001) and everything else to the web app (port 3003). Both containers use host networking, bind `127.0.0.1`, and talk to a Postgres that runs on the host.
+
+```bash
+git clone https://github.com/bimodwien/full-ecommerce-new.git ~/deploy/tokopakbimo
+cd ~/deploy/tokopakbimo
+cp .env.production.example .env   # fill in the secrets
+docker compose up -d --build      # the API runs prisma migrate deploy on start
+docker compose exec api npx prisma db seed   # optional demo data
+```
+
+To update, `git pull` and run `docker compose up -d --build` again. `NEXT_PUBLIC_*` values are baked into the web build, so changing the Midtrans client key or Google client ID also needs a rebuild.
+
+In production the Midtrans Payment Notification URL is `https://tokopakbimo.bimodwien.id/api/orders/notification`, and the site's origin must be listed under **Authorized JavaScript origins** for the Google client ID.
+
 ---
 
 ## API reference
@@ -277,7 +293,7 @@ Being upfront about what isn't done:
 - [ ] No cron/safety-net to auto-expire orders stuck in `PENDING` (currently a manual seller action)
 - [ ] No refresh-token endpoint, logout, or password reset — the access token just expires after 1 day and the user logs in again. A stateless refresh flow (no DB-backed revocation) is a natural next step
 - [ ] Images should move to object storage before production scale
-- [ ] Not deployed yet — the GitHub Actions workflow in `.github/` is leftover boilerplate (Node 18, password-based SSH) and needs rewriting, including `prisma migrate deploy`
+- [ ] Deploys are manual (`git pull` + `docker compose up -d --build` on the server); there is no CI/CD pipeline yet
 
 ---
 
