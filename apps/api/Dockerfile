@@ -2,8 +2,9 @@
 
 FROM node:24.21.0-slim AS base
 # Prisma's migrate engine needs OpenSSL, which the slim image leaves out.
+# The seed's placeholder images draw text with sharp, which needs a font.
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends openssl \
+  && apt-get install -y --no-install-recommends openssl fontconfig fonts-dejavu-core \
   && rm -rf /var/lib/apt/lists/*
 # Match the npm that wrote package-lock.json (see "packageManager").
 RUN npm install -g npm@12.2.2
